@@ -3,11 +3,16 @@ import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope,
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import StatCard from "@/components/shared/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CountdownTimer } from "@/components/shared/CountdownTimer";
+import { RegistrationForm } from "@/components/shared/RegistrationForm";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tables } from "@/integrations/supabase/types";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const iconMap: Record<string, React.ElementType> = {
@@ -15,6 +20,9 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 const Index = () => {
+  const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
+  const [isRegOpen, setIsRegOpen] = useState(false);
+
   const { data: sections, isLoading } = useQuery({
     queryKey: ["home-sections"],
     queryFn: async () => {
@@ -83,6 +91,9 @@ const Index = () => {
   const quickLinks = getSection("quick_links");
   const announcements = getSection("announcements");
   const upcomingEvents = getSection("upcoming_events");
+  const recentAchievementsSection = getSection("recent_achievements");
+  const featuredProjectsSection = getSection("featured_projects");
+  const recentBlogSection = getSection("recent_blog");
   const stats = getSection("stats");
   const features = getSection("features");
   const cta = getSection("cta");
@@ -110,7 +121,7 @@ const Index = () => {
             <img src={hero.background_image || heroBg} alt="" className="h-full w-full object-cover" />
             <div className="absolute inset-0 hero-gradient opacity-85" />
           </div>
-          <div className="container relative z-10 flex flex-col items-center py-24 text-center md:py-36">
+          <div className="container relative z-10 flex flex-col items-center py-16 text-center md:py-24">
             <span className="animate-fade-up mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
               {hero.subtitle}
             </span>
@@ -148,7 +159,7 @@ const Index = () => {
 
       {/* Latest Announcements */}
       {announcements && (
-        <section className="container py-16">
+        <section className="container py-12">
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -199,52 +210,175 @@ const Index = () => {
       )}
 
       {/* Dynamic Upcoming Events */}
-      <section className="container py-16 bg-muted/30 rounded-3xl mb-8">
-        <SectionHeading title="Upcoming Events" description="Seminars, workshops, and fests." />
+      <section className="container py-12 bg-muted/30 rounded-3xl mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <SectionHeading 
+            title={upcomingEvents?.title as string || "Upcoming Events"} 
+            description={upcomingEvents?.description as string || "Join us for our next major gatherings and workshops."} 
+            align="left" 
+            className="mb-0" 
+          />
+          <Button asChild variant="outline" className="group">
+            <Link to="/events">
+              See All Events
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+        </div>
+
         {isLoadingEvents ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+          <div className="grid gap-6 md:grid-cols-3">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
           </div>
         ) : recentEvents && recentEvents.length > 0 ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {recentEvents.map((event: Record<string, string>) => (
-              <div key={event.id} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
-                <h3 className="font-bold text-lg mb-2">{event.title}</h3>
-                <p className="text-sm text-primary font-medium mb-3">{format(new Date(event.date), "PPP")}</p>
-                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{event.description}</p>
-                <Button asChild variant="outline" size="sm" className="w-full mt-auto">
-                  <Link to={`/events`}>View Details</Link>
-                </Button>
-              </div>
-            ))}
+          <div className="grid gap-8 lg:grid-cols-12">
+            {/* Featured Event */}
+            <div className="lg:col-span-4">
+              {recentEvents[0] && (
+                <div className="relative h-full min-h-[400px] overflow-hidden rounded-3xl bg-[#3E82A7] p-8 text-white shadow-xl flex flex-col">
+                  <div className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-90">
+                    <Bell className="h-4 w-4" />
+                    Next Major Event
+                  </div>
+                  <h3 className="mb-8 text-3xl font-bold leading-tight">
+                    {recentEvents[0].title}
+                  </h3>
+                  
+                  <div className="mb-auto">
+                    <CountdownTimer targetDate={recentEvents[0].date} />
+                  </div>
+
+                  <div className="mt-8">
+                    <Dialog open={isRegOpen && selectedEvent?.id === recentEvents[0].id} onOpenChange={(open) => {
+                      setIsRegOpen(open);
+                      if (open) setSelectedEvent(recentEvents[0] as Tables<"events">);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button className="w-full bg-white text-[#3E82A7] hover:bg-white/90 font-bold py-6 text-lg rounded-xl">
+                          Register Now
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Register for {recentEvents[0].title}</DialogTitle>
+                        </DialogHeader>
+                        <RegistrationForm 
+                          eventId={recentEvents[0].id} 
+                          eventTitle={recentEvents[0].title} 
+                          onSuccess={() => setIsRegOpen(false)} 
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Other Events */}
+            <div className="lg:col-span-8 grid gap-6 md:grid-cols-2">
+              {recentEvents.slice(1, 3).map((event: Record<string, string>) => (
+                <div key={event.id} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+                  <div className="relative h-48 overflow-hidden">
+                    <img 
+                      src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
+                      alt={event.title} 
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                    <div className="absolute bottom-4 left-4 text-white">
+                      <p className="text-sm font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
+                    </div>
+                    {event.location && (
+                      <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                        {event.location}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-6">
+                    <h3 className="mb-2 text-xl font-bold text-foreground line-clamp-1">{event.title}</h3>
+                    <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
+                      {format(new Date(event.date), "hh:mm a")}
+                    </div>
+                    <Button asChild variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
+                      <Link to="/events">View Details</Link>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              {recentEvents.length === 1 && (
+                <div className="flex items-center justify-center rounded-3xl border border-dashed border-border bg-muted/20 p-8 text-center md:col-span-2">
+                  <p className="text-muted-foreground">Stay tuned for more upcoming events!</p>
+                </div>
+              )}
+            </div>
           </div>
         ) : (
-          <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
-            <p className="text-sm text-muted-foreground italic">No upcoming events scheduled.</p>
+          <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
+            <Calendar className="mx-auto h-12 w-12 text-muted-foreground/30 mb-4" />
+            <p className="text-lg font-medium text-muted-foreground">No upcoming events scheduled.</p>
+            <Button asChild variant="link" className="mt-2">
+              <Link to="/events">Check past events</Link>
+            </Button>
           </div>
         )}
       </section>
 
       {/* Dynamic Achievements */}
-      <section className="container py-16 bg-muted/30 rounded-3xl mb-16">
-        <SectionHeading title="Recent Achievements" description="Celebrating our latest recognition and impact." />
+      <section className="container py-12 bg-muted/30 rounded-3xl mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <SectionHeading 
+            title={recentAchievementsSection?.title as string || "Recent Achievements"} 
+            description={recentAchievementsSection?.description as string || "Celebrating our latest recognition and impact."} 
+            align="left" 
+            className="mb-0" 
+          />
+          <Button asChild variant="outline" className="group">
+            <Link to="/achievements">
+              See All Achievements
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+        </div>
         {isLoadingAchievements ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-3xl" />)}
           </div>
         ) : recentAchievements && recentAchievements.length > 0 ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {recentAchievements.map((achievement: Record<string, unknown>) => (
-              <div key={achievement.id as string} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{achievement.category as string}</span>
+              <div key={achievement.id as string} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+                <div className="relative h-48 overflow-hidden">
+                  <img 
+                    src={(achievement.image_url as string) || `https://picsum.photos/seed/${achievement.id}/800/600`} 
+                    alt={achievement.title as string} 
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">
+                    <span className="inline-block rounded-full bg-primary/90 px-2 py-0.5 text-xs font-semibold text-primary-foreground capitalize backdrop-blur-sm">
+                      {achievement.category as string}
+                    </span>
+                  </div>
+                  {(achievement.year || achievement.date_text) && (
+                    <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                      {(achievement.year || achievement.date_text) as string}
+                    </div>
+                  )}
                 </div>
-                <h3 className="font-bold text-lg mb-2">{achievement.title as string}</h3>
-                <p className="text-sm text-primary font-medium mb-3">{(achievement.year || achievement.date_text || "Recent") as string}</p>
-                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{(achievement.description || achievement.authors) as string}</p>
-                <Button asChild variant="outline" size="sm" className="w-full mt-auto">
-                  <Link to={`/achievements`}>View Details</Link>
-                </Button>
+                <div className="p-6">
+                  <h3 className="mb-2 text-xl font-bold text-foreground line-clamp-1" title={achievement.title as string}>
+                    {achievement.title as string}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-6 line-clamp-2">
+                    {(achievement.description || achievement.authors) as string}
+                  </p>
+                  <Button asChild variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
+                    <Link to="/achievements">View Details</Link>
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -256,8 +390,21 @@ const Index = () => {
       </section>
 
       {/* Dynamic Featured Projects */}
-      <section className="container py-16 mb-16">
-        <SectionHeading title="Featured Projects" description="Innovative solutions developed by our members." />
+      <section className="container py-12 mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <SectionHeading 
+            title={featuredProjectsSection?.title as string || "Featured Projects"} 
+            description={featuredProjectsSection?.description as string || "Innovative solutions developed by our members."} 
+            align="left" 
+            className="mb-0" 
+          />
+          <Button asChild variant="outline" className="group">
+            <Link to="/projects">
+              See All Projects
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+        </div>
         {isLoadingProjects ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
@@ -295,8 +442,21 @@ const Index = () => {
       </section>
 
       {/* Dynamic Blog Previews */}
-      <section className="container py-16 bg-muted/30 rounded-3xl mb-16">
-        <SectionHeading title="Latest from the Blog" description="Insights, news, and stories from our community." />
+      <section className="container py-12 bg-muted/30 rounded-3xl mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <SectionHeading 
+            title={recentBlogSection?.title as string || "Latest from the Blog"} 
+            description={recentBlogSection?.description as string || "Insights, news, and stories from our community."} 
+            align="left" 
+            className="mb-0" 
+          />
+          <Button asChild variant="outline" className="group">
+            <Link to="/blog">
+              See All Posts
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </Button>
+        </div>
         {isLoadingBlog ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
@@ -361,7 +521,7 @@ const Index = () => {
 
       {/* Features */}
       {features && (
-        <section className="container py-20">
+        <section className="container py-16">
           <SectionHeading badge={features.badge} title={features.title} description={features.description} />
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.items?.map((f: Record<string, unknown>) => {
@@ -382,7 +542,7 @@ const Index = () => {
 
       {/* CTA */}
       {cta && (
-        <section className="hero-gradient py-16">
+        <section className="hero-gradient py-12">
           <div className="container text-center">
             <h2 className="text-3xl font-bold text-primary-foreground">{cta.title}</h2>
             <p className="mt-3 text-primary-foreground/80">{cta.description}</p>

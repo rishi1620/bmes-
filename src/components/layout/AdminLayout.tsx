@@ -27,8 +27,7 @@ const linkGroups = [
       { label: "About Page", path: "/admin/about", icon: FileText },
       { label: "Academics", path: "/admin/academics", icon: GraduationCap },
       { label: "Activities", path: "/admin/activities", icon: CalendarDays },
-      { label: "Members", path: "/admin/members", icon: Users },
-      { label: "Advisors", path: "/admin/advisors", icon: UserCheck },
+      { label: "People", path: "/admin/people", icon: Users },
       { label: "Events", path: "/admin/events", icon: Calendar },
       { label: "Projects", path: "/admin/projects", icon: FolderOpen },
       { label: "Achievements", path: "/admin/achievements", icon: Trophy },
@@ -42,6 +41,7 @@ const linkGroups = [
     links: [
       { label: "Media", path: "/admin/media", icon: Image },
       { label: "Contact Form", path: "/admin/submissions", icon: Inbox },
+      { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays },
       { label: "Settings", path: "/admin/settings", icon: Settings },
     ]
   }

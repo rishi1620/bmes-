@@ -49,6 +49,8 @@ const Footer = () => (
           <div className="flex flex-col gap-2">
             {[
               { label: "Activities & Events", path: "/activities" },
+              { label: "Achievements", path: "/achievements" },
+              { label: "Blog & News", path: "/blog" },
               { label: "Student Portal", path: "/portal" },
               { label: "Alumni", path: "/alumni" },
               { label: "Contact Us", path: "/contact" },

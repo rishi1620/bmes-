@@ -27,10 +27,22 @@ const Achievements = () => {
     },
   });
 
-  const competitions = achievements.filter((a) => a.category === "competition");
-  const publications = achievements.filter((a) => a.category === "publication");
-  const grants = achievements.filter((a) => a.category === "grant");
-  const media = achievements.filter((a) => a.category === "media");
+  const competitions = achievements.filter((a) => {
+    const cat = a.category?.toLowerCase() || "";
+    return cat === "competition" || cat === "competitions" || cat === "award" || cat === "awards";
+  });
+  const publications = achievements.filter((a) => {
+    const cat = a.category?.toLowerCase() || "";
+    return cat === "publication" || cat === "publications";
+  });
+  const grants = achievements.filter((a) => {
+    const cat = a.category?.toLowerCase() || "";
+    return cat === "grant" || cat === "grants";
+  });
+  const media = achievements.filter((a) => {
+    const cat = a.category?.toLowerCase() || "";
+    return cat === "media" || cat === "news" || cat === "event" || cat === "events";
+  });
 
   const LoadingSkeleton = () => (
     <div className="mt-10 grid gap-5 md:grid-cols-2">

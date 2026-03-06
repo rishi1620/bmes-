@@ -1,12 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Edit } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { CountdownTimer } from "@/components/shared/CountdownTimer";
+import { RegistrationForm } from "@/components/shared/RegistrationForm";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+
+import { Tables } from "@/integrations/supabase/types";
 
 const Events = () => {
+  const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
+  const [isRegOpen, setIsRegOpen] = useState(false);
+
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["public-events"],
     queryFn: async () => {
@@ -33,6 +45,7 @@ const Events = () => {
 
       <section className="container py-16">
         <SectionHeading badge="Coming Up" title="Upcoming Events" />
+        
         {isLoading ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-56 rounded-xl" />)}
@@ -42,14 +55,57 @@ const Events = () => {
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {upcoming.map((e) => (
-              <div key={e.id} className="group rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
-                {e.type && <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{e.type}</span>}
-                <h3 className="text-lg font-semibold text-foreground">{e.title}</h3>
-                <div className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4" />{format(new Date(e.date), "PPP")}</p>
-                  {e.location && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{e.location}</p>}
+              <div key={e.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
+                <div className="relative h-48 w-full overflow-hidden">
+                  <img 
+                    src={e.image_url || "https://picsum.photos/seed/event/800/600"} 
+                    alt={e.title} 
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  {e.type && (
+                    <div className="absolute top-4 left-4">
+                      <span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm">
+                        {e.type}
+                      </span>
+                    </div>
+                  )}
                 </div>
-                {e.description && <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{e.description}</p>}
+                <div className="flex-1 p-6">
+                  <h3 className="text-xl font-bold text-foreground">{e.title}</h3>
+                  <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+                    <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4" />{format(new Date(e.date), "PPP")}</p>
+                    {e.location && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{e.location}</p>}
+                  </div>
+                  {e.description && <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{e.description}</p>}
+                  
+                  <div className="mt-6 border-t border-border pt-4">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Starts In</p>
+                    <CountdownTimer targetDate={e.date} />
+                  </div>
+                </div>
+                
+                <div className="px-6 pb-6">
+                  <Dialog open={isRegOpen && selectedEvent?.id === e.id} onOpenChange={(open) => {
+                    setIsRegOpen(open);
+                    if (open) setSelectedEvent(e);
+                  }}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full">Register Now</Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Register for {e.title}</DialogTitle>
+                      </DialogHeader>
+                      <RegistrationForm 
+                        eventId={e.id} 
+                        eventTitle={e.title} 
+                        onSuccess={() => setIsRegOpen(false)} 
+                      />
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
             ))}
           </div>
@@ -67,7 +123,9 @@ const Events = () => {
                     <h3 className="font-semibold text-foreground">{e.title}</h3>
                     <p className="text-sm text-muted-foreground">{format(new Date(e.date), "PPP")}</p>
                   </div>
-                  {e.type && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{e.type}</span>}
+                  <div className="flex items-center gap-3">
+                    {e.type && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{e.type}</span>}
+                  </div>
                 </div>
               ))}
             </div>

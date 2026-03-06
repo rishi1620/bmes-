@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { Save, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { seedData } from "@/utils/seedData";
 
 interface Setting {
   id: string;
@@ -58,6 +59,7 @@ const groups: { key: string; label: string; fields: { key: string; label: string
 const AdminSettings = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -71,18 +73,37 @@ const AdminSettings = () => {
 
   const handleSave = async () => {
     setSaving(true);
+    const updates = Object.entries(settings).map(([setting_key, setting_value]) =>
+      supabase.from("site_settings").update({ setting_value }).eq("setting_key", setting_key)
+    );
+    const results = await Promise.all(updates);
+    const hasError = results.some((r) => r.error);
+    if (hasError) toast({ title: "Some settings failed to save", variant: "destructive" });
+    else toast({ title: "Settings saved" });
+    setSaving(false);
+  };
+
+  const handleSeedData = async () => {
+    if (!confirm("Are you sure you want to delete all existing data and re-seed? This action cannot be undone.")) return;
+    
+    setSeeding(true);
     try {
-      const updates = Object.entries(settings).map(([setting_key, setting_value]) =>
-        supabase.from("site_settings").update({ setting_value }).eq("setting_key", setting_key)
-      );
-      const results = await Promise.all(updates);
-      const hasError = results.some((r) => r.error);
-      if (hasError) toast({ title: "Some settings failed to save", variant: "destructive" });
-      else toast({ title: "Settings saved" });
-    } catch (error: any) {
-      toast({ title: "Error saving settings", description: error.message, variant: "destructive" });
+      const result = await seedData();
+      if (result.success) {
+        toast({ title: "Data seeded successfully!" });
+        // Reload settings to reflect any changes
+        const { data } = await supabase.from("site_settings").select("*");
+        const map: Record<string, string> = {};
+        (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+        setSettings(map);
+      } else {
+        toast({ title: "Failed to seed data", variant: "destructive" });
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "An error occurred during seeding", variant: "destructive" });
     } finally {
-      setSaving(false);
+      setSeeding(false);
     }
   };
 
@@ -90,9 +111,15 @@ const AdminSettings = () => {
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Site Settings</h1>
-        <Button onClick={handleSave} size="sm" disabled={saving}>
-          <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={handleSeedData} size="sm" variant="destructive" disabled={seeding}>
+            <RefreshCw className={`mr-1.5 h-4 w-4 ${seeding ? "animate-spin" : ""}`} /> 
+            {seeding ? "Seeding..." : "Reset & Seed Data"}
+          </Button>
+          <Button onClick={handleSave} size="sm" disabled={saving}>
+            <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-8">

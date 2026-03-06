@@ -23,6 +23,9 @@ const sectionLabels: Record<string, string> = {
   quick_links: "Quick Links",
   announcements: "Latest Announcements",
   upcoming_events: "Upcoming Events",
+  recent_achievements: "Recent Achievements",
+  featured_projects: "Featured Projects",
+  recent_blog: "Latest from the Blog",
   stats: "Statistics (Legacy)",
   features: "Features (Legacy)",
   cta: "Call to Action (Legacy)",
@@ -58,14 +61,9 @@ const AdminHomeSections = () => {
   }, [searchParams, sections, editing, setSearchParams]);
 
   const toggleVisibility = async (s: HomeSection) => {
-    try {
-      const { error } = await supabase.from("home_sections").update({ is_visible: !s.is_visible }).eq("id", s.id);
-      if (error) throw error;
-      toast({ title: s.is_visible ? "Section hidden" : "Section visible" });
-      load();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+    await supabase.from("home_sections").update({ is_visible: !s.is_visible }).eq("id", s.id);
+    toast({ title: s.is_visible ? "Section hidden" : "Section visible" });
+    load();
   };
 
   const openEdit = (s: HomeSection) => {
@@ -120,19 +118,13 @@ const AdminHomeSections = () => {
     newSections[index].display_order = newSections[targetIndex].display_order;
     newSections[targetIndex].display_order = tempOrder;
 
-    try {
-      // Update both in database
-      const [res1, res2] = await Promise.all([
-        supabase.from("home_sections").update({ display_order: newSections[index].display_order }).eq("id", newSections[index].id),
-        supabase.from("home_sections").update({ display_order: newSections[targetIndex].display_order }).eq("id", newSections[targetIndex].id)
-      ]);
-      if (res1.error) throw res1.error;
-      if (res2.error) throw res2.error;
-      
-      load();
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-    }
+    // Update both in database
+    await Promise.all([
+      supabase.from("home_sections").update({ display_order: newSections[index].display_order }).eq("id", newSections[index].id),
+      supabase.from("home_sections").update({ display_order: newSections[targetIndex].display_order }).eq("id", newSections[targetIndex].id)
+    ]);
+    
+    load();
   };
 
   const handleAddNew = () => {
@@ -196,7 +188,7 @@ const AdminHomeSections = () => {
                 value={newKey} 
                 onChange={e => setNewKey(e.target.value)} 
               />
-              <p className="text-xs text-muted-foreground">Use lowercase and underscores. Standard keys: hero, quick_links, announcements, upcoming_events, stats, features.</p>
+              <p className="text-xs text-muted-foreground">Use lowercase and underscores. Standard keys: hero, quick_links, announcements, upcoming_events, recent_achievements, featured_projects, recent_blog.</p>
             </div>
             <Button onClick={handleAddNew} className="w-full" disabled={!newKey.trim()}>Continue to Edit</Button>
           </div>
@@ -358,10 +350,9 @@ const AdminHomeSections = () => {
             );
           })()}
 
-          {editing?.section_key === "upcoming_events" && (() => {
-            let data: Record<string, unknown> = { title: "", events: [] };
+          {(editing?.section_key === "upcoming_events" || editing?.section_key === "recent_achievements" || editing?.section_key === "featured_projects" || editing?.section_key === "recent_blog") && (() => {
+            let data: Record<string, unknown> = { title: "", description: "" };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
-            if (!data.events) data.events = [];
 
             const update = (key: string, val: unknown) => {
               const d = { ...data, [key]: val };
@@ -371,31 +362,20 @@ const AdminHomeSections = () => {
             return (
               <div className="space-y-6 py-2">
                 <div className="space-y-1.5"><Label>Section Title</Label><Input value={data.title ?? ""} onChange={e => update("title", e.target.value)} /></div>
-                
-                <div className="space-y-3 border p-4 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <Label>Events</Label>
-                    <Button size="sm" variant="outline" onClick={() => update("events", [...data.events, { title: "New Event", date: "", description: "", url: "" }])}><Plus className="h-4 w-4 mr-1"/> Add Event</Button>
-                  </div>
-                  {data.events.map((item: Record<string, unknown>, i: number) => (
-                    <div key={i} className="flex gap-2 items-start border-b pb-4 mb-4 last:border-0 last:pb-0 last:mb-0">
-                      <div className="grid gap-2 flex-1">
-                        <Input value={item.title} onChange={e => { const arr = [...data.events]; arr[i].title = e.target.value; update("events", arr); }} placeholder="Event Title" />
-                        <div className="flex gap-2">
-                          <Input value={item.date} onChange={e => { const arr = [...data.events]; arr[i].date = e.target.value; update("events", arr); }} placeholder="Date & Time" className="w-1/3" />
-                          <Input value={item.url} onChange={e => { const arr = [...data.events]; arr[i].url = e.target.value; update("events", arr); }} placeholder="Link URL" className="flex-1" />
-                        </div>
-                        <Textarea value={item.description} onChange={e => { const arr = [...data.events]; arr[i].description = e.target.value; update("events", arr); }} placeholder="Short description" className="h-16" />
-                      </div>
-                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.events.filter((_: Record<string, unknown>, idx: number) => idx !== i); update("events", arr); }}><Trash className="h-4 w-4" /></Button>
-                    </div>
-                  ))}
+                <div className="space-y-1.5"><Label>Section Description</Label><Textarea value={data.description ?? ""} onChange={e => update("description", e.target.value)} /></div>
+                <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
+                  <p><strong>Note:</strong> The content for this section is fetched dynamically from the <strong>{
+                    editing.section_key === "upcoming_events" ? "Events" :
+                    editing.section_key === "recent_achievements" ? "Achievements" :
+                    editing.section_key === "featured_projects" ? "Projects" :
+                    "Blog"
+                  }</strong> module. You can manage the actual items there.</p>
                 </div>
               </div>
             );
           })()}
 
-          {(editing?.section_key !== "hero" && editing?.section_key !== "cta" && editing?.section_key !== "notice" && editing?.section_key !== "quick_links" && editing?.section_key !== "announcements" && editing?.section_key !== "upcoming_events") && (
+          {(editing?.section_key !== "hero" && editing?.section_key !== "cta" && editing?.section_key !== "notice" && editing?.section_key !== "quick_links" && editing?.section_key !== "announcements" && editing?.section_key !== "upcoming_events" && editing?.section_key !== "recent_achievements" && editing?.section_key !== "featured_projects" && editing?.section_key !== "recent_blog") && (
             <div className="space-y-1.5 py-2">
               <Label>Section Data (JSON)</Label>
               <Textarea className="min-h-[300px] font-mono text-xs" value={jsonText} onChange={e => setJsonText(e.target.value)} />

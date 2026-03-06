@@ -1,4 +1,6 @@
-import { Clock, User } from "lucide-react";
+import { Clock, User, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
@@ -51,12 +53,15 @@ const Blog = () => {
                   {p.published_at && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(p.published_at), "MMM d, yyyy")}</span>}
                 </div>
                 {p.tags && p.tags.length > 0 && (
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {p.tags.map((tag) => (
+                  <div className="mt-3 flex flex-wrap gap-1.5 mb-4">
+                    {p.tags.map((tag: string) => (
                       <span key={tag} className="rounded bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">{tag}</span>
                     ))}
                   </div>
                 )}
+                <Button asChild variant="link" className="p-0 h-auto font-semibold text-primary hover:text-primary/80">
+                  <Link to={`/blog/${p.slug}`}>Read Article <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                </Button>
               </article>
             ))}
           </div>

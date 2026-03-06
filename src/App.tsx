@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import ScrollToTop from "@/components/shared/ScrollToTop";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Academics from "./pages/Academics";
@@ -15,12 +16,13 @@ import Members from "./pages/Members";
 import Projects from "./pages/Projects";
 import Events from "./pages/Events";
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Achievements from "./pages/Achievements";
 import Alumni from "./pages/Alumni";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminMembers from "./pages/admin/AdminMembers";
+import AdminPeople from "./pages/admin/AdminPeople";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminProjects from "./pages/admin/AdminProjects";
 import AdminAchievements from "./pages/admin/AdminAchievements";
@@ -28,7 +30,7 @@ import AdminBlog from "./pages/admin/AdminBlog";
 import AdminMedia from "./pages/admin/AdminMedia";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSubmissions from "./pages/admin/AdminSubmissions";
-import AdminAdvisors from "./pages/admin/AdminAdvisors";
+import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminAlumni from "./pages/admin/AdminAlumni";
 import AdminFAQ from "./pages/admin/AdminFAQ";
 import AdminPages from "./pages/admin/AdminPages";
@@ -49,6 +51,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <ScrollToTop />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/home" element={<Navigate to="/" replace />} />
@@ -62,6 +65,7 @@ const App = () => (
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/achievements" element={<Achievements />} />
                 <Route path="/alumni" element={<Alumni />} />
                 <Route path="/contact" element={<Contact />} />
@@ -72,8 +76,7 @@ const App = () => (
                 <Route path="/admin/academics" element={<AdminAcademics />} />
                 <Route path="/admin/activities" element={<AdminActivities />} />
                 <Route path="/admin/pages" element={<AdminPages />} />
-                <Route path="/admin/members" element={<AdminMembers />} />
-                <Route path="/admin/advisors" element={<AdminAdvisors />} />
+                <Route path="/admin/people" element={<AdminPeople />} />
                 <Route path="/admin/events" element={<AdminEvents />} />
                 <Route path="/admin/projects" element={<AdminProjects />} />
                 <Route path="/admin/achievements" element={<AdminAchievements />} />
@@ -83,6 +86,7 @@ const App = () => (
                 <Route path="/admin/media" element={<AdminMedia />} />
                 <Route path="/admin/settings" element={<AdminSettings />} />
                 <Route path="/admin/submissions" element={<AdminSubmissions />} />
+                <Route path="/admin/registrations" element={<AdminRegistrations />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

@@ -4,7 +4,7 @@ const fields: FieldDef[] = [
   { key: "title", label: "Title", required: true },
   { key: "image_url", label: "Photo / Image", type: "image" },
   { key: "description", label: "Description", type: "textarea" },
-  { key: "category", label: "Category", type: "select", options: ["competition", "publication", "grant", "media"] },
+  { key: "category", label: "Category", type: "select", options: ["competition", "publication", "grant", "media", "award", "event"] },
   { key: "year", label: "Year" },
   { key: "team", label: "Team" },
   { key: "place", label: "Place / Award" },

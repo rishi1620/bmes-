@@ -44,7 +44,7 @@ const About = () => {
           <h1 className="text-4xl font-extrabold text-primary-foreground md:text-5xl">
             {settings.about_hero_title || "Department & Society"}
           </h1>
-          <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed">
+          <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed whitespace-pre-wrap">
             {settings.about_hero_subtitle || "Discover the foundational information for both the Department of Biomedical Engineering and the BMES club."}
           </p>
         </div>
@@ -53,14 +53,17 @@ const About = () => {
       <section className="container py-16">
         <Tabs defaultValue="messages" className="w-full">
           <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="messages" className="gap-1.5 text-xs md:text-sm"><MessageSquare className="h-4 w-4" /> Messages</TabsTrigger>
-            <TabsTrigger value="dept" className="gap-1.5 text-xs md:text-sm"><Building className="h-4 w-4" /> Dept Profile</TabsTrigger>
-            <TabsTrigger value="bmes" className="gap-1.5 text-xs md:text-sm"><Users className="h-4 w-4" /> BMES Profile</TabsTrigger>
-            <TabsTrigger value="constitution" className="gap-1.5 text-xs md:text-sm"><FileText className="h-4 w-4" /> Constitution</TabsTrigger>
+            <TabsTrigger value="messages" className="gap-1.5 text-xs md:text-sm"><MessageSquare className="h-4 w-4" /> {settings.about_tab_messages || "Messages"}</TabsTrigger>
+            <TabsTrigger value="dept" className="gap-1.5 text-xs md:text-sm"><Building className="h-4 w-4" /> {settings.about_tab_dept || "Dept Profile"}</TabsTrigger>
+            <TabsTrigger value="bmes" className="gap-1.5 text-xs md:text-sm"><Users className="h-4 w-4" /> {settings.about_tab_bmes || "BMES Profile"}</TabsTrigger>
+            <TabsTrigger value="constitution" className="gap-1.5 text-xs md:text-sm"><FileText className="h-4 w-4" /> {settings.about_tab_constitution || "Constitution"}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="messages">
-            <SectionHeading title="Leadership Messages" description="Welcome notes from the Head of the Department and BMES President." />
+            <SectionHeading 
+              title={settings.about_messages_title || "Leadership Messages"} 
+              description={settings.about_messages_desc || "Welcome notes from the Head of the Department and BMES President."} 
+            />
             <div className="mt-10 grid gap-8 md:grid-cols-2">
               <Card className="overflow-hidden">
                 <CardContent className="p-8">
@@ -108,7 +111,10 @@ const About = () => {
           </TabsContent>
 
           <TabsContent value="dept">
-            <SectionHeading title="Department Profile" description="Mission, vision, and the history of BME at CUET." />
+            <SectionHeading 
+              title={settings.about_dept_title || "Department Profile"} 
+              description={settings.about_dept_desc || "Mission, vision, and the history of BME at CUET."} 
+            />
             <div className="mt-10 space-y-6">
               <Card>
                 <CardContent className="p-8">
@@ -140,7 +146,10 @@ const About = () => {
           </TabsContent>
 
           <TabsContent value="bmes">
-            <SectionHeading title="BMES Profile" description="The society's history and objectives." />
+            <SectionHeading 
+              title={settings.about_bmes_title || "BMES Profile"} 
+              description={settings.about_bmes_desc || "The society's history and objectives."} 
+            />
             <div className="mt-10 space-y-6">
               <Card>
                 <CardContent className="p-8">
@@ -173,13 +182,16 @@ const About = () => {
           </TabsContent>
 
           <TabsContent value="constitution">
-            <SectionHeading title="Official Constitution" description="Download the official constitution of BMES." />
+            <SectionHeading 
+              title={settings.about_constitution_title || "Official Constitution"} 
+              description={settings.about_constitution_desc_main || "Download the official constitution of BMES."} 
+            />
             <div className="mt-10 text-center">
               <Card>
                 <CardContent className="p-12 flex flex-col items-center justify-center">
                   <FileText className="h-16 w-16 text-primary mb-6" />
-                  <h3 className="text-2xl font-bold mb-2">{settings.about_constitution_title || "BMES Constitution"}</h3>
-                  <p className="text-muted-foreground mb-6 max-w-md">{settings.about_constitution_desc || "Read the rules, regulations, and operational guidelines of the Biomedical Engineering Society."}</p>
+                  <h3 className="text-2xl font-bold mb-2">{settings.about_constitution_card_title || "BMES Constitution"}</h3>
+                  <p className="text-muted-foreground mb-6 max-w-md whitespace-pre-wrap">{settings.about_constitution_desc || "Read the rules, regulations, and operational guidelines of the Biomedical Engineering Society."}</p>
                   {settings.about_constitution_pdf_url ? (
                     <a 
                       href={settings.about_constitution_pdf_url} 

@@ -2,9 +2,15 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Calendar, Users, Image, BookOpen } from "lucide-react";
+import { Calendar, Users, Image, BookOpen, CalendarDays, MapPin, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+
+import { Tables } from "@/integrations/supabase/types";
 
 const Activities = () => {
   const { data: settings = {}, isLoading } = useQuery({
@@ -17,25 +23,31 @@ const Activities = () => {
     },
   });
 
-  if (isLoading) {
+  const { data: events = [], isLoading: isLoadingEvents } = useQuery({
+    queryKey: ["upcoming-activities-events"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("events")
+        .select("*")
+        .eq("is_upcoming", true)
+        .order("date", { ascending: true })
+        .limit(6);
+      return data ?? [];
+    },
+  });
+
+  if (isLoading || isLoadingEvents) {
     return (
       <PageLayout>
-        <div className="flex min-h-[50vh] items-center justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+        <div className="container py-24 space-y-8">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 rounded-xl" />)}
+          </div>
         </div>
       </PageLayout>
     );
   }
-
-  const flagshipEvents = (() => {
-    try { return JSON.parse(settings.activities_flagship_json || "[]"); }
-    catch { return []; }
-  })();
-
-  const seminars = (() => {
-    try { return JSON.parse(settings.activities_seminars_json || "[]"); }
-    catch { return []; }
-  })();
 
   return (
     <PageLayout>
@@ -54,66 +66,65 @@ const Activities = () => {
       </section>
 
       <section className="container py-16">
-        <Tabs defaultValue="flagship" className="w-full">
-          <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="flagship" className="gap-1.5 text-xs md:text-sm"><Calendar className="h-4 w-4" /> Flagship</TabsTrigger>
-            <TabsTrigger value="seminars" className="gap-1.5 text-xs md:text-sm"><Users className="h-4 w-4" /> Seminars</TabsTrigger>
+        <Tabs defaultValue="events" className="w-full">
+          <TabsList className="mx-auto mb-10 grid w-full max-w-xl grid-cols-1 md:grid-cols-3">
+            <TabsTrigger value="events" className="gap-1.5 text-xs md:text-sm"><CalendarDays className="h-4 w-4" /> Events</TabsTrigger>
             <TabsTrigger value="gallery" className="gap-1.5 text-xs md:text-sm"><Image className="h-4 w-4" /> Gallery</TabsTrigger>
             <TabsTrigger value="publications" className="gap-1.5 text-xs md:text-sm"><BookOpen className="h-4 w-4" /> Publications</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="flagship">
-            <SectionHeading title="Flagship Events" description="Dedicated sub-pages for major events like BME Fest, Med-Tech Hackathons, or Job Fairs." />
-            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {flagshipEvents.length > 0 ? (
-                flagshipEvents.map((event: { title: string; description: string }, i: number) => (
-                  <Card key={i}>
-                    <CardHeader><CardTitle>{event.title}</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{event.description}</p></CardContent>
-                  </Card>
-                ))
-              ) : (
-                <>
-                  <Card>
-                    <CardHeader><CardTitle>BME Fest</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground">Annual festival celebrating biomedical engineering with project showcases and cultural events.</p></CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader><CardTitle>Med-Tech Hackathon</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground">A 48-hour challenge to build innovative healthcare solutions.</p></CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader><CardTitle>Job Fair</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground">Connecting students with top medical device companies and hospitals.</p></CardContent>
-                  </Card>
-                </>
-              )}
+          <TabsContent value="events">
+            <div className="flex items-center justify-between mb-8">
+              <SectionHeading title="Live Events" description="Join our upcoming sessions and workshops." />
+              <Button asChild variant="ghost" size="sm" className="text-primary">
+                <Link to="/events" className="flex items-center gap-1">
+                  View all <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
             </div>
-          </TabsContent>
-
-          <TabsContent value="seminars">
-            <SectionHeading title="Seminars & Workshops" description="Archives of past skill-development sessions." />
-            <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {seminars.length > 0 ? (
-                seminars.map((seminar: { title: string; description: string }, i: number) => (
-                  <Card key={i}>
-                    <CardHeader><CardTitle>{seminar.title}</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground whitespace-pre-wrap">{seminar.description}</p></CardContent>
-                  </Card>
-                ))
-              ) : (
-                <>
-                  <Card>
-                    <CardHeader><CardTitle>Python for Healthcare</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground">A hands-on workshop on data analysis and machine learning in medicine.</p></CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader><CardTitle>Medical Imaging Workshop</CardTitle></CardHeader>
-                    <CardContent><p className="text-muted-foreground">Understanding MRI, CT, and Ultrasound image processing.</p></CardContent>
-                  </Card>
-                </>
-              )}
-            </div>
+            
+            {events.length > 0 ? (
+              <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {events.map((event: Tables<"events">) => (
+                  <div key={event.id} className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+                    <div className="relative h-40 overflow-hidden">
+                      <img 
+                        src={event.image_url || `https://picsum.photos/seed/${event.id}/800/600`} 
+                        alt={event.title} 
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-3 left-4 text-white">
+                        <p className="text-xs font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
+                      </div>
+                    </div>
+                    <div className="p-5">
+                      <h3 className="mb-2 text-lg font-bold text-foreground line-clamp-1">{event.title}</h3>
+                      <div className="mb-4 space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <CalendarDays className="h-3.5 w-3.5" />
+                          {format(new Date(event.date), "hh:mm a")}
+                        </div>
+                        {event.location && (
+                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                            <MapPin className="h-3.5 w-3.5" />
+                            {event.location}
+                          </div>
+                        )}
+                      </div>
+                      <Button asChild variant="outline" size="sm" className="w-full rounded-lg">
+                        <Link to="/events">Register Now</Link>
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-10 rounded-2xl border border-dashed border-border p-12 text-center">
+                <p className="text-muted-foreground">No live events scheduled at the moment.</p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="gallery">

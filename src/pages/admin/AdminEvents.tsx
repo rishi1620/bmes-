@@ -3,10 +3,10 @@ import AdminCrudPage, { FieldDef } from "@/components/admin/AdminCrudPage";
 const fields: FieldDef[] = [
   { key: "title", label: "Title", required: true },
   { key: "description", label: "Description", type: "textarea" },
-  { key: "date", label: "Date (ISO format)" },
+  { key: "date", label: "Event Date & Time", type: "datetime" },
   { key: "location", label: "Location" },
   { key: "type", label: "Type", type: "select", options: ["workshop", "seminar", "competition", "meetup", "conference"] },
-  { key: "image_url", label: "Image URL" },
+  { key: "image_url", label: "Event Image", type: "image" },
   { key: "is_upcoming", label: "Upcoming?", type: "boolean" },
 ];
 

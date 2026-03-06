@@ -290,6 +290,41 @@ export type Database = {
         }
         Relationships: []
       }
+      event_registrations: {
+        Row: {
+          id: string
+          event_id: string
+          name: string
+          email: string
+          details: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          event_id: string
+          name: string
+          email: string
+          details?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          event_id?: string
+          name?: string
+          email?: string
+          details?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_registrations_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       home_sections: {
         Row: {
           created_at: string

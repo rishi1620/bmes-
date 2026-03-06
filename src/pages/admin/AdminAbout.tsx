@@ -17,6 +17,16 @@ interface Setting {
 
 const groups: { key: string; label: string; fields: { key: string; label: string; type?: "text" | "textarea" }[] }[] = [
   {
+    key: "about_tabs",
+    label: "Tab Labels",
+    fields: [
+      { key: "about_tab_messages", label: "Messages Tab Label" },
+      { key: "about_tab_dept", label: "Dept Profile Tab Label" },
+      { key: "about_tab_bmes", label: "BMES Profile Tab Label" },
+      { key: "about_tab_constitution", label: "Constitution Tab Label" },
+    ],
+  },
+  {
     key: "about_hero",
     label: "Hero Section",
     fields: [
@@ -29,12 +39,14 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     key: "about_messages",
     label: "Leadership Messages",
     fields: [
-      { key: "about_hod_title", label: "HOD Section Title" },
+      { key: "about_messages_title", label: "Section Title" },
+      { key: "about_messages_desc", label: "Section Description", type: "textarea" },
+      { key: "about_hod_title", label: "HOD Card Title" },
       { key: "about_hod_name", label: "HOD Name" },
       { key: "about_hod_role", label: "HOD Role" },
       { key: "about_hod_image", label: "HOD Image URL" },
       { key: "about_hod_message", label: "HOD Message", type: "textarea" },
-      { key: "about_pres_title", label: "President Section Title" },
+      { key: "about_pres_title", label: "President Card Title" },
       { key: "about_pres_name", label: "President Name" },
       { key: "about_pres_role", label: "President Role" },
       { key: "about_pres_image", label: "President Image URL" },
@@ -45,6 +57,8 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     key: "about_dept",
     label: "Department Profile",
     fields: [
+      { key: "about_dept_title", label: "Section Title" },
+      { key: "about_dept_desc", label: "Section Description", type: "textarea" },
       { key: "about_dept_history_title", label: "History Title" },
       { key: "about_dept_history", label: "History", type: "textarea" },
       { key: "about_dept_mission_title", label: "Mission Title" },
@@ -57,6 +71,8 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     key: "about_bmes",
     label: "BMES Profile",
     fields: [
+      { key: "about_bmes_title", label: "Section Title" },
+      { key: "about_bmes_desc", label: "Section Description", type: "textarea" },
       { key: "about_bmes_about_title", label: "About BMES Title" },
       { key: "about_bmes_about", label: "About BMES", type: "textarea" },
       { key: "about_bmes_objectives_title", label: "Objectives Title" },
@@ -67,8 +83,10 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     key: "about_constitution",
     label: "Constitution",
     fields: [
-      { key: "about_constitution_title", label: "Constitution Title" },
-      { key: "about_constitution_desc", label: "Constitution Description", type: "textarea" },
+      { key: "about_constitution_title", label: "Section Title" },
+      { key: "about_constitution_desc_main", label: "Section Description", type: "textarea" },
+      { key: "about_constitution_card_title", label: "Card Title" },
+      { key: "about_constitution_desc", label: "Card Description", type: "textarea" },
       { key: "about_constitution_btn_text", label: "Button Text" },
       { key: "about_constitution_pdf_url", label: "Constitution PDF URL" },
     ],
@@ -91,30 +109,26 @@ const AdminAbout = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    try {
-      // First, ensure all these settings exist in the database
-      const allKeys = groups.flatMap(g => g.fields.map(f => f.key));
+    
+    // First, ensure all these settings exist in the database
+    const allKeys = groups.flatMap(g => g.fields.map(f => f.key));
+    
+    for (const key of allKeys) {
+      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
       
-      for (const key of allKeys) {
-        const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
-        
-        if (!existing) {
-          await supabase.from("site_settings").insert({
-            setting_group: "about_page",
-            setting_key: key,
-            setting_value: settings[key] || ""
-          });
-        } else {
-          await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
-        }
+      if (!existing) {
+        await supabase.from("site_settings").insert({
+          setting_group: "about_page",
+          setting_key: key,
+          setting_value: settings[key] || ""
+        });
+      } else {
+        await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
       }
-
-      toast({ title: "About page content saved" });
-    } catch (error: any) {
-      toast({ title: "Error saving content", description: error.message, variant: "destructive" });
-    } finally {
-      setSaving(false);
     }
+
+    toast({ title: "About page content saved" });
+    setSaving(false);
   };
 
   return (

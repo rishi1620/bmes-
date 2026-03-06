@@ -34,15 +34,18 @@ const Navbar = () => {
   const siteName = siteSettings?.site_title || "CUET BMES";
 
   const navLinks = pages?.length ? pages.map((p) => ({ label: p.page_name, path: p.slug })) : [
-  { label: "Home", path: "/" },
-  { label: "About", path: "/about" },
-  { label: "Academics", path: "/academics" },
-  { label: "People", path: "/people" },
-  { label: "Research", path: "/research" },
-  { label: "Activities", path: "/activities" },
-  { label: "Portal", path: "/portal" },
-  { label: "Alumni", path: "/alumni" },
-  { label: "Contact", path: "/contact" }];
+    { label: "Home", path: "/" },
+    { label: "About", path: "/about" },
+    { label: "Academics", path: "/academics" },
+    { label: "People", path: "/people" },
+    { label: "Research", path: "/research" },
+    { label: "Activities", path: "/activities" },
+    { label: "Achievements", path: "/achievements" },
+    { label: "Blog", path: "/blog" },
+    { label: "Portal", path: "/portal" },
+    { label: "Alumni", path: "/alumni" },
+    { label: "Contact", path: "/contact" }
+  ];
 
 
   return (
