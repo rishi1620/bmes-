@@ -27,6 +27,7 @@ const linkGroups = [
       { label: "About Page", path: "/admin/about", icon: FileText },
       { label: "Academics", path: "/admin/academics", icon: GraduationCap },
       { label: "Activities", path: "/admin/activities", icon: CalendarDays },
+      { label: "Portal Page", path: "/admin/portal", icon: FileText },
       { label: "People", path: "/admin/people", icon: Users },
       { label: "Events", path: "/admin/events", icon: Calendar },
       { label: "Projects", path: "/admin/projects", icon: FolderOpen },

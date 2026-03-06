@@ -30,7 +30,7 @@ const Projects = () => {
         </div>
       </section>
 
-      <section className="container py-16">
+      <section className="container py-16 animate-fade-up">
         <SectionHeading badge="Active" title="Ongoing Projects" />
         {isLoading ? (
           <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -49,7 +49,16 @@ const Projects = () => {
                 )}
                 <h3 className="text-lg font-semibold text-foreground">{p.title}</h3>
                 {p.lead && <p className="mt-1 text-sm text-muted-foreground">Lead: {p.lead}</p>}
-                {p.description && <p className="mt-2 text-sm text-muted-foreground line-clamp-2">{p.description}</p>}
+                {p.team_members && p.team_members.length > 0 && (
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {p.team_members.map((member, i) => (
+                      <span key={i} className="inline-block rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground border border-border/50">
+                        {member}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {p.description && <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{p.description}</p>}
                 <div className="mt-4">
                   <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                     <span>Progress</span>
@@ -64,7 +73,7 @@ const Projects = () => {
       </section>
 
       {completed.length > 0 && (
-        <section className="bg-muted/50 py-16">
+        <section className="bg-muted/50 py-16 animate-fade-up animate-fade-up-delay-200">
           <div className="container">
             <SectionHeading badge="Archive" title="Completed Projects" />
             <div className="mt-10 grid gap-6 md:grid-cols-2">
@@ -76,6 +85,15 @@ const Projects = () => {
                   <div>
                     <h3 className="font-semibold text-foreground">{p.title}</h3>
                     {p.lead && <p className="text-sm text-muted-foreground">Lead: {p.lead}</p>}
+                    {p.team_members && p.team_members.length > 0 && (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {p.team_members.map((member, i) => (
+                          <span key={i} className="text-[10px] text-muted-foreground bg-muted/50 px-1.5 py-0.5 rounded border border-border/30">
+                            {member}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}

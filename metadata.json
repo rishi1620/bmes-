@@ -1,5 +1,5 @@
 {
-  "name": "main",
-  "description": "",
+  "name": "CUET BMES Portal",
+  "description": "A comprehensive portal for the CUET Biomedical Engineering Society with a secure admin dashboard.",
   "requestFramePermissions": []
 }

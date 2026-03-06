@@ -1,14 +1,17 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAdmin, signOut } = useAuth();
 
   const { data: pages } = useQuery({
     queryKey: ["nav-pages"],
@@ -47,6 +50,10 @@ const Navbar = () => {
     { label: "Contact", path: "/contact" }
   ];
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -75,6 +82,31 @@ const Navbar = () => {
               {link.label}
             </Link>
           )}
+          
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
+                location.pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
+              Admin
+            </Link>
+          )}
+
+          {user ? (
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </Button>
+          ) : (
+            <Link to="/auth">
+              <Button variant="ghost" size="sm" className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
+                <UserIcon className="h-4 w-4" />
+                Login
+              </Button>
+            </Link>
+          )}
         </nav>
 
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
@@ -83,7 +115,7 @@ const Navbar = () => {
       </div>
 
       {mobileOpen &&
-      <div className="border-t border-border bg-background lg:hidden">
+      <div className="border-t border-border bg-background lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="container flex flex-col gap-1 py-4">
             {navLinks.map((link) =>
           <Link
@@ -96,6 +128,40 @@ const Navbar = () => {
             
                 {link.label}
               </Link>
+          )}
+          
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileOpen(false)}
+              className={`rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted ${
+                location.pathname.startsWith("/admin") ? "text-primary bg-muted" : "text-muted-foreground"
+              }`}
+            >
+              Admin Dashboard
+            </Link>
+          )}
+
+          {user ? (
+            <button
+              onClick={() => {
+                handleSignOut();
+                setMobileOpen(false);
+              }}
+              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <UserIcon className="h-4 w-4" />
+              Login
+            </Link>
           )}
           </nav>
         </div>

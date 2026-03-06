@@ -14,7 +14,7 @@ import { format } from "date-fns";
 export interface FieldDef {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime";
+  type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime" | "list";
   options?: string[];
   required?: boolean;
 }
@@ -140,6 +140,12 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                             <CountdownTimer targetDate={row[c] as string} />
                           </div>
                         </div>
+                      ) : field?.type === "list" ? (
+                        <div className="flex flex-wrap gap-1">
+                          {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
+                            <span key={i} className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">{item}</span>
+                          )) : String(row[c] ?? "")}
+                        </div>
                       ) : (
                         String(row[c] ?? "")
                       )}
@@ -198,6 +204,15 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                     value={typeof form[f.key] === 'string' ? (form[f.key] as string).slice(0, 16) : ""} 
                     onChange={(e) => setForm({ ...form, [f.key]: new Date(e.target.value).toISOString() })} 
                   />
+                ) : f.type === "list" ? (
+                  <div className="space-y-1">
+                    <Input 
+                      placeholder="Comma separated values..." 
+                      value={Array.isArray(form[f.key]) ? (form[f.key] as string[]).join(", ") : (form[f.key] as string ?? "")} 
+                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} 
+                    />
+                    <p className="text-[10px] text-muted-foreground">Enter items separated by commas.</p>
+                  </div>
                 ) : f.type === "image" ? (
                   <div className="flex flex-col gap-2">
                     {form[f.key] && <img src={form[f.key] as string} alt="Preview" className="h-32 w-32 object-cover rounded-md border border-border" />}

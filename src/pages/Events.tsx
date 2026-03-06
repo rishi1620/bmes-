@@ -43,7 +43,7 @@ const Events = () => {
         </div>
       </section>
 
-      <section className="container py-16">
+      <section className="container py-16 animate-fade-up">
         <SectionHeading badge="Coming Up" title="Upcoming Events" />
         
         {isLoading ? (
@@ -113,7 +113,7 @@ const Events = () => {
       </section>
 
       {past.length > 0 && (
-        <section className="bg-muted/50 py-16">
+        <section className="bg-muted/50 py-16 animate-fade-up animate-fade-up-delay-200">
           <div className="container">
             <SectionHeading badge="Archive" title="Past Events" />
             <div className="mt-10 space-y-4">

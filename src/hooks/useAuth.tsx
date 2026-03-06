@@ -20,9 +20,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const checkAdmin = async (userId: string) => {
-    const { data } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
-    setIsAdmin(!!data);
+  const checkAdmin = async (userId: string, email?: string) => {
+    // Check if the user's email matches the admin email from env
+    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+    if (adminEmail && email === adminEmail) {
+      setIsAdmin(true);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+      if (error) throw error;
+      setIsAdmin(!!data);
+    } catch (err) {
+      console.error("Error checking admin role:", err);
+      // Fallback: if RPC fails but email matches, still allow (already handled above)
+      // Otherwise, default to false
+      if (!(adminEmail && email === adminEmail)) {
+        setIsAdmin(false);
+      }
+    }
   };
 
   useEffect(() => {
@@ -30,7 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => checkAdmin(session.user.id), 0);
+        setTimeout(() => checkAdmin(session.user.id, session.user.email), 0);
       } else {
         setIsAdmin(false);
       }
@@ -41,7 +58,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id);
+        checkAdmin(session.user.id, session.user.email);
       }
       setLoading(false);
     });

@@ -125,7 +125,7 @@ const Index = () => {
             <span className="animate-fade-up mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
               {hero.subtitle}
             </span>
-            <h1 className="animate-fade-up-delay-1 max-w-4xl text-4xl font-extrabold leading-tight text-primary-foreground md:text-6xl">
+            <h1 className="animate-fade-up-delay-1 max-w-4xl text-3xl font-extrabold leading-tight text-primary-foreground sm:text-4xl md:text-6xl">
               {hero.title}
             </h1>
             <p className="animate-fade-up-delay-2 mt-6 max-w-2xl text-base text-primary-foreground/80 md:text-lg leading-relaxed">
@@ -235,7 +235,7 @@ const Index = () => {
             {/* Featured Event */}
             <div className="lg:col-span-4">
               {recentEvents[0] && (
-                <div className="relative h-full min-h-[400px] overflow-hidden rounded-3xl bg-[#3E82A7] p-8 text-white shadow-xl flex flex-col">
+                <div className="relative h-full min-h-[300px] sm:min-h-[400px] overflow-hidden rounded-3xl bg-[#3E82A7] p-8 text-white shadow-xl flex flex-col">
                   <div className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-90">
                     <Bell className="h-4 w-4" />
                     Next Major Event
@@ -418,6 +418,16 @@ const Index = () => {
                   <span className="text-xs font-medium text-muted-foreground">{project.status as string}</span>
                 </div>
                 <h3 className="font-bold text-lg mb-2">{project.title as string}</h3>
+                {project.lead && <p className="text-xs text-muted-foreground mb-1">Lead: {project.lead as string}</p>}
+                {Array.isArray(project.team_members) && (project.team_members as string[]).length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-1">
+                    {(project.team_members as string[]).map((member, i) => (
+                      <span key={i} className="text-[9px] bg-muted px-1.5 py-0.5 rounded border border-border/50 text-muted-foreground">
+                        {member}
+                      </span>
+                    ))}
+                  </div>
+                )}
                 <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{project.description as string}</p>
                 <div className="mb-4">
                   <div className="flex justify-between text-xs mb-1">

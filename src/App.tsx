@@ -21,6 +21,7 @@ import Achievements from "./pages/Achievements";
 import Alumni from "./pages/Alumni";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminPeople from "./pages/admin/AdminPeople";
 import AdminEvents from "./pages/admin/AdminEvents";
@@ -38,6 +39,7 @@ import AdminHomeSections from "./pages/admin/AdminHomeSections";
 import AdminAbout from "./pages/admin/AdminAbout";
 import AdminAcademics from "./pages/admin/AdminAcademics";
 import AdminActivities from "./pages/admin/AdminActivities";
+import AdminPortal from "./pages/admin/AdminPortal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -70,23 +72,27 @@ const App = () => (
                 <Route path="/alumni" element={<Alumni />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<AdminDashboard />} />
-                <Route path="/admin/home" element={<AdminHomeSections />} />
-                <Route path="/admin/about" element={<AdminAbout />} />
-                <Route path="/admin/academics" element={<AdminAcademics />} />
-                <Route path="/admin/activities" element={<AdminActivities />} />
-                <Route path="/admin/pages" element={<AdminPages />} />
-                <Route path="/admin/people" element={<AdminPeople />} />
-                <Route path="/admin/events" element={<AdminEvents />} />
-                <Route path="/admin/projects" element={<AdminProjects />} />
-                <Route path="/admin/achievements" element={<AdminAchievements />} />
-                <Route path="/admin/blog" element={<AdminBlog />} />
-                <Route path="/admin/alumni" element={<AdminAlumni />} />
-                <Route path="/admin/faq" element={<AdminFAQ />} />
-                <Route path="/admin/media" element={<AdminMedia />} />
-                <Route path="/admin/settings" element={<AdminSettings />} />
-                <Route path="/admin/submissions" element={<AdminSubmissions />} />
-                <Route path="/admin/registrations" element={<AdminRegistrations />} />
+                
+                {/* Protected Admin Routes */}
+                <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+                <Route path="/admin/home" element={<ProtectedRoute requireAdmin><AdminHomeSections /></ProtectedRoute>} />
+                <Route path="/admin/about" element={<ProtectedRoute requireAdmin><AdminAbout /></ProtectedRoute>} />
+                <Route path="/admin/academics" element={<ProtectedRoute requireAdmin><AdminAcademics /></ProtectedRoute>} />
+                <Route path="/admin/activities" element={<ProtectedRoute requireAdmin><AdminActivities /></ProtectedRoute>} />
+                <Route path="/admin/portal" element={<ProtectedRoute requireAdmin><AdminPortal /></ProtectedRoute>} />
+                <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminPages /></ProtectedRoute>} />
+                <Route path="/admin/people" element={<ProtectedRoute requireAdmin><AdminPeople /></ProtectedRoute>} />
+                <Route path="/admin/events" element={<ProtectedRoute requireAdmin><AdminEvents /></ProtectedRoute>} />
+                <Route path="/admin/projects" element={<ProtectedRoute requireAdmin><AdminProjects /></ProtectedRoute>} />
+                <Route path="/admin/achievements" element={<ProtectedRoute requireAdmin><AdminAchievements /></ProtectedRoute>} />
+                <Route path="/admin/blog" element={<ProtectedRoute requireAdmin><AdminBlog /></ProtectedRoute>} />
+                <Route path="/admin/alumni" element={<ProtectedRoute requireAdmin><AdminAlumni /></ProtectedRoute>} />
+                <Route path="/admin/faq" element={<ProtectedRoute requireAdmin><AdminFAQ /></ProtectedRoute>} />
+                <Route path="/admin/media" element={<ProtectedRoute requireAdmin><AdminMedia /></ProtectedRoute>} />
+                <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+                <Route path="/admin/submissions" element={<ProtectedRoute requireAdmin><AdminSubmissions /></ProtectedRoute>} />
+                <Route path="/admin/registrations" element={<ProtectedRoute requireAdmin><AdminRegistrations /></ProtectedRoute>} />
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>

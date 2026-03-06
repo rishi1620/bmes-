@@ -1,10 +1,35 @@
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, BookOpen, Download, UserPlus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Bell, BookOpen, Download, UserPlus, ExternalLink } from "lucide-react";
 
 const Portal = () => {
+  const [settings, setSettings] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const load = async () => {
+      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+      const map: Record<string, string> = {};
+      data?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+      setSettings(map);
+      setLoading(false);
+    };
+    load();
+  }, []);
+
+  const softwareLinks = (() => {
+    try {
+      return JSON.parse(settings.portal_software_json || "[]");
+    } catch {
+      return [];
+    }
+  })();
+
   return (
     <PageLayout>
       <section className="hero-gradient py-16 md:py-24">
@@ -12,9 +37,11 @@ const Portal = () => {
           <span className="mb-3 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
             Student Portal / Resources
           </span>
-          <h1 className="text-4xl font-extrabold text-primary-foreground md:text-5xl">Interactive Zone</h1>
-          <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed">
-            A highly practical section driving daily traffic to your site.
+          <h1 className="text-4xl font-extrabold text-primary-foreground md:text-5xl">
+            {settings.portal_hero_title || "Interactive Zone"}
+          </h1>
+          <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed whitespace-pre-wrap">
+            {settings.portal_hero_subtitle || "A highly practical section driving daily traffic to your site."}
           </p>
         </div>
       </section>
@@ -33,7 +60,13 @@ const Portal = () => {
             <div className="mt-10">
               <Card>
                 <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground">Notice board will be updated shortly.</p>
+                  {settings.portal_notices_content ? (
+                    <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                      {settings.portal_notices_content}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground">Notice board will be updated shortly.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -44,7 +77,13 @@ const Portal = () => {
             <div className="mt-10">
               <Card>
                 <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground">Resource library will be available soon.</p>
+                  {settings.portal_library_content ? (
+                    <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                      {settings.portal_library_content}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground">Resource library will be available soon.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -53,18 +92,40 @@ const Portal = () => {
           <TabsContent value="software">
             <SectionHeading title="Software Links" description="Guides and links to university-licensed software." />
             <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              <Card>
-                <CardHeader><CardTitle>MATLAB</CardTitle></CardHeader>
-                <CardContent><p className="text-muted-foreground">Numerical computing environment and programming language.</p></CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle>SolidWorks</CardTitle></CardHeader>
-                <CardContent><p className="text-muted-foreground">3D CAD design software for biomedical device modeling.</p></CardContent>
-              </Card>
-              <Card>
-                <CardHeader><CardTitle>LabVIEW</CardTitle></CardHeader>
-                <CardContent><p className="text-muted-foreground">System-design platform and development environment for visual programming language.</p></CardContent>
-              </Card>
+              {softwareLinks.length > 0 ? (
+                softwareLinks.map((item: { title: string; url: string; description: string }, i: number) => (
+                  <Card key={i} className="flex flex-col">
+                    <CardHeader>
+                      <CardTitle className="flex items-center justify-between">
+                        {item.title}
+                        {item.url && (
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:text-primary/80">
+                            <ExternalLink className="h-4 w-4" />
+                          </a>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="flex-1">
+                      <p className="text-muted-foreground text-sm">{item.description}</p>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <>
+                  <Card>
+                    <CardHeader><CardTitle>MATLAB</CardTitle></CardHeader>
+                    <CardContent><p className="text-muted-foreground">Numerical computing environment and programming language.</p></CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle>SolidWorks</CardTitle></CardHeader>
+                    <CardContent><p className="text-muted-foreground">3D CAD design software for biomedical device modeling.</p></CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader><CardTitle>LabVIEW</CardTitle></CardHeader>
+                    <CardContent><p className="text-muted-foreground">System-design platform and development environment for visual programming language.</p></CardContent>
+                  </Card>
+                </>
+              )}
             </div>
           </TabsContent>
 
@@ -72,8 +133,24 @@ const Portal = () => {
             <SectionHeading title="Membership Portal" description="Information on how to join BMES, membership benefits, and an online registration/renewal form." />
             <div className="mt-10">
               <Card>
-                <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground">Membership portal will be available soon.</p>
+                <CardContent className="p-6 space-y-6">
+                  {settings.portal_membership_content ? (
+                    <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
+                      {settings.portal_membership_content}
+                    </div>
+                  ) : (
+                    <p className="text-center text-muted-foreground">Membership portal will be available soon.</p>
+                  )}
+                  
+                  {settings.portal_membership_url && (
+                    <div className="flex justify-center">
+                      <Button asChild size="lg">
+                        <a href={settings.portal_membership_url} target="_blank" rel="noopener noreferrer">
+                          Register / Renew Membership
+                        </a>
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

@@ -64,7 +64,7 @@ const Achievements = () => {
         </div>
       </section>
 
-      <section className="container py-16">
+      <section className="container py-16 animate-fade-up animate-fade-up-delay-200">
         <Tabs defaultValue="competitions" className="w-full">
           <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="competitions" className="gap-1.5 text-xs md:text-sm"><Trophy className="h-4 w-4" /> Competitions</TabsTrigger>
