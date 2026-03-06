@@ -1,0 +1,17 @@
+import AdminCrudPage, { FieldDef } from "@/components/admin/AdminCrudPage";
+
+const fields: FieldDef[] = [
+  { key: "title", label: "Title", required: true },
+  { key: "description", label: "Description", type: "textarea" },
+  { key: "date", label: "Date (ISO format)" },
+  { key: "location", label: "Location" },
+  { key: "type", label: "Type", type: "select", options: ["workshop", "seminar", "competition", "meetup", "conference"] },
+  { key: "image_url", label: "Image URL" },
+  { key: "is_upcoming", label: "Upcoming?", type: "boolean" },
+];
+
+const AdminEvents = () => (
+  <AdminCrudPage tableName="events" title="Events" fields={fields} columns={["title", "type", "location", "is_upcoming"]} />
+);
+
+export default AdminEvents;
