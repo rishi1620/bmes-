@@ -52,6 +52,31 @@ const Index = () => {
     },
   });
 
+  const { data: featuredProjects, isLoading: isLoadingProjects } = useQuery({
+    queryKey: ["home-featured-projects"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("projects")
+        .select("*")
+        .order("progress", { ascending: false })
+        .limit(3);
+      return data ?? [];
+    },
+  });
+
+  const { data: recentBlogPosts, isLoading: isLoadingBlog } = useQuery({
+    queryKey: ["home-recent-blog"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("blog_posts")
+        .select("*")
+        .eq("status", "published")
+        .order("created_at", { ascending: false })
+        .limit(3);
+      return data ?? [];
+    },
+  });
+
   const getSection = (key: string) => sections?.find((s) => s.section_key === key)?.section_data as Record<string, unknown> | undefined;
 
   const hero = getSection("hero");
@@ -210,13 +235,13 @@ const Index = () => {
         ) : recentAchievements && recentAchievements.length > 0 ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {recentAchievements.map((achievement: Record<string, unknown>) => (
-              <div key={achievement.id} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
+              <div key={achievement.id as string} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="mb-2 flex items-center justify-between">
-                  <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{achievement.category}</span>
+                  <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{achievement.category as string}</span>
                 </div>
-                <h3 className="font-bold text-lg mb-2">{achievement.title}</h3>
-                <p className="text-sm text-primary font-medium mb-3">{achievement.year || achievement.date_text || "Recent"}</p>
-                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{achievement.description || achievement.authors}</p>
+                <h3 className="font-bold text-lg mb-2">{achievement.title as string}</h3>
+                <p className="text-sm text-primary font-medium mb-3">{(achievement.year || achievement.date_text || "Recent") as string}</p>
+                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{(achievement.description || achievement.authors) as string}</p>
                 <Button asChild variant="outline" size="sm" className="w-full mt-auto">
                   <Link to={`/achievements`}>View Details</Link>
                 </Button>
@@ -226,6 +251,75 @@ const Index = () => {
         ) : (
           <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
             <p className="text-sm text-muted-foreground italic">No recent achievements recorded.</p>
+          </div>
+        )}
+      </section>
+
+      {/* Dynamic Featured Projects */}
+      <section className="container py-16 mb-16">
+        <SectionHeading title="Featured Projects" description="Innovative solutions developed by our members." />
+        {isLoadingProjects ? (
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+          </div>
+        ) : featuredProjects && featuredProjects.length > 0 ? (
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {featuredProjects.map((project: Record<string, unknown>) => (
+              <div key={project.id as string} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{project.category as string}</span>
+                  <span className="text-xs font-medium text-muted-foreground">{project.status as string}</span>
+                </div>
+                <h3 className="font-bold text-lg mb-2">{project.title as string}</h3>
+                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{project.description as string}</p>
+                <div className="mb-4">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span>Progress</span>
+                    <span>{project.progress as number}%</span>
+                  </div>
+                  <div className="w-full bg-muted rounded-full h-2">
+                    <div className="bg-primary h-2 rounded-full" style={{ width: `${project.progress}%` }}></div>
+                  </div>
+                </div>
+                <Button asChild variant="outline" size="sm" className="w-full mt-auto">
+                  <Link to={`/projects`}>View Project</Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
+            <p className="text-sm text-muted-foreground italic">No featured projects available.</p>
+          </div>
+        )}
+      </section>
+
+      {/* Dynamic Blog Previews */}
+      <section className="container py-16 bg-muted/30 rounded-3xl mb-16">
+        <SectionHeading title="Latest from the Blog" description="Insights, news, and stories from our community." />
+        {isLoadingBlog ? (
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+          </div>
+        ) : recentBlogPosts && recentBlogPosts.length > 0 ? (
+          <div className="mt-10 grid gap-6 md:grid-cols-3">
+            {recentBlogPosts.map((post: Record<string, unknown>) => (
+              <div key={post.id as string} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
+                <div className="mb-2 flex items-center justify-between">
+                  <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{post.category as string}</span>
+                </div>
+                <h3 className="font-bold text-lg mb-2">{post.title as string}</h3>
+                <p className="text-sm text-primary font-medium mb-3">{format(new Date(post.created_at as string), "PPP")}</p>
+                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-3">{post.excerpt as string}</p>
+                <Button asChild variant="outline" size="sm" className="w-full mt-auto">
+                  <Link to={`/blog/${post.slug}`}>Read More</Link>
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
+            <p className="text-sm text-muted-foreground italic">No recent blog posts available.</p>
           </div>
         )}
       </section>

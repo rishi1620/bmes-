@@ -58,9 +58,14 @@ const AdminHomeSections = () => {
   }, [searchParams, sections, editing, setSearchParams]);
 
   const toggleVisibility = async (s: HomeSection) => {
-    await supabase.from("home_sections").update({ is_visible: !s.is_visible }).eq("id", s.id);
-    toast({ title: s.is_visible ? "Section hidden" : "Section visible" });
-    load();
+    try {
+      const { error } = await supabase.from("home_sections").update({ is_visible: !s.is_visible }).eq("id", s.id);
+      if (error) throw error;
+      toast({ title: s.is_visible ? "Section hidden" : "Section visible" });
+      load();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const openEdit = (s: HomeSection) => {
@@ -115,13 +120,19 @@ const AdminHomeSections = () => {
     newSections[index].display_order = newSections[targetIndex].display_order;
     newSections[targetIndex].display_order = tempOrder;
 
-    // Update both in database
-    await Promise.all([
-      supabase.from("home_sections").update({ display_order: newSections[index].display_order }).eq("id", newSections[index].id),
-      supabase.from("home_sections").update({ display_order: newSections[targetIndex].display_order }).eq("id", newSections[targetIndex].id)
-    ]);
-    
-    load();
+    try {
+      // Update both in database
+      const [res1, res2] = await Promise.all([
+        supabase.from("home_sections").update({ display_order: newSections[index].display_order }).eq("id", newSections[index].id),
+        supabase.from("home_sections").update({ display_order: newSections[targetIndex].display_order }).eq("id", newSections[targetIndex].id)
+      ]);
+      if (res1.error) throw res1.error;
+      if (res2.error) throw res2.error;
+      
+      load();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    }
   };
 
   const handleAddNew = () => {

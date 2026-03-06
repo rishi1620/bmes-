@@ -31,33 +31,37 @@ const AdminActivities = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    
-    const keysToSave = [
-      "activities_hero_title",
-      "activities_hero_subtitle",
-      "activities_flagship_json",
-      "activities_seminars_json",
-      "activities_gallery_content",
-      "activities_publications_content",
-      "activities_publications_pdf_url"
-    ];
-    
-    for (const key of keysToSave) {
-      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
+    try {
+      const keysToSave = [
+        "activities_hero_title",
+        "activities_hero_subtitle",
+        "activities_flagship_json",
+        "activities_seminars_json",
+        "activities_gallery_content",
+        "activities_publications_content",
+        "activities_publications_pdf_url"
+      ];
       
-      if (!existing) {
-        await supabase.from("site_settings").insert({
-          setting_group: "activities_page",
-          setting_key: key,
-          setting_value: settings[key] || ""
-        });
-      } else {
-        await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
+      for (const key of keysToSave) {
+        const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
+        
+        if (!existing) {
+          await supabase.from("site_settings").insert({
+            setting_group: "activities_page",
+            setting_key: key,
+            setting_value: settings[key] || ""
+          });
+        } else {
+          await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
+        }
       }
-    }
 
-    toast({ title: "Activities page content saved" });
-    setSaving(false);
+      toast({ title: "Activities page content saved" });
+    } catch (error: any) {
+      toast({ title: "Error saving content", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateSetting = (key: string, value: string) => {

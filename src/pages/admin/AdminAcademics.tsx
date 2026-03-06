@@ -74,25 +74,29 @@ const AdminAcademics = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    
-    const allKeys = groups.flatMap(g => g.fields.map(f => f.key));
-    
-    for (const key of allKeys) {
-      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
+    try {
+      const allKeys = groups.flatMap(g => g.fields.map(f => f.key));
       
-      if (!existing) {
-        await supabase.from("site_settings").insert({
-          setting_group: "academics_page",
-          setting_key: key,
-          setting_value: settings[key] || ""
-        });
-      } else {
-        await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
+      for (const key of allKeys) {
+        const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
+        
+        if (!existing) {
+          await supabase.from("site_settings").insert({
+            setting_group: "academics_page",
+            setting_key: key,
+            setting_value: settings[key] || ""
+          });
+        } else {
+          await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
+        }
       }
-    }
 
-    toast({ title: "Academics page content saved" });
-    setSaving(false);
+      toast({ title: "Academics page content saved" });
+    } catch (error: any) {
+      toast({ title: "Error saving content", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

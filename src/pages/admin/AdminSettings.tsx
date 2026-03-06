@@ -71,14 +71,19 @@ const AdminSettings = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    const updates = Object.entries(settings).map(([setting_key, setting_value]) =>
-      supabase.from("site_settings").update({ setting_value }).eq("setting_key", setting_key)
-    );
-    const results = await Promise.all(updates);
-    const hasError = results.some((r) => r.error);
-    if (hasError) toast({ title: "Some settings failed to save", variant: "destructive" });
-    else toast({ title: "Settings saved" });
-    setSaving(false);
+    try {
+      const updates = Object.entries(settings).map(([setting_key, setting_value]) =>
+        supabase.from("site_settings").update({ setting_value }).eq("setting_key", setting_key)
+      );
+      const results = await Promise.all(updates);
+      const hasError = results.some((r) => r.error);
+      if (hasError) toast({ title: "Some settings failed to save", variant: "destructive" });
+      else toast({ title: "Settings saved" });
+    } catch (error: any) {
+      toast({ title: "Error saving settings", description: error.message, variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (

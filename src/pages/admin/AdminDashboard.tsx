@@ -38,7 +38,9 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <h1 className="mb-6 text-2xl font-bold text-foreground">Dashboard</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+      </div>
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
         <StatCard value={String(counts.members)} label="Members" />
         <StatCard value={String(counts.advisors)} label="Advisors" />

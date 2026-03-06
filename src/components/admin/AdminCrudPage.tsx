@@ -60,18 +60,23 @@ const AdminCrudPage = ({ tableName, title, fields, columns, orderBy }: Props) =>
 
   const save = async () => {
     setLoading(true);
-    if (editing) {
-      const { error } = await supabase.from(tableName).update(form).eq("id", editing.id);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-      else { toast({ title: "Updated" }); }
-    } else {
-      const { error } = await supabase.from(tableName).insert(form as Record<string, unknown>);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-      else { toast({ title: "Created" }); }
+    try {
+      if (editing) {
+        const { error } = await supabase.from(tableName).update(form).eq("id", editing.id);
+        if (error) throw error;
+        toast({ title: "Updated" });
+      } else {
+        const { error } = await supabase.from(tableName).insert(form as Record<string, unknown>);
+        if (error) throw error;
+        toast({ title: "Created" });
+      }
+      setOpen(false);
+      fetchRows();
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-    setOpen(false);
-    fetchRows();
   };
 
   const remove = async (id: string) => {
