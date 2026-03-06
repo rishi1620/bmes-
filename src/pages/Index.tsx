@@ -159,7 +159,7 @@ const Index = () => {
 
       {/* Latest Announcements */}
       {announcements && (
-        <section className="container py-12">
+        <section className="container py-8">
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -210,7 +210,7 @@ const Index = () => {
       )}
 
       {/* Dynamic Upcoming Events */}
-      <section className="container py-12 bg-muted/30 rounded-3xl mb-10">
+      <section className="container py-8 bg-muted/30 rounded-3xl mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={upcomingEvents?.title as string || "Upcoming Events"} 
@@ -326,7 +326,7 @@ const Index = () => {
       </section>
 
       {/* Dynamic Achievements */}
-      <section className="container py-12 bg-muted/30 rounded-3xl mb-10">
+      <section className="container py-8 bg-muted/30 rounded-3xl mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={recentAchievementsSection?.title as string || "Recent Achievements"} 
@@ -390,7 +390,7 @@ const Index = () => {
       </section>
 
       {/* Dynamic Featured Projects */}
-      <section className="container py-12 mb-10">
+      <section className="container py-8 mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={featuredProjectsSection?.title as string || "Featured Projects"} 
@@ -442,7 +442,7 @@ const Index = () => {
       </section>
 
       {/* Dynamic Blog Previews */}
-      <section className="container py-12 bg-muted/30 rounded-3xl mb-10">
+      <section className="container py-8 bg-muted/30 rounded-3xl mb-8">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={recentBlogSection?.title as string || "Latest from the Blog"} 
@@ -521,7 +521,7 @@ const Index = () => {
 
       {/* Features */}
       {features && (
-        <section className="container py-16">
+        <section className="container py-12">
           <SectionHeading badge={features.badge} title={features.title} description={features.description} />
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {features.items?.map((f: Record<string, unknown>) => {
@@ -542,7 +542,7 @@ const Index = () => {
 
       {/* CTA */}
       {cta && (
-        <section className="hero-gradient py-12">
+        <section className="hero-gradient py-10">
           <div className="container text-center">
             <h2 className="text-3xl font-bold text-primary-foreground">{cta.title}</h2>
             <p className="mt-3 text-primary-foreground/80">{cta.description}</p>
