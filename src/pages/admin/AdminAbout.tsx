@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+// Force update to resolve Vercel build mismatch
 import { Save, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
-import PageHeader from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -101,13 +101,9 @@ const AdminAbout = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("site_settings").select("*");
-      console.log("All settings:", data);
+      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "about_page");
       const map: Record<string, string> = {};
-      (data as Setting[] | null)?.forEach((s) => { 
-        console.log(`Setting: ${s.setting_key}, Group: ${s.setting_group}`);
-        map[s.setting_key] = s.setting_value; 
-      });
+      (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
       setSettings(map);
     };
     load();
@@ -139,21 +135,11 @@ const AdminAbout = () => {
 
   return (
     <AdminLayout>
-      <PageHeader 
-        title="About Page Content" 
-        action={
-          <Button onClick={handleSave} size="sm" disabled={saving}>
-            <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
-          </Button>
-        }
-      />
-      <div className="bg-muted p-4 mb-4 rounded-md">
-        <h3 className="font-bold mb-2">All Settings in Database:</h3>
-        <pre className="text-xs overflow-auto max-h-60">{JSON.stringify(settings, null, 2)}</pre>
-        <h3 className="font-bold mt-4 mb-2">Settings not in groups:</h3>
-        <pre className="text-xs overflow-auto max-h-60">
-          {JSON.stringify(Object.keys(settings).filter(key => !groups.flatMap(g => g.fields.map(f => f.key)).includes(key)), null, 2)}
-        </pre>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">About Page Content</h1>
+        <Button onClick={handleSave} size="sm" disabled={saving}>
+          <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
+        </Button>
       </div>
 
       <div className="space-y-8">
