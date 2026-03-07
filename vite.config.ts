@@ -12,6 +12,9 @@ export default defineConfig(() => ({
       overlay: false,
     },
   },
+  css: {
+    postcss: "./postcss.config.js",
+  },
   plugins: [react()].filter(Boolean),
   resolve: {
     alias: {
