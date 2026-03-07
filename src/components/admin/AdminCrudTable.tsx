@@ -47,7 +47,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchRows = useCallback(async () => {
-    const { data } = await supabase.from(tableName).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
     const allRows = data ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
   }, [tableName, orderBy, filter]);
@@ -95,11 +96,13 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     }
 
     if (editing) {
-      const { error } = await supabase.from(tableName).update(payload).eq("id", editing.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing.id as string);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Updated successfully" }); }
     } else {
-      const { error } = await supabase.from(tableName).insert(payload as Record<string, unknown>);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from(tableName as any).insert(payload as any);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Created successfully" }); }
     }
@@ -110,7 +113,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   const remove = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) return;
-    const { error } = await supabase.from(tableName).delete().eq("id", id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from(tableName as any).delete().eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     else { toast({ title: "Deleted successfully" }); fetchRows(); }
   };
