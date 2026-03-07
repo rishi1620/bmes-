@@ -1,6 +1,7 @@
 import AdminLayout from "@/components/layout/AdminLayout";
 import AdminCrudTable, { FieldDef } from "@/components/admin/AdminCrudTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useSearchParams } from "react-router-dom";
 
 const advisorFields: FieldDef[] = [
   { key: "name", label: "Name", required: true },
@@ -29,6 +30,13 @@ const memberFields: FieldDef[] = [
 ];
 
 const AdminPeople = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get("tab") || "faculty";
+
+  const setTab = (val: string) => {
+    setSearchParams({ tab: val });
+  };
+
   return (
     <AdminLayout>
       <div className="mb-8">
@@ -36,7 +44,7 @@ const AdminPeople = () => {
         <p className="text-muted-foreground mt-1">Manage faculty, staff, executive committee, and advisors.</p>
       </div>
       
-      <Tabs defaultValue="faculty" className="w-full">
+      <Tabs value={currentTab} onValueChange={setTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="faculty">Faculty</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>

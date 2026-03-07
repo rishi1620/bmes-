@@ -50,19 +50,19 @@ const AdminDashboard = () => {
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard value={String(counts.members)} label="Members" icon={Users} />
-        <StatCard value={String(counts.advisors)} label="Advisors" icon={UserCheck} />
-        <StatCard value={String(counts.alumni)} label="Alumni" icon={GraduationCap} />
-        <StatCard value={String(counts.events)} label="Events" icon={Calendar} />
+        <StatCard value={String(counts.members)} label="Members" icon={Users} to="/admin/people?tab=ec" />
+        <StatCard value={String(counts.advisors)} label="Advisors" icon={UserCheck} to="/admin/people?tab=advisory" />
+        <StatCard value={String(counts.alumni)} label="Alumni" icon={GraduationCap} to="/admin/alumni" />
+        <StatCard value={String(counts.events)} label="Events" icon={Calendar} to="/admin/events" />
         
-        <StatCard value={String(counts.registrations)} label="Registrations" icon={CalendarDays} />
-        <StatCard value={String(counts.projects)} label="Projects" icon={FolderOpen} />
-        <StatCard value={String(counts.achievements)} label="Achievements" icon={Trophy} />
-        <StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} />
+        <StatCard value={String(counts.registrations)} label="Registrations" icon={CalendarDays} to="/admin/registrations" />
+        <StatCard value={String(counts.projects)} label="Projects" icon={FolderOpen} to="/admin/projects" />
+        <StatCard value={String(counts.achievements)} label="Achievements" icon={Trophy} to="/admin/achievements" />
+        <StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} to="/admin/blog" />
         
-        <StatCard value={String(counts.media)} label="Media Files" icon={Image} />
-        <StatCard value={String(counts.submissions)} label="Submissions" icon={Inbox} />
-        <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" />
+        <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
+        <StatCard value={String(counts.submissions)} label="Submissions" icon={Inbox} to="/admin/submissions" />
+        <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>
     </AdminLayout>
   );
