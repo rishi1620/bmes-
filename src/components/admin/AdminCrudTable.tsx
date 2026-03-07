@@ -49,7 +49,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
   const fetchRows = useCallback(async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
-    const allRows = data ?? [];
+    const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
   }, [tableName, orderBy, filter]);
 
