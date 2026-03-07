@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-// Force update to resolve Vercel build mismatch
 import { Save, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";

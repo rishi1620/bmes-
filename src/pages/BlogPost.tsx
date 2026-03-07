@@ -22,7 +22,7 @@ const BlogPost = () => {
         .single();
       
       if (error) throw error;
-      return data as any;
+      return data;
     },
   });
 

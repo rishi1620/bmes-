@@ -85,7 +85,7 @@ const Index = () => {
     },
   });
 
-  const getSection = (key: string) => sections?.find((s) => s.section_key === key)?.section_data as any;
+  const getSection = (key: string) => sections?.find((s) => s.section_key === key)?.section_data as Record<string, unknown> | undefined;
 
   const hero = getSection("hero");
   const quickLinks = getSection("quick_links");
@@ -276,7 +276,7 @@ const Index = () => {
 
             {/* Other Events */}
             <div className="lg:col-span-8 grid gap-6 md:grid-cols-2">
-              {recentEvents.slice(1, 3).map((event: any) => (
+              {recentEvents.slice(1, 3).map((event: Record<string, string>) => (
                 <div key={event.id} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                   <div className="relative h-48 overflow-hidden">
                     <img 
@@ -522,7 +522,7 @@ const Index = () => {
       {stats?.items && (
         <section className="container -mt-12 relative z-20">
           <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            {stats.items.map((s: any) => (
+            {stats.items.map((s: Record<string, unknown>) => (
               <StatCard key={s.label} value={s.value} label={s.label} />
             ))}
           </div>
@@ -534,7 +534,7 @@ const Index = () => {
         <section className="container py-12">
           <SectionHeading badge={features.badge} title={features.title} description={features.description} />
           <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {features.items?.map((f: any) => {
+            {features.items?.map((f: Record<string, unknown>) => {
               const Icon = iconMap[f.icon] || FlaskConical;
               return (
                 <div key={f.title} className="group rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">

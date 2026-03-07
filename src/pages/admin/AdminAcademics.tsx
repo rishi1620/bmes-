@@ -1,5 +1,5 @@
-import { useEffect, useState, useRef } from "react";
-import { Save, Upload, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ interface Setting {
   setting_group: string;
 }
 
-const groups: { key: string; label: string; fields: { key: string; label: string; type?: "text" | "textarea" | "file" }[] }[] = [
+const groups: { key: string; label: string; fields: { key: string; label: string; type?: "text" | "textarea" }[] }[] = [
   {
     key: "academics_hero",
     label: "Hero Section",
@@ -30,7 +30,6 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     fields: [
       { key: "academics_undergrad_overview", label: "Program Overview", type: "textarea" },
       { key: "academics_undergrad_admission", label: "Admission Requirements", type: "textarea" },
-      { key: "academics_undergrad_pdf_url", label: "Undergraduate Guidelines PDF", type: "file" },
     ],
   },
   {
@@ -38,16 +37,16 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     label: "Syllabus & Curriculum",
     fields: [
       { key: "academics_syllabus_content", label: "Syllabus Details", type: "textarea" },
-      { key: "academics_syllabus_pdf_url", label: "Syllabus PDF URL", type: "file" },
+      { key: "academics_syllabus_pdf_url", label: "Syllabus PDF URL" },
     ],
   },
   {
     key: "academics_resources",
-    label: "Academic Resources (PDFs/URLs)",
+    label: "Academic Resources (URLs)",
     fields: [
-      { key: "academics_calendar_url", label: "Academic Calendar PDF/URL", type: "file" },
-      { key: "academics_routine_url", label: "Class Routine PDF/URL", type: "file" },
-      { key: "academics_exam_url", label: "Exam Schedule PDF/URL", type: "file" },
+      { key: "academics_calendar_url", label: "Academic Calendar URL" },
+      { key: "academics_routine_url", label: "Class Routine URL" },
+      { key: "academics_exam_url", label: "Exam Schedule URL" },
     ],
   },
   {
@@ -55,7 +54,6 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     label: "Postgraduate Program",
     fields: [
       { key: "academics_postgrad_content", label: "Postgraduate Details", type: "textarea" },
-      { key: "academics_postgrad_pdf_url", label: "Postgraduate Guidelines PDF", type: "file" },
     ],
   },
 ];
@@ -63,8 +61,6 @@ const groups: { key: string; label: string; fields: { key: string; label: string
 const AdminAcademics = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [uploadingField, setUploadingField] = useState<string | null>(null);
-  const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -103,32 +99,6 @@ const AdminAcademics = () => {
     }
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>, fieldKey: string) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    setUploadingField(fieldKey);
-    try {
-      const name = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-      const { error } = await supabase.storage.from("media").upload(name, file);
-      
-      if (error) {
-        toast({ title: `Failed to upload ${file.name}`, description: error.message, variant: "destructive" });
-      } else {
-        const { data } = supabase.storage.from("media").getPublicUrl(name);
-        setSettings({ ...settings, [fieldKey]: data.publicUrl });
-        toast({ title: "File uploaded successfully" });
-      }
-    } catch (error) {
-      toast({ title: "Upload error", description: error instanceof Error ? error.message : "Unknown error", variant: "destructive" });
-    } finally {
-      setUploadingField(null);
-      if (fileInputRefs.current[fieldKey]) {
-        fileInputRefs.current[fieldKey]!.value = '';
-      }
-    }
-  };
-
   return (
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
@@ -152,34 +122,6 @@ const AdminAcademics = () => {
                       value={settings[field.key] ?? ""}
                       onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                     />
-                  ) : field.type === "file" ? (
-                    <div className="flex gap-2">
-                      <Input
-                        value={settings[field.key] ?? ""}
-                        onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                        placeholder="Enter URL or upload a file"
-                        className="flex-1"
-                      />
-                      <input
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        ref={(el) => fileInputRefs.current[field.key] = el}
-                        onChange={(e) => handleFileUpload(e, field.key)}
-                      />
-                      <Button 
-                        variant="outline" 
-                        onClick={() => fileInputRefs.current[field.key]?.click()}
-                        disabled={uploadingField === field.key}
-                      >
-                        {uploadingField === field.key ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Upload className="h-4 w-4 mr-2" />
-                        )}
-                        Upload PDF
-                      </Button>
-                    </div>
                   ) : (
                     <Input
                       value={settings[field.key] ?? ""}
