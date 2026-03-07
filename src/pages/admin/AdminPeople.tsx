@@ -31,7 +31,10 @@ const memberFields: FieldDef[] = [
 const AdminPeople = () => {
   return (
     <AdminLayout>
-      <h1 className="text-2xl font-bold text-foreground mb-6">People Management</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">People Management</h1>
+        <p className="text-muted-foreground mt-1">Manage faculty, staff, executive committee, and advisors.</p>
+      </div>
       
       <Tabs defaultValue="faculty" className="w-full">
         <TabsList className="grid w-full grid-cols-4 mb-8">

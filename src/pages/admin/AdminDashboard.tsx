@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
+import { Users, Calendar, FolderOpen, Trophy, FileText, Inbox, Image, GraduationCap, UserCheck, Link as LinkIcon, Bell, CalendarDays } from "lucide-react";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0 });
@@ -41,21 +42,27 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Overview of your system statistics and activity.</p>
+        </div>
       </div>
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatCard value={String(counts.members)} label="Members" />
-        <StatCard value={String(counts.advisors)} label="Advisors" />
-        <StatCard value={String(counts.events)} label="Events" />
-        <StatCard value={String(counts.projects)} label="Projects" />
-        <StatCard value={String(counts.achievements)} label="Achievements" />
-        <StatCard value={String(counts.blog)} label="Blog Posts" />
-        <StatCard value={String(counts.alumni)} label="Alumni" />
-        <StatCard value={String(counts.media)} label="Media Files" />
-        <StatCard value={String(counts.submissions)} label="Submissions" />
-        <StatCard value={String(counts.unread)} label="Unread Messages" />
-        <StatCard value={String(counts.registrations)} label="Event Registrations" />
+      
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard value={String(counts.members)} label="Members" icon={Users} />
+        <StatCard value={String(counts.advisors)} label="Advisors" icon={UserCheck} />
+        <StatCard value={String(counts.alumni)} label="Alumni" icon={GraduationCap} />
+        <StatCard value={String(counts.events)} label="Events" icon={Calendar} />
+        
+        <StatCard value={String(counts.registrations)} label="Registrations" icon={CalendarDays} />
+        <StatCard value={String(counts.projects)} label="Projects" icon={FolderOpen} />
+        <StatCard value={String(counts.achievements)} label="Achievements" icon={Trophy} />
+        <StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} />
+        
+        <StatCard value={String(counts.media)} label="Media Files" icon={Image} />
+        <StatCard value={String(counts.submissions)} label="Submissions" icon={Inbox} />
+        <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" />
       </div>
     </AdminLayout>
   );

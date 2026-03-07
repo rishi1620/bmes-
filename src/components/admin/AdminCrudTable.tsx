@@ -1,12 +1,16 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, Filter } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { format } from "date-fns";
@@ -25,6 +29,7 @@ type TableName = "members" | "events" | "projects" | "achievements" | "advisors"
 interface Props {
   tableName: TableName;
   title: string;
+  description?: string;
   fields: FieldDef[];
   columns: string[];
   orderBy?: string;
@@ -33,12 +38,13 @@ interface Props {
   hiddenFields?: string[];
 }
 
-const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, defaultValues, hiddenFields = [] }: Props) => {
+const AdminCrudTable = ({ tableName, title, description, fields, columns, orderBy, filter, defaultValues, hiddenFields = [] }: Props) => {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
   const [form, setForm] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const fetchRows = useCallback(async () => {
     const { data } = await supabase.from(tableName).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
@@ -91,11 +97,11 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
     if (editing) {
       const { error } = await supabase.from(tableName).update(payload).eq("id", editing.id);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-      else { toast({ title: "Updated" }); }
+      else { toast({ title: "Updated successfully" }); }
     } else {
       const { error } = await supabase.from(tableName).insert(payload as Record<string, unknown>);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-      else { toast({ title: "Created" }); }
+      else { toast({ title: "Created successfully" }); }
     }
     setLoading(false);
     setOpen(false);
@@ -103,106 +109,149 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
   };
 
   const remove = async (id: string) => {
-    if (!confirm("Delete this item?")) return;
+    if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) return;
     const { error } = await supabase.from(tableName).delete().eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
-    else { toast({ title: "Deleted" }); fetchRows(); }
+    else { toast({ title: "Deleted successfully" }); fetchRows(); }
   };
 
   const fieldLabel = (key: string) => fields.find((f) => f.key === key)?.label ?? key;
 
-  return (
-    <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add</Button>
-      </div>
+  const filteredRows = rows.filter(row => 
+    Object.values(row).some(val => 
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
 
-      <div className="rounded-lg border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              {columns.map((c) => <TableHead key={c}>{fieldLabel(c)}</TableHead>)}
-              <TableHead className="w-24 text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 && (
-              <TableRow><TableCell colSpan={columns.length + 1} className="text-center text-muted-foreground py-8">No items yet</TableCell></TableRow>
-            )}
-            {rows.map((row) => (
-              <TableRow key={row.id as string}>
-                {columns.map((c) => {
-                  const field = fields.find(f => f.key === c);
-                  return (
-                    <TableCell key={c} className="max-w-[300px] truncate">
-                      {typeof row[c] === "boolean" ? (
-                        row[c] ? "Yes" : "No"
-                      ) : field?.type === "datetime" ? (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs font-medium">{format(new Date(row[c] as string), "PPp")}</span>
-                          <div className="scale-75 origin-left">
-                            <CountdownTimer targetDate={row[c] as string} />
-                          </div>
-                        </div>
-                      ) : field?.type === "list" ? (
-                        <div className="flex flex-wrap gap-1">
-                          {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
-                            <span key={i} className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium">{item}</span>
-                          )) : String(row[c] ?? "")}
-                        </div>
-                      ) : (
-                        String(row[c] ?? "")
-                      )}
-                    </TableCell>
-                  );
-                })}
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="outline" size="sm" onClick={() => openEdit(row)} title="Edit">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => remove(row.id as string)} title="Delete" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+  return (
+    <Card className="border-none shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <div className="space-y-1">
+          <CardTitle className="text-xl font-bold">{title}</CardTitle>
+          {description && <CardDescription>{description}</CardDescription>}
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="relative w-64">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Search..." 
+              className="pl-8" 
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <Button onClick={openNew} size="sm" className="gap-1">
+            <Plus className="h-4 w-4" /> Add New
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/50 hover:bg-muted/50">
+                {columns.map((c) => <TableHead key={c} className="font-semibold">{fieldLabel(c)}</TableHead>)}
+                <TableHead className="w-[100px] text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredRows.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={columns.length + 1} className="h-24 text-center text-muted-foreground">
+                    No results found.
+                  </TableCell>
+                </TableRow>
+              )}
+              {filteredRows.map((row) => (
+                <TableRow key={row.id as string} className="hover:bg-muted/50">
+                  {columns.map((c) => {
+                    const field = fields.find(f => f.key === c);
+                    return (
+                      <TableCell key={c} className="max-w-[300px] truncate py-3">
+                        {typeof row[c] === "boolean" ? (
+                          <Badge variant={row[c] ? "default" : "secondary"} className={row[c] ? "bg-green-500 hover:bg-green-600" : ""}>
+                            {row[c] ? "Active" : "Inactive"}
+                          </Badge>
+                        ) : field?.type === "datetime" ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium">{format(new Date(row[c] as string), "MMM d, yyyy")}</span>
+                            <span className="text-xs text-muted-foreground">{format(new Date(row[c] as string), "h:mm a")}</span>
+                          </div>
+                        ) : field?.type === "list" ? (
+                          <div className="flex flex-wrap gap-1">
+                            {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
+                              <Badge key={i} variant="outline" className="text-[10px] font-normal">{item}</Badge>
+                            )) : String(row[c] ?? "")}
+                          </div>
+                        ) : field?.type === "image" && row[c] ? (
+                          <img src={row[c] as string} alt="Thumbnail" className="h-8 w-8 rounded object-cover border" />
+                        ) : (
+                          <span className="text-sm">{String(row[c] ?? "")}</span>
+                        )}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(row)} title="Edit" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => remove(row.id as string)} title="Delete" className="h-8 w-8 text-muted-foreground hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      </CardContent>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editing ? "Edit" : "Add"} {title.replace(/s$/, "")}</DialogTitle>
+            <DialogTitle>{editing ? "Edit Item" : "Add New Item"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-4 py-4">
             {fields.filter(f => !hiddenFields.includes(f.key)).map((f) => (
-              <div key={f.key} className="space-y-1.5">
-                <Label>{f.label}</Label>
+              <div key={f.key} className="space-y-2">
+                <Label className="text-sm font-medium">
+                  {f.label} {f.required && <span className="text-destructive">*</span>}
+                </Label>
+                
                 {f.type === "textarea" ? (
-                  <Textarea value={form[f.key] as string ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
-                ) : f.type === "number" ? (
-                  <Input type="number" value={form[f.key] as number ?? 0} onChange={(e) => setForm({ ...form, [f.key]: Number(e.target.value) })} />
-                ) : f.type === "select" ? (
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={form[f.key] as string ?? ""}
+                  <Textarea 
+                    value={form[f.key] as string ?? ""} 
                     onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
+                    className="min-h-[100px]"
+                  />
+                ) : f.type === "number" ? (
+                  <Input 
+                    type="number" 
+                    value={form[f.key] as number ?? 0} 
+                    onChange={(e) => setForm({ ...form, [f.key]: Number(e.target.value) })} 
+                  />
+                ) : f.type === "select" ? (
+                  <Select 
+                    value={form[f.key] as string ?? ""} 
+                    onValueChange={(val) => setForm({ ...form, [f.key]: val })}
                   >
-                    {f.options?.map((o) => <option key={o} value={o}>{o || "(none)"}</option>)}
-                  </select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select option" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {f.options?.map((o) => <SelectItem key={o} value={o}>{o || "(none)"}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
                 ) : f.type === "boolean" ? (
-                  <select
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={form[f.key] ? "true" : "false"}
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value === "true" })}
-                  >
-                    <option value="true">Yes</option>
-                    <option value="false">No</option>
-                  </select>
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      checked={form[f.key] as boolean} 
+                      onCheckedChange={(checked) => setForm({ ...form, [f.key]: checked })} 
+                    />
+                    <span className="text-sm text-muted-foreground">{form[f.key] ? "Yes" : "No"}</span>
+                  </div>
                 ) : f.type === "datetime" ? (
                   <Input 
                     type="datetime-local" 
@@ -210,7 +259,7 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                     onChange={(e) => setForm({ ...form, [f.key]: new Date(e.target.value).toISOString() })} 
                   />
                 ) : f.type === "list" ? (
-                  <div className="space-y-1">
+                  <div className="space-y-2">
                     <Input 
                       placeholder="Comma separated values..." 
                       value={Array.isArray(form[f.key]) ? (form[f.key] as string[]).join(", ") : (form[f.key] as string ?? "")} 
@@ -219,13 +268,18 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                     <p className="text-[10px] text-muted-foreground">Enter items separated by commas.</p>
                   </div>
                 ) : f.type === "image" ? (
-                  <div className="flex flex-col gap-2">
-                    {form[f.key] && <img src={form[f.key] as string} alt="Preview" className="h-32 w-32 object-cover rounded-md border border-border" />}
+                  <div className="flex flex-col gap-3 rounded-md border p-3 bg-muted/20">
+                    {form[f.key] && (
+                      <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-background">
+                        <img src={form[f.key] as string} alt="Preview" className="h-full w-full object-contain" />
+                      </div>
+                    )}
                     <div className="flex gap-2">
                       <Input 
                         value={form[f.key] as string ?? ""} 
                         onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} 
                         placeholder="Image URL"
+                        className="flex-1"
                       />
                       <MediaSelectorDialog 
                         onSelect={(url) => setForm({ ...form, [f.key]: url })} 
@@ -233,15 +287,22 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                     </div>
                   </div>
                 ) : (
-                  <Input value={form[f.key] as string ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} required={f.required} />
+                  <Input 
+                    value={form[f.key] as string ?? ""} 
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} 
+                    required={f.required} 
+                  />
                 )}
               </div>
             ))}
           </div>
-          <Button onClick={save} disabled={loading} className="w-full">{loading ? "Saving…" : "Save"}</Button>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button onClick={save} disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 };
 

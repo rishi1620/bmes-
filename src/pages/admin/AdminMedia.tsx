@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import AdminLayout from "@/components/layout/AdminLayout";
+import AdminLayout from "../../components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -160,7 +160,7 @@ const AdminMedia = () => {
         <p className="text-muted-foreground">{isDragActive ? "Drop files here" : "Drag & drop files here, or click to select"}</p>
       </div>
 
-      <Input placeholder="Search files…" value={search} onChange={(e) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
+      <Input placeholder="Search files…" value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
 
       {loading ? (
         <div className="flex justify-center py-16">

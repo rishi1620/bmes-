@@ -62,9 +62,9 @@ const Projects = () => {
                 <div className="mt-4">
                   <div className="mb-1 flex justify-between text-xs text-muted-foreground">
                     <span>Progress</span>
-                    <span>{p.progress}%</span>
+                    <span>{Number(p.progress) || 0}%</span>
                   </div>
-                  <Progress value={p.progress} className="h-2" />
+                  <Progress value={Number(p.progress) || 0} className="h-2" />
                 </div>
               </div>
             ))}
@@ -82,7 +82,7 @@ const Projects = () => {
                   <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-accent/10 text-accent font-bold text-sm">
                     {new Date(p.created_at).getFullYear()}
                   </div>
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-foreground">{p.title}</h3>
                     {p.lead && <p className="text-sm text-muted-foreground">Lead: {p.lead}</p>}
                     {p.team_members && p.team_members.length > 0 && (
@@ -94,6 +94,13 @@ const Projects = () => {
                         ))}
                       </div>
                     )}
+                    <div className="mt-3">
+                      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+                        <span>Progress</span>
+                        <span>{Number(p.progress) || 0}%</span>
+                      </div>
+                      <Progress value={Number(p.progress) || 0} className="h-1.5" />
+                    </div>
                   </div>
                 </div>
               ))}
