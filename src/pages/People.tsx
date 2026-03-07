@@ -109,10 +109,11 @@ const People = () => {
 
       <section className="container py-16">
         <Tabs defaultValue="faculty" className="w-full">
-          <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
+          <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-5">
             <TabsTrigger value="faculty" className="gap-1.5 text-xs md:text-sm"><GraduationCap className="h-4 w-4" /> Faculty</TabsTrigger>
             <TabsTrigger value="staff" className="gap-1.5 text-xs md:text-sm"><Briefcase className="h-4 w-4" /> Staff</TabsTrigger>
             <TabsTrigger value="ec" className="gap-1.5 text-xs md:text-sm"><Users className="h-4 w-4" /> BMES EC</TabsTrigger>
+            <TabsTrigger value="members" className="gap-1.5 text-xs md:text-sm"><Users className="h-4 w-4" /> Members</TabsTrigger>
             <TabsTrigger value="advisory" className="gap-1.5 text-xs md:text-sm"><UserCheck className="h-4 w-4" /> Advisory</TabsTrigger>
           </TabsList>
 
@@ -163,6 +164,23 @@ const People = () => {
             ) : (
               <div className="mt-10 text-center p-12 border rounded-xl bg-muted/20">
                 <p className="text-muted-foreground">Current EC details will be updated shortly.</p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="members">
+            <SectionHeading title="Our Members" description="Meet the passionate students driving CUET BMES forward." />
+            {isLoading ? (
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-80 rounded-xl" />)}
+              </div>
+            ) : members.length > 0 ? (
+              <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {members.map((person) => <PersonCard key={person.id} person={person} />)}
+              </div>
+            ) : (
+              <div className="mt-10 text-center p-12 border rounded-xl bg-muted/20">
+                <p className="text-muted-foreground">No members found.</p>
               </div>
             )}
           </TabsContent>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Save, Eye, EyeOff, Pencil, Plus, Trash, ArrowUp, ArrowDown } from "lucide-react";
+import { Save, Eye, EyeOff, Pencil, Plus, Trash, ArrowUp, ArrowDown, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
+import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 
 interface HomeSection {
   id: string;
@@ -215,7 +216,16 @@ const AdminHomeSections = () => {
                 <div className="space-y-1.5"><Label>Description</Label><Textarea value={data.description ?? ""} onChange={e => update("description", e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>Button Text</Label><Input value={data.button_text ?? ""} onChange={e => update("button_text", e.target.value)} /></div>
                 <div className="space-y-1.5"><Label>Button Link</Label><Input value={data.button_link ?? ""} onChange={e => update("button_link", e.target.value)} /></div>
-                <div className="space-y-1.5"><Label>Background Image URL</Label><Input value={data.background_image ?? ""} onChange={e => update("background_image", e.target.value)} /></div>
+                <div className="space-y-1.5">
+                  <Label>Background Image URL</Label>
+                  <div className="flex gap-2">
+                    <Input value={data.background_image ?? ""} onChange={e => update("background_image", e.target.value)} />
+                    <MediaSelectorDialog 
+                      onSelect={(url) => update("background_image", url)}
+                      trigger={<Button variant="outline" size="icon" title="Open Media Library"><ImageIcon className="h-4 w-4" /></Button>}
+                    />
+                  </div>
+                </div>
               </div>
             );
           })()}

@@ -65,7 +65,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
     <div className="flex min-h-screen">
       <aside className="hidden w-64 flex-col border-r border-border bg-sidebar text-sidebar-foreground md:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
-          <img alt="BMES" className="h-8 w-8 rounded-lg object-contain" src="/lovable-uploads/93ce843c-1b23-4299-8684-d2ba07d3cab5.png" />
+          <img alt="BMES" className="h-8 w-8 rounded-lg object-contain" src={defaultLogo} />
           <span className="text-sm font-bold">BMES Admin</span>
         </div>
         <nav className="flex-1 space-y-6 overflow-y-auto p-4">
@@ -105,7 +105,10 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
 
       <div className="flex flex-1 flex-col">
         <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4 md:hidden">
-          <span className="text-sm font-bold">BMES Admin</span>
+          <div className="flex items-center gap-2">
+            <img alt="BMES" className="h-6 w-6 rounded-lg object-contain" src={defaultLogo} />
+            <span className="text-sm font-bold">BMES Admin</span>
+          </div>
           <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
         </header>
         <nav className="flex gap-1 overflow-x-auto border-b border-border bg-background p-2 md:hidden">

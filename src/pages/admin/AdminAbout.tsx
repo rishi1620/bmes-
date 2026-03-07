@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { Save, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 
 interface Setting {
   id: string;
@@ -148,18 +149,26 @@ const AdminAbout = () => {
               {group.fields.map((field) => (
                 <div key={field.key} className="space-y-1.5">
                   <Label>{field.label}</Label>
-                  {field.type === "textarea" ? (
-                    <Textarea
-                      className="min-h-[100px]"
-                      value={settings[field.key] ?? ""}
-                      onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                    />
-                  ) : (
-                    <Input
-                      value={settings[field.key] ?? ""}
-                      onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                    />
-                  )}
+                  <div className="flex gap-2">
+                    {field.type === "textarea" ? (
+                      <Textarea
+                        className="min-h-[100px]"
+                        value={settings[field.key] ?? ""}
+                        onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
+                      />
+                    ) : (
+                      <Input
+                        value={settings[field.key] ?? ""}
+                        onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
+                      />
+                    )}
+                    {field.key.includes("image") || field.key.includes("url") ? (
+                      <MediaSelectorDialog 
+                        onSelect={(url) => setSettings({ ...settings, [field.key]: url })}
+                        trigger={<Button variant="outline" size="icon" title="Open Media Library"><ImageIcon className="h-4 w-4" /></Button>}
+                      />
+                    ) : null}
+                  </div>
                 </div>
               ))}
             </div>

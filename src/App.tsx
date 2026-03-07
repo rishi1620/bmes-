@@ -12,7 +12,6 @@ import People from "./pages/People";
 import Research from "./pages/Research";
 import Activities from "./pages/Activities";
 import Portal from "./pages/Portal";
-import Members from "./pages/Members";
 import Projects from "./pages/Projects";
 import Events from "./pages/Events";
 import Blog from "./pages/Blog";
@@ -60,10 +59,10 @@ const App = () => (
                 <Route path="/about" element={<About />} />
                 <Route path="/academics" element={<Academics />} />
                 <Route path="/people" element={<People />} />
+                <Route path="/members" element={<Navigate to="/people" replace />} />
                 <Route path="/research" element={<Research />} />
                 <Route path="/activities" element={<Activities />} />
                 <Route path="/portal" element={<Portal />} />
-                <Route path="/members" element={<Members />} />
                 <Route path="/projects" element={<Projects />} />
                 <Route path="/events" element={<Events />} />
                 <Route path="/blog" element={<Blog />} />
