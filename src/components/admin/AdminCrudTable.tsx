@@ -11,11 +11,12 @@ import { toast } from "@/hooks/use-toast";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { format } from "date-fns";
 import MediaSelectorDialog from "./MediaSelectorDialog";
+import { Progress } from "@/components/ui/progress";
 
 export interface FieldDef {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime" | "list";
+  type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime" | "list" | "progress";
   options?: string[];
   required?: boolean;
 }
@@ -145,6 +146,11 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                             <CountdownTimer targetDate={row[c] as string} />
                           </div>
                         </div>
+                      ) : field?.type === "progress" ? (
+                        <div className="flex items-center gap-2">
+                          <Progress value={Number(row[c]) || 0} className="h-2 w-24" />
+                          <span className="text-xs text-muted-foreground">{Number(row[c]) || 0}%</span>
+                        </div>
                       ) : field?.type === "list" ? (
                         <div className="flex flex-wrap gap-1">
                           {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
@@ -184,7 +190,7 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                 <Label>{f.label}</Label>
                 {f.type === "textarea" ? (
                   <Textarea value={form[f.key] as string ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} />
-                ) : f.type === "number" ? (
+                ) : f.type === "number" || f.type === "progress" ? (
                   <Input type="number" value={form[f.key] as number ?? 0} onChange={(e) => setForm({ ...form, [f.key]: Number(e.target.value) })} />
                 ) : f.type === "select" ? (
                   <select

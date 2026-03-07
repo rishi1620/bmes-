@@ -72,6 +72,19 @@ const Academics = () => {
                 </CardContent>
               </Card>
             </div>
+            {settings.academics_undergrad_pdf_url && (
+              <div className="mt-8 flex justify-center">
+                <a 
+                  href={settings.academics_undergrad_pdf_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                >
+                  <FileText className="mr-2 h-4 w-4" />
+                  Download Undergraduate Guidelines PDF
+                </a>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="syllabus">
@@ -90,6 +103,7 @@ const Academics = () => {
                         rel="noopener noreferrer"
                         className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
                       >
+                        <FileText className="mr-2 h-4 w-4" />
                         Download Syllabus PDF
                       </a>
                     </div>
@@ -137,9 +151,22 @@ const Academics = () => {
             <div className="mt-10">
               <Card>
                 <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground whitespace-pre-wrap">
+                  <p className="text-center text-muted-foreground whitespace-pre-wrap mb-4">
                     {settings.academics_postgrad_content || "Postgraduate program details will be announced soon."}
                   </p>
+                  {settings.academics_postgrad_pdf_url && (
+                    <div className="flex justify-center">
+                      <a 
+                        href={settings.academics_postgrad_pdf_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                      >
+                        <FileText className="mr-2 h-4 w-4" />
+                        Download Postgraduate Guidelines PDF
+                      </a>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
