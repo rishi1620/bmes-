@@ -203,7 +203,7 @@ const AdminHomeSections = () => {
           </DialogHeader>
 
           {editing?.section_key === "hero" && (() => {
-            let data: any = {};
+            let data: Record<string, string> = {};
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             const update = (key: string, val: string) => {
               const d = { ...data, [key]: val };
@@ -231,7 +231,7 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "cta" && (() => {
-            let data: any = {};
+            let data: Record<string, string> = {};
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             const update = (key: string, val: string) => {
               const d = { ...data, [key]: val };
@@ -248,7 +248,7 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "notice" && (() => {
-            let data: any = {};
+            let data: Record<string, string> = {};
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             const update = (key: string, val: string) => {
               const d = { ...data, [key]: val };
@@ -307,7 +307,7 @@ const AdminHomeSections = () => {
             if (!data.dept_notices) data.dept_notices = [];
             if (!data.club_news) data.club_news = [];
 
-            const update = (key: string, val: any) => {
+            const update = (key: string, val: unknown) => {
               const d = { ...data, [key]: val };
               setJsonText(JSON.stringify(d, null, 2));
             };
@@ -361,7 +361,7 @@ const AdminHomeSections = () => {
           })()}
 
           {(editing?.section_key === "upcoming_events" || editing?.section_key === "recent_achievements" || editing?.section_key === "featured_projects" || editing?.section_key === "recent_blog") && (() => {
-            let data: Record<string, unknown> = { title: "", description: "" };
+            let data: any = { title: "", description: "" };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
 
             const update = (key: string, val: unknown) => {
@@ -386,11 +386,11 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "stats" && (() => {
-            let data: Record<string, unknown> = { items: [] };
+            let data: any = { items: [] };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             if (!data.items || !Array.isArray(data.items)) data.items = [];
             
-            const updateItems = (newItems: Record<string, unknown>[]) => {
+            const updateItems = (newItems: any[]) => {
               setJsonText(JSON.stringify({ ...data, items: newItems }, null, 2));
             };
             
@@ -398,22 +398,22 @@ const AdminHomeSections = () => {
               <div className="space-y-4 py-2">
                 <div className="flex justify-between items-center">
                   <Label>Statistics</Label>
-                  <Button size="sm" onClick={() => updateItems([...(data.items as Record<string, unknown>[]), { label: "New Stat", value: "0" }])}><Plus className="h-4 w-4 mr-1"/> Add Stat</Button>
+                  <Button size="sm" onClick={() => updateItems([...data.items, { label: "New Stat", value: "0" }])}><Plus className="h-4 w-4 mr-1"/> Add Stat</Button>
                 </div>
-                {(data.items as Record<string, unknown>[]).map((item: Record<string, unknown>, i: number) => (
+                {data.items.map((item: any, i: number) => (
                   <div key={i} className="flex gap-2 items-center">
-                    <Input value={item.label as string || ""} onChange={e => {
-                      const newItems = [...(data.items as Record<string, unknown>[])];
+                    <Input value={item.label || ""} onChange={e => {
+                      const newItems = [...data.items];
                       newItems[i].label = e.target.value;
                       updateItems(newItems);
                     }} placeholder="Label (e.g. Active Members)" />
-                    <Input value={item.value as string || ""} onChange={e => {
-                      const newItems = [...(data.items as Record<string, unknown>[])];
+                    <Input value={item.value || ""} onChange={e => {
+                      const newItems = [...data.items];
                       newItems[i].value = e.target.value;
                       updateItems(newItems);
                     }} placeholder="Value (e.g. 150+)" />
                     <Button variant="destructive" size="icon" onClick={() => {
-                      const newItems = (data.items as Record<string, unknown>[]).filter((_, idx) => idx !== i);
+                      const newItems = data.items.filter((_: any, idx: number) => idx !== i);
                       updateItems(newItems);
                     }}><Trash className="h-4 w-4" /></Button>
                   </div>

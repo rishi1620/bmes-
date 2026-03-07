@@ -21,7 +21,7 @@ export interface FieldDef {
   required?: boolean;
 }
 
-type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "faqs" | "event_registrations";
+type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "event_registrations";
 
 interface Props {
   tableName: TableName;
@@ -90,11 +90,11 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
     }
 
     if (editing) {
-      const { error } = await supabase.from(tableName).update(payload).eq("id", editing.id);
+      const { error } = await supabase.from(tableName).update(payload as any).eq("id", editing.id as string);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Updated" }); }
     } else {
-      const { error } = await supabase.from(tableName).insert(payload as Record<string, unknown>);
+      const { error } = await supabase.from(tableName).insert(payload as any);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Created" }); }
     }

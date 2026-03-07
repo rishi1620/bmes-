@@ -22,7 +22,7 @@ const BlogPost = () => {
         .single();
       
       if (error) throw error;
-      return data;
+      return data as any;
     },
   });
 
@@ -85,14 +85,20 @@ const BlogPost = () => {
                 <span>{format(new Date(post.published_at), "MMMM d, yyyy")}</span>
               </div>
             )}
+            {post.read_time && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{post.read_time} min read</span>
+              </div>
+            )}
           </div>
           <ShareButtons url={window.location.href} title={post.title} />
         </div>
 
-        {post.featured_image && (
+        {post.image_url && (
           <div className="mb-10 overflow-hidden rounded-2xl border border-border bg-muted">
             <img 
-              src={post.featured_image} 
+              src={post.image_url} 
               alt={post.title} 
               className="w-full object-cover max-h-[500px]"
               referrerPolicy="no-referrer"
