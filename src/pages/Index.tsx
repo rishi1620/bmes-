@@ -14,9 +14,31 @@ import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tables } from "@/integrations/supabase/types";
 import heroBg from "@/assets/hero-bg.jpg";
+import { motion } from "framer-motion";
 
 const iconMap: Record<string, React.ElementType> = {
   FlaskConical, Users, Calendar, BookOpen, Award, Microscope,
+};
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5
+    }
+  }
 };
 
 const Index = () => {
@@ -118,26 +140,53 @@ const Index = () => {
       {hero && (
         <section className="relative overflow-hidden">
           <div className="absolute inset-0">
-            <img src={(hero.background_image as string) || heroBg} alt="" className="h-full w-full object-cover" />
+            <motion.img 
+              initial={{ scale: 1.1 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 10, ease: "easeOut" }}
+              src={(hero.background_image as string) || heroBg} 
+              alt="" 
+              className="h-full w-full object-cover" 
+            />
             <div className="absolute inset-0 hero-gradient opacity-85" />
           </div>
           <div className="container relative z-10 flex flex-col items-center py-16 text-center md:py-24">
-            <span className="animate-fade-up mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
+            <motion.span 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90"
+            >
               {hero.subtitle as string}
-            </span>
-            <h1 className="animate-fade-up-delay-1 max-w-4xl text-3xl font-extrabold leading-tight text-primary-foreground sm:text-4xl md:text-6xl">
+            </motion.span>
+            <motion.h1 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="max-w-4xl text-3xl font-extrabold leading-tight text-primary-foreground sm:text-4xl md:text-6xl"
+            >
               {hero.title as string}
-            </h1>
-            <p className="animate-fade-up-delay-2 mt-6 max-w-2xl text-base text-primary-foreground/80 md:text-lg leading-relaxed">
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="mt-6 max-w-2xl text-base text-primary-foreground/80 md:text-lg leading-relaxed"
+            >
               {hero.description as string}
-            </p>
-            <div className="animate-fade-up-delay-3 mt-8 flex flex-wrap gap-4 justify-center">
+            </motion.p>
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="mt-8 flex flex-wrap gap-4 justify-center"
+            >
               {hero.button_text && (
                 <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
                   <Link to={(hero.button_link as string) || "/members"}>{hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
               )}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}
@@ -145,21 +194,35 @@ const Index = () => {
       {/* Quick Links */}
       {quickLinks?.links && (
         <section className="container mt-8 relative z-20">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 gap-4 md:grid-cols-4"
+          >
             {(quickLinks.links as Record<string, string>[]).map((link) => (
-              <Button key={link.label} asChild variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2 bg-card hover:bg-primary/5 hover:text-primary transition-colors shadow-sm">
-                <Link to={link.url}>
-                  <span className="font-semibold">{link.label}</span>
-                </Link>
-              </Button>
+              <motion.div key={link.label} variants={itemVariants}>
+                <Button asChild variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2 bg-card hover:bg-primary/5 hover:text-primary transition-colors shadow-sm w-full">
+                  <Link to={link.url}>
+                    <span className="font-semibold">{link.label}</span>
+                  </Link>
+                </Button>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
       )}
 
       {/* Latest Announcements */}
       {announcements && (
-        <section className="container py-8">
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="container py-8"
+        >
           <div className="grid gap-8 md:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center gap-3 mb-6">
@@ -206,11 +269,17 @@ const Index = () => {
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* Dynamic Upcoming Events */}
-      <section className="container py-8 bg-muted/30 rounded-3xl mb-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="container py-8 bg-muted/30 rounded-3xl mb-8"
+      >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={upcomingEvents?.title as string || "Upcoming Events"} 
@@ -235,7 +304,13 @@ const Index = () => {
             {/* Featured Event */}
             <div className="lg:col-span-4">
               {recentEvents[0] && (
-                <div className="relative h-full min-h-[300px] sm:min-h-[400px] overflow-hidden rounded-3xl bg-[#3E82A7] p-8 text-white shadow-xl flex flex-col">
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.5 }}
+                  className="relative h-full min-h-[300px] sm:min-h-[400px] overflow-hidden rounded-3xl bg-[#3E82A7] p-8 text-white shadow-xl flex flex-col"
+                >
                   <div className="mb-6 flex items-center gap-2 text-xs font-bold uppercase tracking-widest opacity-90">
                     <Bell className="h-4 w-4" />
                     Next Major Event
@@ -270,14 +345,20 @@ const Index = () => {
                       </DialogContent>
                     </Dialog>
                   </div>
-                </div>
+                </motion.div>
               )}
             </div>
 
             {/* Other Events */}
-            <div className="lg:col-span-8 grid gap-6 md:grid-cols-2">
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true }}
+              className="lg:col-span-8 grid gap-6 md:grid-cols-2"
+            >
               {recentEvents.slice(1, 3).map((event: any) => (
-                <div key={event.id} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+                <motion.div key={event.id} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                   <div className="relative h-48 overflow-hidden">
                     <img 
                       src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
@@ -305,14 +386,14 @@ const Index = () => {
                       <Link to="/events">View Details</Link>
                     </Button>
                   </div>
-                </div>
+                </motion.div>
               ))}
               {recentEvents.length === 1 && (
                 <div className="flex items-center justify-center rounded-3xl border border-dashed border-border bg-muted/20 p-8 text-center md:col-span-2">
                   <p className="text-muted-foreground">Stay tuned for more upcoming events!</p>
                 </div>
               )}
-            </div>
+            </motion.div>
           </div>
         ) : (
           <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
@@ -323,10 +404,16 @@ const Index = () => {
             </Button>
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Dynamic Achievements */}
-      <section className="container py-8 bg-muted/30 rounded-3xl mb-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="container py-8 bg-muted/30 rounded-3xl mb-8"
+      >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={recentAchievementsSection?.title as string || "Recent Achievements"} 
@@ -346,9 +433,15 @@ const Index = () => {
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-3xl" />)}
           </div>
         ) : recentAchievements && recentAchievements.length > 0 ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="mt-10 grid gap-6 md:grid-cols-3"
+          >
             {recentAchievements.map((achievement: Record<string, unknown>) => (
-              <div key={achievement.id as string} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+              <motion.div key={achievement.id as string} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                 <div className="relative h-48 overflow-hidden">
                   <img 
                     src={(achievement.image_url as string) || `https://picsum.photos/seed/${achievement.id}/800/600`} 
@@ -379,18 +472,24 @@ const Index = () => {
                     <Link to="/achievements">View Details</Link>
                   </Button>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
             <p className="text-sm text-muted-foreground italic">No recent achievements recorded.</p>
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Dynamic Featured Projects */}
-      <section className="container py-8 mb-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="container py-8 mb-8"
+      >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={featuredProjectsSection?.title as string || "Featured Projects"} 
@@ -410,9 +509,15 @@ const Index = () => {
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
           </div>
         ) : featuredProjects && featuredProjects.length > 0 ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="mt-10 grid gap-6 md:grid-cols-3"
+          >
             {featuredProjects.map((project: Record<string, unknown>) => (
-              <div key={project.id as string} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
+              <motion.div key={project.id as string} variants={itemVariants} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{project.category as string}</span>
                   <span className="text-xs font-medium text-muted-foreground">{project.status as string}</span>
@@ -441,18 +546,24 @@ const Index = () => {
                 <Button asChild variant="outline" size="sm" className="w-full mt-auto">
                   <Link to={`/projects`}>View Project</Link>
                 </Button>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
             <p className="text-sm text-muted-foreground italic">No featured projects available.</p>
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Dynamic Blog Previews */}
-      <section className="container py-8 bg-muted/30 rounded-3xl mb-8">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="container py-8 bg-muted/30 rounded-3xl mb-8"
+      >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
             title={recentBlogSection?.title as string || "Latest from the Blog"} 
@@ -472,9 +583,15 @@ const Index = () => {
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
           </div>
         ) : recentBlogPosts && recentBlogPosts.length > 0 ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="mt-10 grid gap-6 md:grid-cols-3"
+          >
             {recentBlogPosts.map((post: Record<string, unknown>) => (
-              <div key={post.id as string} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
+              <motion.div key={post.id as string} variants={itemVariants} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{post.category as string}</span>
                 </div>
@@ -484,19 +601,25 @@ const Index = () => {
                 <Button asChild variant="outline" size="sm" className="w-full mt-auto">
                   <Link to={`/blog/${post.slug}`}>Read More</Link>
                 </Button>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="mt-10 rounded-xl border border-border bg-card p-6 shadow-sm text-center">
             <p className="text-sm text-muted-foreground italic">No recent blog posts available.</p>
           </div>
         )}
-      </section>
+      </motion.section>
 
       {/* Notice (Legacy) */}
       {notice && (
-        <section className="container mt-8 relative z-20">
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="container mt-8 relative z-20"
+        >
           <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-6 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/20">
             <div className="flex items-start gap-4">
               <div className="mt-1 rounded-full bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
@@ -515,17 +638,25 @@ const Index = () => {
               </div>
             </div>
           </div>
-        </section>
+        </motion.section>
       )}
 
       {/* Stats */}
       {stats?.items && (
         <section className="container -mt-12 relative z-20">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="grid grid-cols-2 gap-4 md:grid-cols-4"
+          >
             {stats.items.map((s: any) => (
-              <StatCard key={s.label} value={s.value} label={s.label} />
+              <motion.div key={s.label} variants={itemVariants}>
+                <StatCard value={s.value} label={s.label} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </section>
       )}
 
@@ -533,26 +664,38 @@ const Index = () => {
       {features && (
         <section className="container py-12">
           <SectionHeading badge={features.badge} title={features.title} description={features.description} />
-          <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+          >
             {features.items?.map((f: any) => {
               const Icon = iconMap[f.icon] || FlaskConical;
               return (
-                <div key={f.title} className="group rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
+                <motion.div key={f.title} variants={itemVariants} className="group rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
                   <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
                   <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </section>
       )}
 
       {/* CTA */}
       {cta && (
-        <section className="hero-gradient py-10">
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="hero-gradient py-10"
+        >
           <div className="container text-center">
             <h2 className="text-3xl font-bold text-primary-foreground">{cta.title}</h2>
             <p className="mt-3 text-primary-foreground/80">{cta.description}</p>
@@ -562,7 +705,7 @@ const Index = () => {
               </Button>
             )}
           </div>
-        </section>
+        </motion.section>
       )}
     </PageLayout>
   );
