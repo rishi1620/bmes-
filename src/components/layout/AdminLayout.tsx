@@ -1,13 +1,14 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, Bell, CalendarDays, HelpCircle, Menu } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, Bell, CalendarDays, HelpCircle, Menu, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const linkGroups = [
   {
@@ -53,10 +54,10 @@ const linkGroups = [
   }
 ];
 
-const SidebarContent = ({ pathname, signOut }: { pathname: string, signOut: () => void }) => (
+const SidebarContent = ({ pathname, signOut, logoUrl }: { pathname: string, signOut: () => void, logoUrl: string }) => (
   <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
     <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
-      <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={defaultLogo} />
+      <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={logoUrl || defaultLogo} />
       <span className="text-lg font-bold tracking-tight">BMES Admin</span>
     </div>
     <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
@@ -88,7 +89,18 @@ const SidebarContent = ({ pathname, signOut }: { pathname: string, signOut: () =
         </div>
       ))}
     </nav>
-    <div className="border-t border-sidebar-border p-4">
+    <div className="border-t border-sidebar-border p-4 space-y-2">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="w-full justify-start gap-2 border-sidebar-border bg-sidebar-accent/10 text-sidebar-foreground hover:bg-sidebar-accent/50" 
+        asChild
+      >
+        <Link to="/">
+          <ExternalLink className="h-4 w-4" /> 
+          Main Page
+        </Link>
+      </Button>
       <Button 
         variant="ghost" 
         size="sm" 
@@ -106,6 +118,32 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   const { user, isAdmin, loading, signOut } = useAuth();
   const location = useLocation();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState("");
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "dashboard_logo_url")
+        .single();
+      
+      if (data?.setting_value) {
+        setLogoUrl(data.setting_value);
+      } else {
+        // Fallback to main logo if dashboard logo not set
+        const { data: mainLogo } = await supabase
+          .from("site_settings")
+          .select("setting_value")
+          .eq("setting_key", "logo_url")
+          .single();
+        if (mainLogo?.setting_value) {
+          setLogoUrl(mainLogo.setting_value);
+        }
+      }
+    };
+    fetchLogo();
+  }, []);
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading dashboard...</div>;
   if (!user) return <Navigate to="/auth" replace />;
@@ -123,13 +161,13 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
     <div className="flex min-h-screen bg-muted/30">
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar md:flex fixed inset-y-0 left-0 z-50">
-        <SidebarContent pathname={location.pathname} signOut={signOut} />
+        <SidebarContent pathname={location.pathname} signOut={signOut} logoUrl={logoUrl} />
       </aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-          <SidebarContent pathname={location.pathname} signOut={signOut} />
+          <SidebarContent pathname={location.pathname} signOut={signOut} logoUrl={logoUrl} />
         </SheetContent>
       </Sheet>
 

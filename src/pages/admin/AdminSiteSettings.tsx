@@ -11,7 +11,7 @@ import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 const AdminSiteSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState({ logo_url: "", site_title: "" });
+  const [settings, setSettings] = useState({ logo_url: "", site_title: "", dashboard_logo_url: "" });
 
   const loadSettings = async () => {
     setLoading(true);
@@ -20,7 +20,8 @@ const AdminSiteSettings = () => {
     data?.forEach((s) => { map[s.setting_key] = s.setting_value ?? ""; });
     setSettings({
       logo_url: map.logo_url || "",
-      site_title: map.site_title || "CUET BMES"
+      site_title: map.site_title || "CUET BMES",
+      dashboard_logo_url: map.dashboard_logo_url || ""
     });
     setLoading(false);
   };
@@ -60,16 +61,30 @@ const AdminSiteSettings = () => {
             <Input value={settings.site_title} onChange={e => setSettings({...settings, site_title: e.target.value})} />
           </div>
           <div className="space-y-2">
-            <Label>Logo URL</Label>
+            <Label>Logo URL (Main Site)</Label>
             <div className="flex gap-2">
               <Input value={settings.logo_url} onChange={e => setSettings({...settings, logo_url: e.target.value})} />
               <MediaSelectorDialog 
                 onSelect={(url) => setSettings({...settings, logo_url: url})} 
-                trigger={<Button variant="outline">Select from Media</Button>}
+                trigger={<Button variant="outline">Select</Button>}
               />
             </div>
             {settings.logo_url && (
               <img src={settings.logo_url} alt="Logo Preview" className="mt-2 h-16 w-auto rounded border p-1" />
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Dashboard Logo URL (Admin Panel)</Label>
+            <div className="flex gap-2">
+              <Input value={settings.dashboard_logo_url} onChange={e => setSettings({...settings, dashboard_logo_url: e.target.value})} />
+              <MediaSelectorDialog 
+                onSelect={(url) => setSettings({...settings, dashboard_logo_url: url})} 
+                trigger={<Button variant="outline">Select</Button>}
+              />
+            </div>
+            {settings.dashboard_logo_url && (
+              <img src={settings.dashboard_logo_url} alt="Dashboard Logo Preview" className="mt-2 h-16 w-auto rounded border p-1" />
             )}
           </div>
           <Button onClick={saveSettings} disabled={saving}>
