@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { format } from "date-fns";
 import MediaSelectorDialog from "./MediaSelectorDialog";
+import PageHeader from "@/components/layout/PageHeader";
 
 export interface FieldDef {
   key: string;
@@ -113,10 +114,10 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
-        <Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add</Button>
-      </div>
+      <PageHeader 
+        title={title} 
+        action={<Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add</Button>} 
+      />
 
       <div className="rounded-lg border bg-card">
         <Table>
