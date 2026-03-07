@@ -11,7 +11,7 @@ import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 const AdminSiteSettings = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [settings, setSettings] = useState({ logo_url: "", site_title: "", dashboard_logo_url: "" });
+  const [settings, setSettings] = useState({ logo_url: "", site_title: "", dashboard_logo_url: "", footer_logo_url: "" });
 
   const loadSettings = async () => {
     setLoading(true);
@@ -21,7 +21,8 @@ const AdminSiteSettings = () => {
     setSettings({
       logo_url: map.logo_url || "",
       site_title: map.site_title || "CUET BMES",
-      dashboard_logo_url: map.dashboard_logo_url || ""
+      dashboard_logo_url: map.dashboard_logo_url || "",
+      footer_logo_url: map.footer_logo_url || ""
     });
     setLoading(false);
   };
@@ -85,6 +86,20 @@ const AdminSiteSettings = () => {
             </div>
             {settings.dashboard_logo_url && (
               <img src={settings.dashboard_logo_url} alt="Dashboard Logo Preview" className="mt-2 h-16 w-auto rounded border p-1" />
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Footer Logo URL</Label>
+            <div className="flex gap-2">
+              <Input value={settings.footer_logo_url} onChange={e => setSettings({...settings, footer_logo_url: e.target.value})} />
+              <MediaSelectorDialog 
+                onSelect={(url) => setSettings({...settings, footer_logo_url: url})} 
+                trigger={<Button variant="outline">Select</Button>}
+              />
+            </div>
+            {settings.footer_logo_url && (
+              <img src={settings.footer_logo_url} alt="Footer Logo Preview" className="mt-2 h-16 w-auto rounded border p-1" />
             )}
           </div>
           <Button onClick={saveSettings} disabled={saving}>
