@@ -3,8 +3,26 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Microscope, BookOpen, FileText, FlaskConical } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const Research = () => {
+  const { data: projects = [], isLoading } = useQuery({
+    queryKey: ["public-projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  const ongoing = projects.filter((p) => p.status === "ongoing" || p.status === "In Progress" || p.status === "Planning");
+
   return (
     <PageLayout>
       <section className="hero-gradient py-16 md:py-24">
@@ -77,13 +95,44 @@ const Research = () => {
 
           <TabsContent value="projects">
             <SectionHeading title="Ongoing Projects" description="Highlights of current final-year thesis projects or funded research." />
-            <div className="mt-10">
-              <Card>
-                <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground">Ongoing projects details will be updated shortly.</p>
-                </CardContent>
-              </Card>
-            </div>
+            {isLoading ? (
+              <div className="mt-10 grid gap-6 md:grid-cols-2">
+                {[1, 2].map((i) => <Skeleton key={i} className="h-44 rounded-xl" />)}
+              </div>
+            ) : ongoing.length === 0 ? (
+              <p className="mt-10 text-center text-muted-foreground">No ongoing projects at the moment.</p>
+            ) : (
+              <div className="mt-10 grid gap-6 md:grid-cols-2">
+                {ongoing.map((p) => (
+                  <div key={p.id} className="rounded-xl border border-border bg-card p-6 shadow-elevated">
+                    {p.category && (
+                      <div className="mb-3">
+                        <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">{p.category}</span>
+                      </div>
+                    )}
+                    <h3 className="text-lg font-semibold text-foreground">{p.title}</h3>
+                    {p.lead && <p className="mt-1 text-sm text-muted-foreground">Lead: {p.lead}</p>}
+                    {p.team_members && p.team_members.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {p.team_members.map((member, i) => (
+                          <span key={i} className="inline-block rounded-md bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground border border-border/50">
+                            {member}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {p.description && <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{p.description}</p>}
+                    <div className="mt-4">
+                      <div className="mb-1 flex justify-between text-xs text-muted-foreground">
+                        <span>Progress</span>
+                        <span>{p.progress}%</span>
+                      </div>
+                      <Progress value={p.progress} className="h-2" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </section>

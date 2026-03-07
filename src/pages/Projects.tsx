@@ -18,7 +18,7 @@ const Projects = () => {
     },
   });
 
-  const ongoing = projects.filter((p) => p.status === "ongoing");
+  const ongoing = projects.filter((p) => p.status === "ongoing" || p.status === "In Progress" || p.status === "Planning");
   const completed = projects.filter((p) => p.status === "completed");
 
   return (
