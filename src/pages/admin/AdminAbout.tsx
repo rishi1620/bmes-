@@ -101,9 +101,13 @@ const AdminAbout = () => {
 
   useEffect(() => {
     const load = async () => {
-      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "about_page");
+      const { data } = await supabase.from("site_settings").select("*");
+      console.log("All settings:", data);
       const map: Record<string, string> = {};
-      (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+      (data as Setting[] | null)?.forEach((s) => { 
+        console.log(`Setting: ${s.setting_key}, Group: ${s.setting_group}`);
+        map[s.setting_key] = s.setting_value; 
+      });
       setSettings(map);
     };
     load();
@@ -143,6 +147,14 @@ const AdminAbout = () => {
           </Button>
         }
       />
+      <div className="bg-muted p-4 mb-4 rounded-md">
+        <h3 className="font-bold mb-2">All Settings in Database:</h3>
+        <pre className="text-xs overflow-auto max-h-60">{JSON.stringify(settings, null, 2)}</pre>
+        <h3 className="font-bold mt-4 mb-2">Settings not in groups:</h3>
+        <pre className="text-xs overflow-auto max-h-60">
+          {JSON.stringify(Object.keys(settings).filter(key => !groups.flatMap(g => g.fields.map(f => f.key)).includes(key)), null, 2)}
+        </pre>
+      </div>
 
       <div className="space-y-8">
         {groups.map((group) => (
