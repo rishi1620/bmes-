@@ -37,7 +37,7 @@ const AdminPeople = () => {
         <TabsList className="grid w-full grid-cols-4 mb-8">
           <TabsTrigger value="faculty">Faculty</TabsTrigger>
           <TabsTrigger value="staff">Staff</TabsTrigger>
-          <TabsTrigger value="ec">BMES EC</TabsTrigger>
+          <TabsTrigger value="ec">BMES EC & Members</TabsTrigger>
           <TabsTrigger value="advisory">Advisory</TabsTrigger>
         </TabsList>
         
@@ -70,13 +70,10 @@ const AdminPeople = () => {
         <TabsContent value="ec">
           <AdminCrudTable 
             tableName="members" 
-            title="Executive Committee" 
+            title="Executive Committee & Members" 
             fields={memberFields} 
-            columns={["name", "role", "department", "is_active"]} 
+            columns={["name", "role", "team", "is_active"]} 
             orderBy="display_order"
-            filter={(row) => row.team === 'Executive Committee'}
-            defaultValues={{ team: 'Executive Committee' }}
-            hiddenFields={['team']}
           />
         </TabsContent>
         

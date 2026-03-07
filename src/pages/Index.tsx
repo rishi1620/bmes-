@@ -118,23 +118,23 @@ const Index = () => {
       {hero && (
         <section className="relative overflow-hidden">
           <div className="absolute inset-0">
-            <img src={hero.background_image || heroBg} alt="" className="h-full w-full object-cover" />
+            <img src={(hero.background_image as string) || heroBg} alt="" className="h-full w-full object-cover" />
             <div className="absolute inset-0 hero-gradient opacity-85" />
           </div>
           <div className="container relative z-10 flex flex-col items-center py-16 text-center md:py-24">
             <span className="animate-fade-up mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
-              {hero.subtitle}
+              {hero.subtitle as string}
             </span>
             <h1 className="animate-fade-up-delay-1 max-w-4xl text-3xl font-extrabold leading-tight text-primary-foreground sm:text-4xl md:text-6xl">
-              {hero.title}
+              {hero.title as string}
             </h1>
             <p className="animate-fade-up-delay-2 mt-6 max-w-2xl text-base text-primary-foreground/80 md:text-lg leading-relaxed">
-              {hero.description}
+              {hero.description as string}
             </p>
             <div className="animate-fade-up-delay-3 mt-8 flex flex-wrap gap-4 justify-center">
               {hero.button_text && (
                 <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                  <Link to={hero.button_link || "/members"}>{hero.button_text} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  <Link to={(hero.button_link as string) || "/members"}>{hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
               )}
             </div>

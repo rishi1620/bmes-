@@ -3,6 +3,7 @@ import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText,
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
+import Breadcrumbs from "@/components/shared/Breadcrumbs";
 
 const linkGroups = [
   {
@@ -128,7 +129,10 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
             );
           })}
         </nav>
-        <main className="flex-1 overflow-auto bg-muted/30 p-4 md:p-8">{children}</main>
+        <main className="flex-1 overflow-auto bg-muted/30 p-4 md:p-8">
+          <Breadcrumbs />
+          {children}
+        </main>
       </div>
     </div>);
 };
