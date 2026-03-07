@@ -422,7 +422,73 @@ const AdminHomeSections = () => {
             );
           })()}
 
-          {(editing?.section_key !== "hero" && editing?.section_key !== "cta" && editing?.section_key !== "notice" && editing?.section_key !== "quick_links" && editing?.section_key !== "announcements" && editing?.section_key !== "upcoming_events" && editing?.section_key !== "recent_achievements" && editing?.section_key !== "featured_projects" && editing?.section_key !== "recent_blog" && editing?.section_key !== "stats") && (
+          {editing?.section_key === "features" && (() => {
+            let data: any = { items: [] };
+            try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
+            if (!data.items || !Array.isArray(data.items)) data.items = [];
+            
+            const update = (key: string, val: unknown) => {
+              const d = { ...data, [key]: val };
+              setJsonText(JSON.stringify(d, null, 2));
+            };
+
+            const updateItems = (newItems: any[]) => {
+              setJsonText(JSON.stringify({ ...data, items: newItems }, null, 2));
+            };
+            
+            return (
+              <div className="space-y-6 py-2">
+                <div className="space-y-1.5"><Label>Badge</Label><Input value={data.badge ?? ""} onChange={e => update("badge", e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Title</Label><Input value={data.title ?? ""} onChange={e => update("title", e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Description</Label><Textarea value={data.description ?? ""} onChange={e => update("description", e.target.value)} /></div>
+                
+                <div className="space-y-4 border-t pt-4">
+                  <div className="flex justify-between items-center">
+                    <Label>Feature Items</Label>
+                    <Button size="sm" onClick={() => updateItems([...data.items, { title: "New Feature", desc: "Description", icon: "FlaskConical" }])}><Plus className="h-4 w-4 mr-1"/> Add Item</Button>
+                  </div>
+                  {data.items.map((item: any, i: number) => (
+                    <div key={i} className="space-y-2 border p-3 rounded-md relative">
+                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive hover:bg-destructive/10" onClick={() => {
+                        const newItems = data.items.filter((_: any, idx: number) => idx !== i);
+                        updateItems(newItems);
+                      }}><Trash className="h-4 w-4" /></Button>
+                      
+                      <div className="grid grid-cols-2 gap-2 pr-8">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Title</Label>
+                          <Input value={item.title} onChange={e => {
+                            const newItems = [...data.items];
+                            newItems[i].title = e.target.value;
+                            updateItems(newItems);
+                          }} />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Icon Key</Label>
+                          <Input value={item.icon} onChange={e => {
+                            const newItems = [...data.items];
+                            newItems[i].icon = e.target.value;
+                            updateItems(newItems);
+                          }} placeholder="e.g. Users, Calendar" />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Description</Label>
+                        <Textarea value={item.desc} onChange={e => {
+                          const newItems = [...data.items];
+                          newItems[i].desc = e.target.value;
+                          updateItems(newItems);
+                        }} className="h-20" />
+                      </div>
+                    </div>
+                  ))}
+                  <p className="text-xs text-muted-foreground">Available Icons: FlaskConical, Users, Calendar, BookOpen, Award, Microscope</p>
+                </div>
+              </div>
+            );
+          })()}
+
+          {(editing?.section_key !== "hero" && editing?.section_key !== "cta" && editing?.section_key !== "notice" && editing?.section_key !== "quick_links" && editing?.section_key !== "announcements" && editing?.section_key !== "upcoming_events" && editing?.section_key !== "recent_achievements" && editing?.section_key !== "featured_projects" && editing?.section_key !== "recent_blog" && editing?.section_key !== "stats" && editing?.section_key !== "features") && (
             <div className="space-y-1.5 py-2">
               <Label>Section Data (JSON)</Label>
               <Textarea className="min-h-[300px] font-mono text-xs" value={jsonText} onChange={e => setJsonText(e.target.value)} />
