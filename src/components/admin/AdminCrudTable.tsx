@@ -11,7 +11,6 @@ import { toast } from "@/hooks/use-toast";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { format } from "date-fns";
 import MediaSelectorDialog from "./MediaSelectorDialog";
-import PageHeader from "@/components/layout/PageHeader";
 
 export interface FieldDef {
   key: string;
@@ -21,7 +20,7 @@ export interface FieldDef {
   required?: boolean;
 }
 
-export type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "event_registrations" | "blog_posts" | "contact_submissions" | "home_sections" | "media_library" | "profiles" | "site_settings" | "user_roles" | "faqs";
+type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "faqs" | "event_registrations";
 
 interface Props {
   tableName: TableName;
@@ -42,7 +41,7 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
   const [loading, setLoading] = useState(false);
 
   const fetchRows = useCallback(async () => {
-    const { data } = await (supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" }) as any);
+    const { data } = await supabase.from(tableName).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
     const allRows = data ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
   }, [tableName, orderBy, filter]);
@@ -90,11 +89,11 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
     }
 
     if (editing) {
-      const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing!.id as string);
+      const { error } = await supabase.from(tableName).update(payload).eq("id", editing.id);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Updated" }); }
     } else {
-      const { error } = await supabase.from(tableName as any).insert(payload as any);
+      const { error } = await supabase.from(tableName).insert(payload as Record<string, unknown>);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Created" }); }
     }
@@ -105,7 +104,7 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
 
   const remove = async (id: string) => {
     if (!confirm("Delete this item?")) return;
-    const { error } = await supabase.from(tableName as any).delete().eq("id", id);
+    const { error } = await supabase.from(tableName).delete().eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     else { toast({ title: "Deleted" }); fetchRows(); }
   };
@@ -114,10 +113,10 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
 
   return (
     <div>
-      <PageHeader 
-        title={title} 
-        action={<Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add</Button>} 
-      />
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+        <Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add</Button>
+      </div>
 
       <div className="rounded-lg border bg-card">
         <Table>

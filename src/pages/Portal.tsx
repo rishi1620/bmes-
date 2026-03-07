@@ -30,14 +30,6 @@ const Portal = () => {
     }
   })();
 
-  const libraryLinks = (() => {
-    try {
-      return JSON.parse(settings.portal_library_json || "[]");
-    } catch {
-      return [];
-    }
-  })();
-
   return (
     <PageLayout>
       <section className="hero-gradient py-16 md:py-24">
@@ -82,51 +74,18 @@ const Portal = () => {
 
           <TabsContent value="library">
             <SectionHeading title="Resource Library" description="Gated or open access to lecture notes, reference books, and previous years' question banks." />
-            <div className="mt-10 space-y-8">
-              {settings.portal_library_content && (
-                <Card>
-                  <CardContent className="p-6">
+            <div className="mt-10">
+              <Card>
+                <CardContent className="p-6">
+                  {settings.portal_library_content ? (
                     <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
                       {settings.portal_library_content}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {libraryLinks.length > 0 ? (
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {libraryLinks.map((item: { title: string; url: string; description: string; category: string }, i: number) => (
-                    <Card key={i} className="flex flex-col">
-                      <CardHeader className="pb-3">
-                        <div className="mb-2">
-                          <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-medium text-primary uppercase tracking-wider">
-                            {item.category || "Document"}
-                          </span>
-                        </div>
-                        <CardTitle className="text-lg leading-tight">{item.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="flex-1 flex flex-col">
-                        <p className="text-muted-foreground text-sm mb-4 flex-1">{item.description}</p>
-                        {item.url && (
-                          <Button asChild variant="outline" className="w-full mt-auto" size="sm">
-                            <a href={item.url} target="_blank" rel="noopener noreferrer">
-                              <Download className="mr-2 h-4 w-4" /> Download / View
-                            </a>
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              ) : (
-                !settings.portal_library_content && (
-                  <Card>
-                    <CardContent className="p-6">
-                      <p className="text-center text-muted-foreground">Resource library will be available soon.</p>
-                    </CardContent>
-                  </Card>
-                )
-              )}
+                  ) : (
+                    <p className="text-center text-muted-foreground">Resource library will be available soon.</p>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

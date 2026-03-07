@@ -203,7 +203,7 @@ const AdminHomeSections = () => {
           </DialogHeader>
 
           {editing?.section_key === "hero" && (() => {
-            let data: any = {};
+            let data: Record<string, string> = {};
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             const update = (key: string, val: string) => {
               const d = { ...data, [key]: val };
@@ -231,7 +231,7 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "cta" && (() => {
-            let data: any = {};
+            let data: Record<string, string> = {};
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             const update = (key: string, val: string) => {
               const d = { ...data, [key]: val };
@@ -248,7 +248,7 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "notice" && (() => {
-            let data: any = {};
+            let data: Record<string, string> = {};
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             const update = (key: string, val: string) => {
               const d = { ...data, [key]: val };
@@ -265,11 +265,11 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "quick_links" && (() => {
-            let data: any = { links: [] };
+            let data: Record<string, unknown> = { links: [] };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             if (!data.links) data.links = [];
             
-            const updateLinks = (newLinks: any[]) => {
+            const updateLinks = (newLinks: Record<string, unknown>[]) => {
               setJsonText(JSON.stringify({ ...data, links: newLinks }, null, 2));
             };
             
@@ -279,7 +279,7 @@ const AdminHomeSections = () => {
                   <Label>Quick Links</Label>
                   <Button size="sm" onClick={() => updateLinks([...data.links, { label: "New Link", url: "/" }])}><Plus className="h-4 w-4 mr-1"/> Add Link</Button>
                 </div>
-                {data.links.map((link: any, i: number) => (
+                {data.links.map((link: Record<string, unknown>, i: number) => (
                   <div key={i} className="flex gap-2 items-center">
                     <Input value={link.label} onChange={e => {
                       const newLinks = [...data.links];
@@ -292,7 +292,7 @@ const AdminHomeSections = () => {
                       updateLinks(newLinks);
                     }} placeholder="URL" />
                     <Button variant="destructive" size="icon" onClick={() => {
-                      const newLinks = data.links.filter((_: any, idx: number) => idx !== i);
+                      const newLinks = data.links.filter((_: Record<string, unknown>, idx: number) => idx !== i);
                       updateLinks(newLinks);
                     }}><Trash className="h-4 w-4" /></Button>
                   </div>
@@ -302,12 +302,12 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "announcements" && (() => {
-            let data: any = { dept_title: "", club_title: "", dept_notices: [], club_news: [] };
+            let data: Record<string, unknown> = { dept_title: "", club_title: "", dept_notices: [], club_news: [] };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             if (!data.dept_notices) data.dept_notices = [];
             if (!data.club_news) data.club_news = [];
 
-            const update = (key: string, val: any) => {
+            const update = (key: string, val: unknown) => {
               const d = { ...data, [key]: val };
               setJsonText(JSON.stringify(d, null, 2));
             };
@@ -324,7 +324,7 @@ const AdminHomeSections = () => {
                     <Label>Department Notices</Label>
                     <Button size="sm" variant="outline" onClick={() => update("dept_notices", [...data.dept_notices, { title: "New Notice", date: "", url: "" }])}><Plus className="h-4 w-4 mr-1"/> Add Notice</Button>
                   </div>
-                  {data.dept_notices.map((item: any, i: number) => (
+                  {data.dept_notices.map((item: Record<string, unknown>, i: number) => (
                     <div key={i} className="flex gap-2 items-start">
                       <div className="grid gap-2 flex-1">
                         <Input value={item.title} onChange={e => { const arr = [...data.dept_notices]; arr[i].title = e.target.value; update("dept_notices", arr); }} placeholder="Notice Title" />
@@ -333,7 +333,7 @@ const AdminHomeSections = () => {
                           <Input value={item.url} onChange={e => { const arr = [...data.dept_notices]; arr[i].url = e.target.value; update("dept_notices", arr); }} placeholder="Link URL" className="flex-1" />
                         </div>
                       </div>
-                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.dept_notices.filter((_: any, idx: number) => idx !== i); update("dept_notices", arr); }}><Trash className="h-4 w-4" /></Button>
+                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.dept_notices.filter((_: Record<string, unknown>, idx: number) => idx !== i); update("dept_notices", arr); }}><Trash className="h-4 w-4" /></Button>
                     </div>
                   ))}
                 </div>
@@ -343,7 +343,7 @@ const AdminHomeSections = () => {
                     <Label>Club News</Label>
                     <Button size="sm" variant="outline" onClick={() => update("club_news", [...data.club_news, { title: "New News", date: "", url: "" }])}><Plus className="h-4 w-4 mr-1"/> Add News</Button>
                   </div>
-                  {data.club_news.map((item: any, i: number) => (
+                  {data.club_news.map((item: Record<string, unknown>, i: number) => (
                     <div key={i} className="flex gap-2 items-start">
                       <div className="grid gap-2 flex-1">
                         <Input value={item.title} onChange={e => { const arr = [...data.club_news]; arr[i].title = e.target.value; update("club_news", arr); }} placeholder="News Title" />
@@ -352,7 +352,7 @@ const AdminHomeSections = () => {
                           <Input value={item.url} onChange={e => { const arr = [...data.club_news]; arr[i].url = e.target.value; update("club_news", arr); }} placeholder="Link URL" className="flex-1" />
                         </div>
                       </div>
-                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.club_news.filter((_: any, idx: number) => idx !== i); update("club_news", arr); }}><Trash className="h-4 w-4" /></Button>
+                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.club_news.filter((_: Record<string, unknown>, idx: number) => idx !== i); update("club_news", arr); }}><Trash className="h-4 w-4" /></Button>
                     </div>
                   ))}
                 </div>
