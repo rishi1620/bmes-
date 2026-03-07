@@ -24,6 +24,8 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     fields: [
       { key: "site_title", label: "Site Title" },
       { key: "logo_url", label: "Logo URL" },
+      { key: "dashboard_logo_url", label: "Dashboard Logo URL" },
+      { key: "footer_logo_url", label: "Footer Logo URL" },
       { key: "favicon_url", label: "Favicon URL" },
       { key: "footer_text", label: "Footer Text", type: "textarea" },
     ],
@@ -75,7 +77,7 @@ const AdminSettings = () => {
   const handleSave = async () => {
     setSaving(true);
     const updates = Object.entries(settings).map(([setting_key, setting_value]) =>
-      supabase.from("site_settings").update({ setting_value }).eq("setting_key", setting_key)
+      supabase.from("site_settings").upsert({ setting_key, setting_value }, { onConflict: "setting_key" })
     );
     const results = await Promise.all(updates);
     const hasError = results.some((r) => r.error);
