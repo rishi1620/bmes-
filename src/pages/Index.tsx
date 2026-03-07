@@ -87,17 +87,17 @@ const Index = () => {
 
   const getSection = (key: string) => sections?.find((s) => s.section_key === key)?.section_data as Record<string, unknown> | undefined;
 
-  const hero = getSection("hero");
-  const quickLinks = getSection("quick_links");
-  const announcements = getSection("announcements");
-  const upcomingEvents = getSection("upcoming_events");
-  const recentAchievementsSection = getSection("recent_achievements");
-  const featuredProjectsSection = getSection("featured_projects");
-  const recentBlogSection = getSection("recent_blog");
-  const stats = getSection("stats");
-  const features = getSection("features");
-  const cta = getSection("cta");
-  const notice = getSection("notice");
+  const hero = getSection("hero") as any;
+  const quickLinks = getSection("quick_links") as any;
+  const announcements = getSection("announcements") as any;
+  const upcomingEvents = getSection("upcoming_events") as any;
+  const recentAchievementsSection = getSection("recent_achievements") as any;
+  const featuredProjectsSection = getSection("featured_projects") as any;
+  const recentBlogSection = getSection("recent_blog") as any;
+  const stats = getSection("stats") as any;
+  const features = getSection("features") as any;
+  const cta = getSection("cta") as any;
+  const notice = getSection("notice") as any;
 
   if (isLoading || isLoadingEvents || isLoadingAchievements) {
     return (
@@ -166,15 +166,14 @@ const Index = () => {
                 <div className="rounded-lg bg-primary/10 p-2 text-primary">
                   <BookOpen className="h-5 w-5" />
                 </div>
-                <h2 className="text-xl font-bold">{announcements.dept_title || "Departmental Notices"}</h2>
-              </div>
-              <div className="space-y-4">
+                <h2 className="text-xl font-bold">{announcements.dept_title as string || "Departmental Notices"}</h2>
+...
                 {Array.isArray(announcements.dept_notices) && announcements.dept_notices.length > 0 ? (
-                  (announcements.dept_notices as Record<string, string>[]).map((notice, i: number) => (
+                  (announcements.dept_notices as any[]).map((notice: any, i: number) => (
                     <div key={i} className="border-b border-border pb-3 last:border-0 last:pb-0">
                       <a href={notice.url || "#"} className="group block">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{notice.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{notice.date}</p>
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{notice.title as string}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{notice.date as string}</p>
                       </a>
                     </div>
                   ))
@@ -188,15 +187,15 @@ const Index = () => {
                 <div className="rounded-lg bg-primary/10 p-2 text-primary">
                   <Users className="h-5 w-5" />
                 </div>
-                <h2 className="text-xl font-bold">{announcements.club_title || "Club News"}</h2>
+                <h2 className="text-xl font-bold">{announcements.club_title as string || "Club News"}</h2>
               </div>
               <div className="space-y-4">
                 {Array.isArray(announcements.club_news) && announcements.club_news.length > 0 ? (
-                  (announcements.club_news as Record<string, string>[]).map((news, i: number) => (
+                  (announcements.club_news as any[]).map((news: any, i: number) => (
                     <div key={i} className="border-b border-border pb-3 last:border-0 last:pb-0">
                       <a href={news.url || "#"} className="group block">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{news.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{news.date}</p>
+                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{news.title as string}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">{news.date as string}</p>
                       </a>
                     </div>
                   ))

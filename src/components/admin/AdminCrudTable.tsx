@@ -21,7 +21,7 @@ export interface FieldDef {
   required?: boolean;
 }
 
-type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "faqs" | "event_registrations";
+export type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "event_registrations" | "blog_posts" | "contact_submissions" | "home_sections" | "media_library" | "profiles" | "site_settings" | "user_roles" | "faqs";
 
 interface Props {
   tableName: TableName;
@@ -42,7 +42,7 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
   const [loading, setLoading] = useState(false);
 
   const fetchRows = useCallback(async () => {
-    const { data } = await supabase.from(tableName).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    const { data } = await (supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" }) as any);
     const allRows = data ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
   }, [tableName, orderBy, filter]);
@@ -90,11 +90,11 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
     }
 
     if (editing) {
-      const { error } = await supabase.from(tableName).update(payload).eq("id", editing.id);
+      const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing!.id as string);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Updated" }); }
     } else {
-      const { error } = await supabase.from(tableName).insert(payload as Record<string, unknown>);
+      const { error } = await supabase.from(tableName as any).insert(payload as any);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Created" }); }
     }
@@ -105,7 +105,7 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
 
   const remove = async (id: string) => {
     if (!confirm("Delete this item?")) return;
-    const { error } = await supabase.from(tableName).delete().eq("id", id);
+    const { error } = await supabase.from(tableName as any).delete().eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     else { toast({ title: "Deleted" }); fetchRows(); }
   };

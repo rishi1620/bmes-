@@ -1,7 +1,5 @@
 import AdminLayout from "@/components/layout/AdminLayout";
-import AdminCrudTable, { FieldDef } from "./AdminCrudTable";
-
-type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "faqs" | "event_registrations";
+import AdminCrudTable, { FieldDef, TableName } from "./AdminCrudTable";
 
 interface Props {
   tableName: TableName;
