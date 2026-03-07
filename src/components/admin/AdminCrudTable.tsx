@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "@/hooks/use-toast";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { format } from "date-fns";
+import MediaSelectorDialog from "./MediaSelectorDialog";
 
 export interface FieldDef {
   key: string;
@@ -78,9 +79,13 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
   const save = async () => {
     setLoading(true);
     const payload = { ...form };
-    // Ensure default values are present
+    // Ensure default values are present only if not already set in form
     if (defaultValues) {
-        Object.assign(payload, defaultValues);
+        Object.keys(defaultValues).forEach(k => {
+            if (payload[k] === undefined || payload[k] === "") {
+                payload[k] = defaultValues[k];
+            }
+        });
     }
 
     if (editing) {
@@ -216,25 +221,16 @@ const AdminCrudTable = ({ tableName, title, fields, columns, orderBy, filter, de
                 ) : f.type === "image" ? (
                   <div className="flex flex-col gap-2">
                     {form[f.key] && <img src={form[f.key] as string} alt="Preview" className="h-32 w-32 object-cover rounded-md border border-border" />}
-                    <Input 
-                      type="file" 
-                      accept="image/*"
-                      disabled={loading}
-                      onChange={async (e) => {
-                        const file = e.target.files?.[0];
-                        if (!file) return;
-                        setLoading(true);
-                        const name = `${Date.now()}-${file.name}`;
-                        const { data, error } = await supabase.storage.from("media").upload(name, file);
-                        if (error) {
-                          toast({ title: "Upload failed", description: error.message, variant: "destructive" });
-                        } else {
-                          const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(data.path);
-                          setForm({ ...form, [f.key]: publicUrl });
-                        }
-                        setLoading(false);
-                      }} 
-                    />
+                    <div className="flex gap-2">
+                      <Input 
+                        value={form[f.key] as string ?? ""} 
+                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} 
+                        placeholder="Image URL"
+                      />
+                      <MediaSelectorDialog 
+                        onSelect={(url) => setForm({ ...form, [f.key]: url })} 
+                      />
+                    </div>
                   </div>
                 ) : (
                   <Input value={form[f.key] as string ?? ""} onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} required={f.required} />

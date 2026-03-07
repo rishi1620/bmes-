@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
+import { ShareButtons } from "@/components/shared/ShareButtons";
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -70,25 +71,28 @@ const BlogPost = () => {
           {post.title}
         </h1>
 
-        <div className="flex flex-wrap items-center gap-6 text-sm text-muted-foreground mb-8 border-b border-border pb-8">
-          {post.author && (
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              <span>{post.author}</span>
-            </div>
-          )}
-          {post.published_at && (
-            <div className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span>{format(new Date(post.published_at), "MMMM d, yyyy")}</span>
-            </div>
-          )}
-          {post.read_time && (
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>{post.read_time} min read</span>
-            </div>
-          )}
+        <div className="flex flex-wrap items-center justify-between gap-6 text-sm text-muted-foreground mb-8 border-b border-border pb-8">
+          <div className="flex flex-wrap items-center gap-6">
+            {post.author && (
+              <div className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span>{post.author}</span>
+              </div>
+            )}
+            {post.published_at && (
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <span>{format(new Date(post.published_at), "MMMM d, yyyy")}</span>
+              </div>
+            )}
+            {post.read_time && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <span>{post.read_time} min read</span>
+              </div>
+            )}
+          </div>
+          <ShareButtons url={window.location.href} title={post.title} />
         </div>
 
         {post.image_url && (

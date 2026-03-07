@@ -92,8 +92,8 @@ const AdminAcademics = () => {
       }
 
       toast({ title: "Academics page content saved" });
-    } catch (error: any) {
-      toast({ title: "Error saving content", description: error.message, variant: "destructive" });
+    } catch (error) {
+      toast({ title: "Error saving content", description: error instanceof Error ? error.message : "Unknown error", variant: "destructive" });
     } finally {
       setSaving(false);
     }

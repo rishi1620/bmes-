@@ -8,11 +8,17 @@ const fields: FieldDef[] = [
   { key: "lead", label: "Project Lead" },
   { key: "team_members", label: "Team Members", type: "list" },
   { key: "category", label: "Category" },
-  { key: "image_url", label: "Image URL" },
+  { key: "image_url", label: "Image URL", type: "image" },
 ];
 
 const AdminProjects = () => (
-  <AdminCrudPage tableName="projects" title="Projects" fields={fields} columns={["title", "status", "progress", "lead"]} />
+  <AdminCrudPage 
+    tableName="projects" 
+    title="Projects" 
+    fields={fields} 
+    columns={["title", "status", "progress", "lead"]} 
+    defaultValues={{ status: "Planning" }}
+  />
 );
 
 export default AdminProjects;

@@ -37,8 +37,8 @@ const AdminSiteSettings = () => {
         if (error) throw error;
       }
       toast({ title: "Settings updated successfully" });
-    } catch (e: any) {
-      toast({ title: "Error updating settings", description: e.message, variant: "destructive" });
+    } catch (e) {
+      toast({ title: "Error updating settings", description: e instanceof Error ? e.message : "Unknown error", variant: "destructive" });
     }
     setSaving(false);
   };

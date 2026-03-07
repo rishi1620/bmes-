@@ -9,6 +9,9 @@ interface Props {
   fields: FieldDef[];
   columns: string[];
   orderBy?: string;
+  filter?: (row: Record<string, unknown>) => boolean;
+  defaultValues?: Record<string, unknown>;
+  hiddenFields?: string[];
 }
 
 const AdminCrudPage = (props: Props) => {

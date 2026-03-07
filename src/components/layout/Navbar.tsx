@@ -72,25 +72,31 @@ const Navbar = () => {
 
         <nav className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) =>
-          <Link
-            key={link.path}
-            to={link.path}
-            className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
-            location.pathname === link.path ? "text-primary" : "text-muted-foreground"}`
-            }>
-            
+            <Link
+              key={link.path}
+              to={link.path}
+              className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
+                location.pathname === link.path ? "text-primary" : "text-muted-foreground"
+              }`}
+            >
               {link.label}
+              <span className={`absolute inset-x-3 -bottom-1 h-0.5 rounded-full bg-primary transition-transform duration-300 ${
+                location.pathname === link.path ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+              }`} />
             </Link>
           )}
           
           {isAdmin && (
             <Link
               to="/admin"
-              className={`rounded-md px-3 py-2 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground ${
+              className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
                 location.pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground"
               }`}
             >
               Admin
+              <span className={`absolute inset-x-3 -bottom-1 h-0.5 rounded-full bg-primary transition-transform duration-300 ${
+                location.pathname.startsWith("/admin") ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+              }`} />
             </Link>
           )}
 
@@ -118,24 +124,24 @@ const Navbar = () => {
       <div className="border-t border-border bg-background lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="container flex flex-col gap-1 py-4">
             {navLinks.map((link) =>
-          <Link
-            key={link.path}
-            to={link.path}
-            onClick={() => setMobileOpen(false)}
-            className={`rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted ${
-            location.pathname === link.path ? "text-primary bg-muted" : "text-muted-foreground"}`
-            }>
-            
+              <Link
+                key={link.path}
+                to={link.path}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
+                  location.pathname === link.path ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
+                }`}
+              >
                 {link.label}
               </Link>
-          )}
+            )}
           
           {isAdmin && (
             <Link
               to="/admin"
               onClick={() => setMobileOpen(false)}
-              className={`rounded-md px-3 py-2.5 text-sm font-medium transition-colors hover:bg-muted ${
-                location.pathname.startsWith("/admin") ? "text-primary bg-muted" : "text-muted-foreground"
+              className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
+                location.pathname.startsWith("/admin") ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
               }`}
             >
               Admin Dashboard

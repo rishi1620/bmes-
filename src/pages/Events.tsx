@@ -12,6 +12,7 @@ import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { ShareButtons } from "@/components/shared/ShareButtons";
 
 import { Tables } from "@/integrations/supabase/types";
 
@@ -55,7 +56,7 @@ const Events = () => {
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {upcoming.map((e) => (
-              <div key={e.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
+              <div key={e.id} id={e.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="relative h-48 w-full overflow-hidden">
                   <img 
                     src={e.image_url || "https://picsum.photos/seed/event/800/600"} 
@@ -86,7 +87,7 @@ const Events = () => {
                   </div>
                 </div>
                 
-                <div className="px-6 pb-6">
+                <div className="px-6 pb-6 space-y-4">
                   <Dialog open={isRegOpen && selectedEvent?.id === e.id} onOpenChange={(open) => {
                     setIsRegOpen(open);
                     if (open) setSelectedEvent(e);
@@ -105,6 +106,10 @@ const Events = () => {
                       />
                     </DialogContent>
                   </Dialog>
+                  
+                  <div className="flex justify-center border-t border-border pt-4">
+                    <ShareButtons url={`${window.location.origin}/events#${e.id}`} title={e.title} />
+                  </div>
                 </div>
               </div>
             ))}
@@ -118,13 +123,14 @@ const Events = () => {
             <SectionHeading badge="Archive" title="Past Events" />
             <div className="mt-10 space-y-4">
               {past.map((e) => (
-                <div key={e.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-elevated">
+                <div key={e.id} id={e.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-elevated">
                   <div>
                     <h3 className="font-semibold text-foreground">{e.title}</h3>
                     <p className="text-sm text-muted-foreground">{format(new Date(e.date), "PPP")}</p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-6">
                     {e.type && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{e.type}</span>}
+                    <ShareButtons url={`${window.location.origin}/events#${e.id}`} title={e.title} />
                   </div>
                 </div>
               ))}

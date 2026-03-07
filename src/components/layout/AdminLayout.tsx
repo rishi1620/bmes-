@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
+import AdminNotifications from "@/components/admin/AdminNotifications";
 
 const linkGroups = [
   {
@@ -65,9 +66,12 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   return (
     <div className="flex min-h-screen">
       <aside className="hidden w-64 flex-col border-r border-border bg-sidebar text-sidebar-foreground md:flex">
-        <div className="flex h-16 items-center gap-2.5 border-b border-sidebar-border px-5">
-          <img alt="BMES" className="h-8 w-8 rounded-lg object-contain" src={defaultLogo} />
-          <span className="text-sm font-bold">BMES Admin</span>
+        <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-5">
+          <div className="flex items-center gap-2.5">
+            <img alt="BMES" className="h-8 w-8 rounded-lg object-contain" src={defaultLogo} />
+            <span className="text-sm font-bold">BMES Admin</span>
+          </div>
+          <AdminNotifications />
         </div>
         <nav className="flex-1 space-y-6 overflow-y-auto p-4">
           {linkGroups.map((group) => (
@@ -110,7 +114,10 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
             <img alt="BMES" className="h-6 w-6 rounded-lg object-contain" src={defaultLogo} />
             <span className="text-sm font-bold">BMES Admin</span>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+          <div className="flex items-center gap-2">
+            <AdminNotifications />
+            <Button variant="ghost" size="sm" onClick={signOut}><LogOut className="h-4 w-4" /></Button>
+          </div>
         </header>
         <nav className="flex gap-1 overflow-x-auto border-b border-border bg-background p-2 md:hidden">
           {linkGroups.flatMap(g => g.links).map((l) => {
