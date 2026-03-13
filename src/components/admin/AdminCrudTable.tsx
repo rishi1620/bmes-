@@ -36,9 +36,10 @@ interface Props {
   filter?: (row: Record<string, unknown>) => boolean;
   defaultValues?: Record<string, unknown>;
   hiddenFields?: string[];
+  addLabel?: string;
 }
 
-const AdminCrudTable = ({ tableName, title, description, fields, columns, orderBy, filter, defaultValues, hiddenFields = [] }: Props) => {
+const AdminCrudTable = ({ tableName, title, description, fields, columns, orderBy, filter, defaultValues, hiddenFields = [], addLabel }: Props) => {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
@@ -134,7 +135,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
           <CardTitle className="text-xl font-bold">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input 
@@ -144,8 +145,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-          <Button onClick={openNew} size="sm" className="gap-1">
-            <Plus className="h-4 w-4" /> Add New
+          <Button onClick={openNew} className="gap-1 font-semibold shadow-sm">
+            <Plus className="h-4 w-4" /> {addLabel || "Add New"}
           </Button>
         </div>
       </CardHeader>

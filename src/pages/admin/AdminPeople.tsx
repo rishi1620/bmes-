@@ -56,6 +56,7 @@ const AdminPeople = () => {
           <AdminCrudTable 
             tableName="advisors" 
             title="Faculty" 
+            addLabel="Add New Faculty"
             fields={advisorFields} 
             columns={["name", "designation", "department", "is_active"]} 
             orderBy="display_order"
@@ -69,6 +70,7 @@ const AdminPeople = () => {
           <AdminCrudTable 
             tableName="members" 
             title="Staff" 
+            addLabel="Add New Staff"
             fields={memberFields} 
             columns={["name", "role", "department", "is_active"]} 
             orderBy="display_order"
@@ -82,6 +84,7 @@ const AdminPeople = () => {
           <AdminCrudTable 
             tableName="members" 
             title="Executive Committee & Members" 
+            addLabel="Add New Member"
             fields={memberFields} 
             columns={["name", "role", "team", "is_active"]} 
             orderBy="display_order"
@@ -92,6 +95,7 @@ const AdminPeople = () => {
           <AdminCrudTable 
             tableName="advisors" 
             title="Advisors & Moderators" 
+            addLabel="Add New Advisor"
             fields={advisorFields} 
             columns={["name", "designation", "role_type", "is_active"]} 
             orderBy="display_order"
