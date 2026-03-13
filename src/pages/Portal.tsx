@@ -38,6 +38,14 @@ const Portal = () => {
     }
   })();
 
+  const notices = (() => {
+    try {
+      return JSON.parse(settings.portal_notices_json || "[]");
+    } catch {
+      return [];
+    }
+  })();
+
   return (
     <PageLayout>
       <section className="hero-gradient py-16 md:py-24">
@@ -65,18 +73,45 @@ const Portal = () => {
 
           <TabsContent value="notices">
             <SectionHeading title="Notice Board" description="A searchable archive of all official notices." />
-            <div className="mt-10">
-              <Card>
-                <CardContent className="p-6">
-                  {settings.portal_notices_content ? (
+            <div className="mt-10 space-y-8">
+              {settings.portal_notices_content && (
+                <Card>
+                  <CardContent className="p-6">
                     <div className="prose dark:prose-invert max-w-none whitespace-pre-wrap">
                       {settings.portal_notices_content}
                     </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground">Notice board will be updated shortly.</p>
-                  )}
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {notices.length > 0 ? (
+                <div className="grid gap-6 md:grid-cols-2">
+                  {notices.map((notice: any, i: number) => (
+                    <Card key={i} className="flex flex-col">
+                      <CardHeader className="pb-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <span className="inline-block rounded-full bg-primary/10 px-2.5 py-0.5 text-[10px] font-medium text-primary uppercase tracking-wider">
+                            Announcement
+                          </span>
+                          <span className="text-xs text-muted-foreground font-medium">{notice.date}</span>
+                        </div>
+                        <CardTitle className="text-xl leading-tight">{notice.title}</CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex-1">
+                        <p className="text-muted-foreground text-sm whitespace-pre-wrap">{notice.content}</p>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                !settings.portal_notices_content && (
+                  <Card>
+                    <CardContent className="p-6">
+                      <p className="text-center text-muted-foreground">Notice board will be updated shortly.</p>
+                    </CardContent>
+                  </Card>
+                )
+              )}
             </div>
           </TabsContent>
 
