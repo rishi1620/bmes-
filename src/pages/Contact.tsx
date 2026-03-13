@@ -11,16 +11,39 @@ import { supabase } from "@/integrations/supabase/client";
 const Contact = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<{ name?: string; email?: string; subject?: string; message?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
+    setErrors({});
+    
     const fd = new FormData(e.currentTarget);
+    const name = fd.get("name") as string;
+    const email = fd.get("email") as string;
+    const subject = fd.get("subject") as string;
+    const message = fd.get("message") as string;
+
+    const newErrors: typeof errors = {};
+    if (!name.trim()) newErrors.name = "Name is required.";
+    if (!email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "Please enter a valid email address.";
+    }
+    if (!subject.trim()) newErrors.subject = "Subject is required.";
+    if (!message.trim()) newErrors.message = "Message is required.";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    setLoading(true);
     const { error } = await supabase.from("contact_submissions").insert({
-      name: fd.get("name") as string,
-      email: fd.get("email") as string,
-      subject: fd.get("subject") as string,
-      message: fd.get("message") as string,
+      name,
+      email,
+      subject,
+      message,
     });
     setLoading(false);
     if (error) {
@@ -71,13 +94,25 @@ const Contact = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated">
+          <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" noValidate>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input name="name" placeholder="Your name" required />
-              <Input name="email" type="email" placeholder="Your email" required />
+              <div className="space-y-1">
+                <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
+                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+              </div>
+              <div className="space-y-1">
+                <Input name="email" type="email" placeholder="Your email" className={errors.email ? "border-destructive" : ""} />
+                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+              </div>
             </div>
-            <Input name="subject" placeholder="Subject" required />
-            <Textarea name="message" placeholder="Your message..." className="min-h-[120px]" required />
+            <div className="space-y-1">
+              <Input name="subject" placeholder="Subject" className={errors.subject ? "border-destructive" : ""} />
+              {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
+            </div>
+            <div className="space-y-1">
+              <Textarea name="message" placeholder="Your message..." className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} />
+              {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
+            </div>
             <Button type="submit" className="w-full" disabled={loading}>
               <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
             </Button>
