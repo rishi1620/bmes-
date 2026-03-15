@@ -22,44 +22,67 @@ interface Person {
   role_type?: string | null;
 }
 
-const PersonCard = ({ person }: { person: Person }) => (
-  <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
-    <div className="aspect-square w-full overflow-hidden bg-muted relative group">
-      {person.image_url || person.photo ? (
-        <img
-          src={person.image_url || person.photo}
-          alt={person.name}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          referrerPolicy="no-referrer"
-        />
-      ) : (
-        <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
-          {person.name.charAt(0)}
+const PersonCard = ({ person }: { person: Person }) => {
+  let bioData = { text: person.bio || "", student_id: "", program: "", batch: "" };
+  try {
+    if (person.bio) {
+      const parsed = JSON.parse(person.bio);
+      if (parsed && typeof parsed === 'object') {
+        bioData = { ...bioData, ...parsed };
+      }
+    }
+  } catch (e) {
+    // It's just text
+  }
+
+  return (
+    <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
+      <div className="aspect-square w-full overflow-hidden bg-muted relative group">
+        {person.image_url || person.photo ? (
+          <img
+            src={person.image_url || person.photo}
+            alt={person.name}
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            referrerPolicy="no-referrer"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
+            {person.name.charAt(0)}
+          </div>
+        )}
+        
+        {/* Overlay with social links */}
+        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+          {person.linkedin && (
+            <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-[#0077b5] hover:scale-110 transition-transform">
+              <Linkedin className="h-5 w-5" />
+            </a>
+          )}
+          {person.email && (
+            <a href={`mailto:${person.email}`} className="p-2 bg-white rounded-full text-primary hover:scale-110 transition-transform">
+              <Mail className="h-5 w-5" />
+            </a>
+          )}
         </div>
-      )}
-      
-      {/* Overlay with social links */}
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-        {person.linkedin && (
-          <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-[#0077b5] hover:scale-110 transition-transform">
-            <Linkedin className="h-5 w-5" />
-          </a>
-        )}
-        {person.email && (
-          <a href={`mailto:${person.email}`} className="p-2 bg-white rounded-full text-primary hover:scale-110 transition-transform">
-            <Mail className="h-5 w-5" />
-          </a>
-        )}
       </div>
-    </div>
-    <CardContent className="p-5 text-center flex-1 flex flex-col">
-      <h3 className="font-bold text-lg line-clamp-1 mb-1">{person.name}</h3>
-      <p className="text-sm text-primary font-medium mb-2 line-clamp-1">{person.role || person.designation}</p>
-      {person.department && <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{person.department}</p>}
-      {person.bio && <p className="text-xs text-muted-foreground line-clamp-3 mt-auto">{person.bio}</p>}
-    </CardContent>
-  </Card>
-);
+      <CardContent className="p-5 text-center flex-1 flex flex-col">
+        <h3 className="font-bold text-lg line-clamp-1 mb-1">{person.name}</h3>
+        <p className="text-sm text-primary font-medium mb-2 line-clamp-1">{person.role || person.designation}</p>
+        {person.department && <p className="text-xs text-muted-foreground mb-1 line-clamp-1">{person.department}</p>}
+        
+        {(bioData.program || bioData.batch || bioData.student_id) && (
+          <div className="flex flex-wrap justify-center gap-1 mb-3 mt-1">
+            {bioData.program && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{bioData.program}</span>}
+            {bioData.batch && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">Batch {bioData.batch}</span>}
+            {bioData.student_id && <span className="text-[10px] bg-muted px-2 py-0.5 rounded-full text-muted-foreground">ID: {bioData.student_id}</span>}
+          </div>
+        )}
+
+        {bioData.text && <p className="text-xs text-muted-foreground line-clamp-3 mt-auto">{bioData.text}</p>}
+      </CardContent>
+    </Card>
+  );
+};
 
 const People = () => {
   const { data: members, isLoading: isLoadingMembers } = useQuery({

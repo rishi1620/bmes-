@@ -9,7 +9,6 @@ import { Bell, BookOpen, Download, UserPlus, ExternalLink } from "lucide-react";
 
 const Portal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -17,7 +16,6 @@ const Portal = () => {
       const map: Record<string, string> = {};
       data?.forEach((s) => { map[s.setting_key] = s.setting_value; });
       setSettings(map);
-      setLoading(false);
     };
     load();
   }, []);
@@ -86,7 +84,7 @@ const Portal = () => {
               
               {notices.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2">
-                  {notices.map((notice: any, i: number) => (
+                  {notices.map((notice: { title: string; date: string; content: string }, i: number) => (
                     <Card key={i} className="flex flex-col">
                       <CardHeader className="pb-3">
                         <div className="mb-2 flex items-center justify-between">

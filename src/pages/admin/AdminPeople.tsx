@@ -18,6 +18,9 @@ const advisorFields: FieldDef[] = [
 
 const memberFields: FieldDef[] = [
   { key: "name", label: "Name", required: true },
+  { key: "student_id", label: "Student ID" },
+  { key: "program", label: "Program" },
+  { key: "batch", label: "Batch" },
   { key: "role", label: "Role (e.g. President)" },
   { key: "department", label: "Department" },
   { key: "team", label: "Team", type: "select", options: ["Executive Committee", "Technical Team", "Operations Team", "Staff", ""] },
@@ -28,6 +31,42 @@ const memberFields: FieldDef[] = [
   { key: "is_active", label: "Active", type: "boolean" },
   { key: "display_order", label: "Display Order", type: "number" },
 ];
+
+const transformMemberRow = (row: Record<string, unknown>) => {
+  let bioData = { text: row.bio as string };
+  try {
+    const parsed = JSON.parse(row.bio as string);
+    if (parsed && typeof parsed === 'object') {
+      bioData = parsed;
+    }
+  } catch (e) {
+    // It's just a regular string bio
+  }
+  return {
+    ...row,
+    bio: bioData.text || "",
+    // @ts-ignore
+    student_id: bioData.student_id || "",
+    // @ts-ignore
+    program: bioData.program || "",
+    // @ts-ignore
+    batch: bioData.batch || "",
+  };
+};
+
+const transformMemberPayload = (payload: Record<string, unknown>) => {
+  const bioData = {
+    text: payload.bio,
+    student_id: payload.student_id,
+    program: payload.program,
+    batch: payload.batch,
+  };
+  const newPayload = { ...payload, bio: JSON.stringify(bioData) };
+  delete newPayload['student_id'];
+  delete newPayload['program'];
+  delete newPayload['batch'];
+  return newPayload;
+};
 
 const AdminPeople = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -77,6 +116,8 @@ const AdminPeople = () => {
             filter={(row) => row.team === 'Staff'}
             defaultValues={{ team: 'Staff' }}
             hiddenFields={['team']}
+            transformRow={transformMemberRow}
+            transformPayload={transformMemberPayload}
           />
         </TabsContent>
         
@@ -86,8 +127,10 @@ const AdminPeople = () => {
             title="Executive Committee & Members" 
             addLabel="Add New Member"
             fields={memberFields} 
-            columns={["name", "role", "team", "is_active"]} 
+            columns={["name", "student_id", "program", "batch", "role", "team", "is_active"]} 
             orderBy="display_order"
+            transformRow={transformMemberRow}
+            transformPayload={transformMemberPayload}
           />
         </TabsContent>
         

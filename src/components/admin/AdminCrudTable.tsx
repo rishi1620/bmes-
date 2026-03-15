@@ -37,9 +37,11 @@ interface Props {
   defaultValues?: Record<string, unknown>;
   hiddenFields?: string[];
   addLabel?: string;
+  transformRow?: (row: Record<string, unknown>) => Record<string, unknown>;
+  transformPayload?: (payload: Record<string, unknown>) => Record<string, unknown>;
 }
 
-const AdminCrudTable = ({ tableName, title, description, fields, columns, orderBy, filter, defaultValues, hiddenFields = [], addLabel }: Props) => {
+const AdminCrudTable = ({ tableName, title, description, fields, columns, orderBy, filter, defaultValues, hiddenFields = [], addLabel, transformRow, transformPayload }: Props) => {
   const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
@@ -50,9 +52,12 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
   const fetchRows = useCallback(async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
-    const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
+    let allRows = (data as unknown as Record<string, unknown>[]) ?? [];
+    if (transformRow) {
+      allRows = allRows.map(transformRow);
+    }
     setRows(filter ? allRows.filter(filter) : allRows);
-  }, [tableName, orderBy, filter]);
+  }, [tableName, orderBy, filter, transformRow]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
@@ -86,7 +91,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   const save = async () => {
     setLoading(true);
-    const payload = { ...form };
+    let payload = { ...form };
     // Ensure default values are present only if not already set in form
     if (defaultValues) {
         Object.keys(defaultValues).forEach(k => {
@@ -94,6 +99,10 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                 payload[k] = defaultValues[k];
             }
         });
+    }
+
+    if (transformPayload) {
+      payload = transformPayload(payload);
     }
 
     if (editing) {
