@@ -1,4 +1,4 @@
-import { Mail, MapPin, Phone, Send } from "lucide-react";
+import { Mail, MapPin, Phone, Send, CheckCircle2 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 const Contact = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; email?: string; subject?: string; message?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -51,6 +52,7 @@ const Contact = () => {
     } else {
       toast({ title: "Message sent!", description: "We'll get back to you soon." });
       (e.target as HTMLFormElement).reset();
+      setIsSubmitted(true);
     }
   };
 
@@ -94,29 +96,44 @@ const Contact = () => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" noValidate>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1">
-                <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
-                {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+          {isSubmitted ? (
+            <div className="rounded-xl border border-border bg-card p-8 shadow-elevated text-center flex flex-col items-center justify-center space-y-4 h-full min-h-[400px]">
+              <div className="h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2">
+                <CheckCircle2 className="h-8 w-8" />
+              </div>
+              <h3 className="text-2xl font-bold text-foreground">Message Sent!</h3>
+              <p className="text-muted-foreground max-w-sm">
+                Thank you for reaching out. We have received your message and will get back to you shortly.
+              </p>
+              <Button variant="outline" onClick={() => setIsSubmitted(false)} className="mt-6">
+                Send Another Message
+              </Button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" noValidate>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1">
+                  <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
+                  {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+                </div>
+                <div className="space-y-1">
+                  <Input name="email" type="email" placeholder="Your email" className={errors.email ? "border-destructive" : ""} />
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                </div>
               </div>
               <div className="space-y-1">
-                <Input name="email" type="email" placeholder="Your email" className={errors.email ? "border-destructive" : ""} />
-                {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                <Input name="subject" placeholder="Subject" className={errors.subject ? "border-destructive" : ""} />
+                {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
               </div>
-            </div>
-            <div className="space-y-1">
-              <Input name="subject" placeholder="Subject" className={errors.subject ? "border-destructive" : ""} />
-              {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
-            </div>
-            <div className="space-y-1">
-              <Textarea name="message" placeholder="Your message..." className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} />
-              {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
-            </div>
-            <Button type="submit" className="w-full" disabled={loading}>
-              <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
-            </Button>
-          </form>
+              <div className="space-y-1">
+                <Textarea name="message" placeholder="Your message..." className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} />
+                {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
+              </div>
+              <Button type="submit" className="w-full" disabled={loading}>
+                <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
+              </Button>
+            </form>
+          )}
         </div>
       </section>
     </PageLayout>
