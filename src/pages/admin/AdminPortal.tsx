@@ -94,7 +94,7 @@ const AdminPortal = () => {
       } else {
         const { data } = supabase.storage.from("media").getPublicUrl(name);
         const arr = [...libraryLinks];
-        arr[index].url = data.publicUrl;
+        arr[index].file_url = data.publicUrl;
         updateJsonArray("portal_library_json", arr);
         toast({ title: "File uploaded successfully" });
       }
@@ -181,7 +181,7 @@ const AdminPortal = () => {
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Resource Library</h2>
-            <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_library_json", [{ title: "New Resource", description: "", url: "", category: "Document" }, ...libraryLinks])}>
+            <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_library_json", [{ title: "New Resource", description: "", url: "", file_url: "", category: "Document" }, ...libraryLinks])}>
               <Plus className="mr-1.5 h-4 w-4" /> Add Resource
             </Button>
           </div>
@@ -209,29 +209,35 @@ const AdminPortal = () => {
                       <Label className="text-xs">Description</Label>
                       <Textarea value={item.description} onChange={e => { const arr = [...libraryLinks]; arr[i].description = e.target.value; updateJsonArray("portal_library_json", arr); }} />
                     </div>
-                    <div>
-                      <Label className="text-xs">File URL</Label>
-                      <div className="flex gap-2">
-                        <Input value={item.url} onChange={e => { const arr = [...libraryLinks]; arr[i].url = e.target.value; updateJsonArray("portal_library_json", arr); }} placeholder="Enter URL or upload a file" className="flex-1" />
-                        <input
-                          type="file"
-                          accept="application/pdf,.doc,.docx,.ppt,.pptx"
-                          className="hidden"
-                          ref={(el) => fileInputRefs.current[i] = el}
-                          onChange={(e) => handleFileUpload(e, i)}
-                        />
-                        <Button 
-                          variant="outline" 
-                          onClick={() => fileInputRefs.current[i]?.click()}
-                          disabled={uploadingIndex === i}
-                        >
-                          {uploadingIndex === i ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                          ) : (
-                            <Upload className="h-4 w-4 mr-2" />
-                          )}
-                          Upload File
-                        </Button>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label className="text-xs">External Link</Label>
+                        <Input value={item.url} onChange={e => { const arr = [...libraryLinks]; arr[i].url = e.target.value; updateJsonArray("portal_library_json", arr); }} placeholder="https://..." />
+                      </div>
+                      <div>
+                        <Label className="text-xs">PDF Upload</Label>
+                        <div className="flex gap-2">
+                          <Input value={item.file_url || ""} onChange={e => { const arr = [...libraryLinks]; arr[i].file_url = e.target.value; updateJsonArray("portal_library_json", arr); }} placeholder="Uploaded file URL" className="flex-1" />
+                          <input
+                            type="file"
+                            accept="application/pdf,.doc,.docx,.ppt,.pptx"
+                            className="hidden"
+                            ref={(el) => fileInputRefs.current[i] = el}
+                            onChange={(e) => handleFileUpload(e, i)}
+                          />
+                          <Button 
+                            variant="outline" 
+                            onClick={() => fileInputRefs.current[i]?.click()}
+                            disabled={uploadingIndex === i}
+                          >
+                            {uploadingIndex === i ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Upload className="h-4 w-4 mr-2" />
+                            )}
+                            Upload
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
