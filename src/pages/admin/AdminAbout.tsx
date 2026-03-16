@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
+import { motion } from "framer-motion";
 
 interface Setting {
   id: string;
@@ -116,7 +117,7 @@ const AdminAbout = () => {
     const allKeys = groups.flatMap(g => g.fields.map(f => f.key));
     
     for (const key of allKeys) {
-      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
+      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
       
       if (!existing) {
         await supabase.from("site_settings").insert({
@@ -133,18 +134,43 @@ const AdminAbout = () => {
     setSaving(false);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
   return (
     <AdminLayout>
-      <div className="mb-6 flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-6 flex items-center justify-between"
+      >
         <h1 className="text-2xl font-bold text-foreground">About Page Content</h1>
         <Button onClick={handleSave} size="sm" disabled={saving}>
           <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
         </Button>
-      </div>
+      </motion.div>
 
-      <div className="space-y-8">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-8"
+      >
         {groups.map((group) => (
-          <div key={group.key} className="rounded-lg border border-border bg-card p-5">
+          <motion.div variants={itemVariants} key={group.key} className="rounded-lg border border-border bg-card p-5">
             <h2 className="mb-4 text-lg font-semibold text-foreground">{group.label}</h2>
             <div className="space-y-4">
               {group.fields.map((field) => (
@@ -173,9 +199,9 @@ const AdminAbout = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </AdminLayout>
   );
 };

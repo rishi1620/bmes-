@@ -16,6 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { motion } from "framer-motion";
 
 interface MediaFile {
   name: string;
@@ -139,9 +140,27 @@ const AdminMedia = () => {
     return `${(bytes / 1048576).toFixed(1)} MB`;
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.05 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    show: { opacity: 1, scale: 1, transition: { duration: 0.2 } }
+  };
+
   return (
     <AdminLayout>
-      <div className="mb-6 flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-6 flex items-center justify-between"
+      >
         <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
         <div className="flex gap-2">
           {selectedFiles.size > 0 && (
@@ -153,28 +172,52 @@ const AdminMedia = () => {
             <Upload className="mr-1.5 h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
           </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <div {...getRootProps()} className={`mb-6 p-6 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}>
-        <input {...getInputProps()} />
-        <p className="text-muted-foreground">{isDragActive ? "Drop files here" : "Drag & drop files here, or click to select"}</p>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.1 }}
+      >
+        <div 
+          {...getRootProps()} 
+          className={`mb-6 p-6 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors ${isDragActive ? 'border-primary bg-primary/10' : 'border-border bg-card'}`}
+        >
+          <input {...getInputProps()} />
+          <p className="text-muted-foreground">{isDragActive ? "Drop files here" : "Drag & drop files here, or click to select"}</p>
+        </div>
+      </motion.div>
 
-      <Input placeholder="Search files…" value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.4, delay: 0.2 }}
+      >
+        <Input placeholder="Search files…" value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
+      </motion.div>
 
       {loading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-16 text-muted-foreground">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-16 text-muted-foreground"
+        >
           <ImageIcon className="mb-3 h-10 w-10" />
           <p>No media files yet.</p>
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+        >
           {filtered.map((file) => (
-            <div key={file.id ?? file.name} className={`group relative rounded-lg border border-border bg-card overflow-hidden ${selectedFiles.has(file.name) ? 'ring-2 ring-primary' : ''}`}>
+            <motion.div variants={itemVariants} key={file.id ?? file.name} className={`group relative rounded-lg border border-border bg-card overflow-hidden ${selectedFiles.has(file.name) ? 'ring-2 ring-primary' : ''}`}>
               <div className="absolute top-2 left-2 z-10">
                 <Button variant="ghost" size="icon" className="h-6 w-6 bg-background/50" onClick={() => toggleSelect(file.name)}>
                   {selectedFiles.has(file.name) ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
@@ -197,9 +240,9 @@ const AdminMedia = () => {
                 <Button variant="outline" size="sm" onClick={() => copyUrl(file.name)} title="Copy URL"><Copy className="h-4 w-4" /></Button>
                 <Button variant="outline" size="sm" onClick={() => setFileToDelete(file.name)} title="Delete" className="text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="h-4 w-4" /></Button>
               </div>
-            </div>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
 
       <AlertDialog open={!!fileToDelete} onOpenChange={() => setFileToDelete(null)}>

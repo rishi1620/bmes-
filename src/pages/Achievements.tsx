@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 const placeColor = (place: string) => {
   if (place?.includes("1st")) return "default";
@@ -50,10 +51,30 @@ const Achievements = () => {
     </div>
   );
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
     <PageLayout>
       <section className="hero-gradient py-16 md:py-24">
-        <div className="container text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="container text-center"
+        >
           <span className="mb-3 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
             Our Achievements
           </span>
@@ -61,10 +82,10 @@ const Achievements = () => {
           <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed">
             Celebrating the competition wins, publications, grants, and media recognition that showcase our society's contributions to biomedical engineering.
           </p>
-        </div>
+        </motion.div>
       </section>
 
-      <section className="container py-16 animate-fade-up animate-fade-up-delay-200">
+      <section className="container py-16">
         <Tabs defaultValue="competitions" className="w-full">
           <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
             <TabsTrigger value="competitions" className="gap-1.5 text-xs md:text-sm"><Trophy className="h-4 w-4" /> Competitions</TabsTrigger>
@@ -74,129 +95,181 @@ const Achievements = () => {
           </TabsList>
 
           <TabsContent value="competitions">
-            <SectionHeading title="Competition Wins" description="Our teams consistently excel in national and international biomedical engineering competitions." />
-            {isLoading ? <LoadingSkeleton /> : competitions.length === 0 ? (
-              <p className="mt-10 text-center text-muted-foreground">No competitions recorded yet.</p>
-            ) : (
-              <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-                {competitions.map((c) => (
-                  <Card key={c.id} className="group overflow-hidden transition-all hover:shadow-glow hover:-translate-y-1">
-                    {c.image_url && (
-                      <div className="h-48 w-full overflow-hidden bg-muted">
-                        <img src={c.image_url} alt={c.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      </div>
-                    )}
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        {c.place && <Badge variant={placeColor(c.place)}>{c.place}</Badge>}
-                        <span className="text-xs text-muted-foreground">{c.year}</span>
-                      </div>
-                      <CardTitle className="mt-2 text-base">{c.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {c.description && <p className="text-sm text-muted-foreground leading-relaxed">{c.description}</p>}
-                      {c.team && <p className="mt-3 text-xs font-medium text-primary">{c.team}</p>}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Competition Wins" description="Our teams consistently excel in national and international biomedical engineering competitions." />
+              {isLoading ? <LoadingSkeleton /> : competitions.length === 0 ? (
+                <p className="mt-10 text-center text-muted-foreground">No competitions recorded yet.</p>
+              ) : (
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3"
+                >
+                  {competitions.map((c) => (
+                    <motion.div variants={itemVariants} key={c.id}>
+                      <Card className="group overflow-hidden transition-all hover:shadow-glow hover:-translate-y-1 h-full">
+                        {c.image_url && (
+                          <div className="h-48 w-full overflow-hidden bg-muted">
+                            <img src={c.image_url} alt={c.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                          </div>
+                        )}
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            {c.place && <Badge variant={placeColor(c.place)}>{c.place}</Badge>}
+                            <span className="text-xs text-muted-foreground">{c.year}</span>
+                          </div>
+                          <CardTitle className="mt-2 text-base">{c.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {c.description && <p className="text-sm text-muted-foreground leading-relaxed">{c.description}</p>}
+                          {c.team && <p className="mt-3 text-xs font-medium text-primary">{c.team}</p>}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="publications">
-            <SectionHeading title="Research Publications" description="Peer-reviewed papers and conference proceedings authored by BMES members." />
-            {isLoading ? <LoadingSkeleton /> : publications.length === 0 ? (
-              <p className="mt-10 text-center text-muted-foreground">No publications recorded yet.</p>
-            ) : (
-              <div className="mt-10 space-y-4">
-                {publications.map((p) => (
-                  <Card key={p.id} className="overflow-hidden transition-all hover:shadow-elevated">
-                    <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-start md:justify-between">
-                      {p.image_url && (
-                        <div className="h-24 w-24 shrink-0 overflow-hidden rounded-md bg-muted">
-                          <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">{p.title}</h3>
-                        {p.authors && <p className="mt-1 text-sm text-muted-foreground">{p.authors}</p>}
-                        <p className="mt-1 text-xs text-primary font-medium">{p.journal} · {p.year}</p>
-                      </div>
-                      {p.doi && (
-                        <a href={`https://doi.org/${p.doi}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline whitespace-nowrap mt-2 md:mt-0">
-                          <ExternalLink className="h-3.5 w-3.5" /> DOI
-                        </a>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Research Publications" description="Peer-reviewed papers and conference proceedings authored by BMES members." />
+              {isLoading ? <LoadingSkeleton /> : publications.length === 0 ? (
+                <p className="mt-10 text-center text-muted-foreground">No publications recorded yet.</p>
+              ) : (
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="mt-10 space-y-4"
+                >
+                  {publications.map((p) => (
+                    <motion.div variants={itemVariants} key={p.id}>
+                      <Card className="overflow-hidden transition-all hover:shadow-elevated">
+                        <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-start md:justify-between">
+                          {p.image_url && (
+                            <div className="h-24 w-24 shrink-0 overflow-hidden rounded-md bg-muted">
+                              <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground">{p.title}</h3>
+                            {p.authors && <p className="mt-1 text-sm text-muted-foreground">{p.authors}</p>}
+                            <p className="mt-1 text-xs text-primary font-medium">{p.journal} · {p.year}</p>
+                          </div>
+                          {p.doi && (
+                            <a href={`https://doi.org/${p.doi}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:underline whitespace-nowrap mt-2 md:mt-0">
+                              <ExternalLink className="h-3.5 w-3.5" /> DOI
+                            </a>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="grants">
-            <SectionHeading title="Grants & Funding" description="Financial support secured to fuel our research and community projects." />
-            {isLoading ? <LoadingSkeleton /> : grants.length === 0 ? (
-              <p className="mt-10 text-center text-muted-foreground">No grants recorded yet.</p>
-            ) : (
-              <div className="mt-10 grid gap-5 md:grid-cols-2">
-                {grants.map((g) => (
-                  <Card key={g.id} className="overflow-hidden transition-all hover:shadow-elevated">
-                    {g.image_url && (
-                      <div className="h-40 w-full overflow-hidden bg-muted">
-                        <img src={g.image_url} alt={g.title} className="h-full w-full object-cover" />
-                      </div>
-                    )}
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        {g.status && <Badge variant={g.status === "Active" ? "default" : "secondary"}>{g.status}</Badge>}
-                        {g.amount && <span className="text-sm font-bold text-primary">{g.amount}</span>}
-                      </div>
-                      <CardTitle className="mt-2 text-base">{g.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {g.description && <p className="text-sm text-muted-foreground leading-relaxed">{g.description}</p>}
-                      {g.year && (
-                        <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-3.5 w-3.5" /> {g.year}
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Grants & Funding" description="Financial support secured to fuel our research and community projects." />
+              {isLoading ? <LoadingSkeleton /> : grants.length === 0 ? (
+                <p className="mt-10 text-center text-muted-foreground">No grants recorded yet.</p>
+              ) : (
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="mt-10 grid gap-5 md:grid-cols-2"
+                >
+                  {grants.map((g) => (
+                    <motion.div variants={itemVariants} key={g.id}>
+                      <Card className="overflow-hidden transition-all hover:shadow-elevated h-full">
+                        {g.image_url && (
+                          <div className="h-40 w-full overflow-hidden bg-muted">
+                            <img src={g.image_url} alt={g.title} className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        <CardHeader className="pb-3">
+                          <div className="flex items-center justify-between">
+                            {g.status && <Badge variant={g.status === "Active" ? "default" : "secondary"}>{g.status}</Badge>}
+                            {g.amount && <span className="text-sm font-bold text-primary">{g.amount}</span>}
+                          </div>
+                          <CardTitle className="mt-2 text-base">{g.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          {g.description && <p className="text-sm text-muted-foreground leading-relaxed">{g.description}</p>}
+                          {g.year && (
+                            <p className="mt-3 text-xs text-muted-foreground flex items-center gap-1">
+                              <Calendar className="h-3.5 w-3.5" /> {g.year}
+                            </p>
+                          )}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="media">
-            <SectionHeading title="Media Coverage" description="News articles, interviews, and features highlighting our society's work." />
-            {isLoading ? <LoadingSkeleton /> : media.length === 0 ? (
-              <p className="mt-10 text-center text-muted-foreground">No media coverage recorded yet.</p>
-            ) : (
-              <div className="mt-10 space-y-4">
-                {media.map((m) => (
-                  <Card key={m.id} className="overflow-hidden transition-all hover:shadow-elevated">
-                    <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5">
-                      {m.image_url ? (
-                        <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-                          <img src={m.image_url} alt={m.title} className="h-full w-full object-cover" />
-                        </div>
-                      ) : (
-                        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                          <Newspaper className="h-6 w-6" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">{m.title}</h3>
-                        <p className="mt-0.5 text-sm text-muted-foreground">
-                          {m.outlet} · {m.date_text} · <span className="text-primary">{m.media_type}</span>
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Media Coverage" description="News articles, interviews, and features highlighting our society's work." />
+              {isLoading ? <LoadingSkeleton /> : media.length === 0 ? (
+                <p className="mt-10 text-center text-muted-foreground">No media coverage recorded yet.</p>
+              ) : (
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="mt-10 space-y-4"
+                >
+                  {media.map((m) => (
+                    <motion.div variants={itemVariants} key={m.id}>
+                      <Card className="overflow-hidden transition-all hover:shadow-elevated">
+                        <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5">
+                          {m.image_url ? (
+                            <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
+                              <img src={m.image_url} alt={m.title} className="h-full w-full object-cover" />
+                            </div>
+                          ) : (
+                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                              <Newspaper className="h-6 w-6" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground">{m.title}</h3>
+                            <p className="mt-0.5 text-sm text-muted-foreground">
+                              {m.outlet} · {m.date_text} · <span className="text-primary">{m.media_type}</span>
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              )}
+            </motion.div>
           </TabsContent>
         </Tabs>
       </section>

@@ -13,6 +13,7 @@ import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 import { ShareButtons } from "@/components/shared/ShareButtons";
+import { motion } from "framer-motion";
 
 import { Tables } from "@/integrations/supabase/types";
 
@@ -35,28 +36,67 @@ const Events = () => {
   const upcoming = events.filter((e) => e.is_upcoming);
   const past = events.filter((e) => !e.is_upcoming);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
     <PageLayout>
       <section className="hero-gradient py-16">
-        <div className="container text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="container text-center"
+        >
           <h1 className="text-4xl font-bold text-primary-foreground md:text-5xl">Events</h1>
           <p className="mt-4 text-primary-foreground/80 max-w-2xl mx-auto">Workshops, seminars, and competitions shaping the future of biomedical engineering.</p>
-        </div>
+        </motion.div>
       </section>
 
-      <section className="container py-16 animate-fade-up">
-        <SectionHeading badge="Coming Up" title="Upcoming Events" />
+      <section className="container py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+        >
+          <SectionHeading badge="Coming Up" title="Upcoming Events" />
+        </motion.div>
         
         {isLoading ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {[1, 2, 3].map((i) => <Skeleton key={i} className="h-56 rounded-xl" />)}
           </div>
         ) : upcoming.length === 0 ? (
-          <p className="mt-10 text-center text-muted-foreground">No upcoming events at the moment.</p>
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mt-10 text-center text-muted-foreground"
+          >
+            No upcoming events at the moment.
+          </motion.p>
         ) : (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
+          <motion.div 
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="mt-10 grid gap-6 md:grid-cols-3"
+          >
             {upcoming.map((e) => (
-              <div key={e.id} id={e.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
+              <motion.div variants={itemVariants} key={e.id} id={e.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="relative h-48 w-full overflow-hidden">
                   <img 
                     src={e.image_url || "https://picsum.photos/seed/event/800/600"} 
@@ -111,19 +151,32 @@ const Events = () => {
                     <ShareButtons url={`${window.location.origin}/events#${e.id}`} title={e.title} />
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </section>
 
       {past.length > 0 && (
-        <section className="bg-muted/50 py-16 animate-fade-up animate-fade-up-delay-200">
+        <section className="bg-muted/50 py-16">
           <div className="container">
-            <SectionHeading badge="Archive" title="Past Events" />
-            <div className="mt-10 space-y-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              <SectionHeading badge="Archive" title="Past Events" />
+            </motion.div>
+            <motion.div 
+              variants={containerVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-100px" }}
+              className="mt-10 space-y-4"
+            >
               {past.map((e) => (
-                <div key={e.id} id={e.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-elevated">
+                <motion.div variants={itemVariants} key={e.id} id={e.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-elevated">
                   <div>
                     <h3 className="font-semibold text-foreground">{e.title}</h3>
                     <p className="text-sm text-muted-foreground">{format(new Date(e.date), "PPP")}</p>
@@ -132,9 +185,9 @@ const Events = () => {
                     {e.type && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{e.type}</span>}
                     <ShareButtons url={`${window.location.origin}/events#${e.id}`} title={e.title} />
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
           </div>
         </section>
       )}

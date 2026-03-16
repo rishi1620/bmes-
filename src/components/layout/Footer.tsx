@@ -15,6 +15,13 @@ const Footer = () => {
   });
 
   const footerLogo = settings?.footer_logo_url || settings?.logo_url;
+  const footerDesc = settings?.footer_description || "Advancing biomedical engineering through research, innovation, and community at Chittagong University of Engineering & Technology.";
+  const contactAddress = settings?.contact_address || "CUET, Chittagong, Bangladesh";
+  const contactEmail = settings?.contact_email || "bmes@cuet.ac.bd";
+  const contactPhone = settings?.contact_phone || "+880 1XXX-XXXXXX";
+  const fbUrl = settings?.social_facebook || "https://facebook.com";
+  const linkedinUrl = settings?.social_linkedin || "https://linkedin.com";
+  const youtubeUrl = settings?.social_youtube || "https://youtube.com";
 
   return (
     <footer className="border-t border-border bg-muted/50">
@@ -34,16 +41,16 @@ const Footer = () => {
               )}
             </div>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Advancing biomedical engineering through research, innovation, and community at Chittagong University of Engineering & Technology.
+              {footerDesc}
             </p>
             <div className="mt-6 flex gap-4">
-              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href={fbUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href={linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
+              <a href={youtubeUrl} target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -86,9 +93,9 @@ const Footer = () => {
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">Contact</h4>
             <div className="flex flex-col gap-2.5 text-sm text-muted-foreground">
-              <span className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /> CUET, Chittagong, Bangladesh</span>
-              <span className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" /> bmes@cuet.ac.bd</span>
-              <span className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" /> +880 1XXX-XXXXXX</span>
+              <span className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /> {contactAddress}</span>
+              <span className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" /> {contactEmail}</span>
+              <span className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" /> {contactPhone}</span>
             </div>
           </div>
         </div>
