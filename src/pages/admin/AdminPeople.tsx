@@ -39,17 +39,17 @@ const transformMemberRow = (row: Record<string, unknown>) => {
     if (parsed && typeof parsed === 'object') {
       bioData = parsed;
     }
-  } catch {
+  } catch (e) {
     // It's just a regular string bio
   }
   return {
     ...row,
     bio: bioData.text || "",
-    // @ts-expect-error bioData is dynamic
+    // @ts-ignore
     student_id: bioData.student_id || "",
-    // @ts-expect-error bioData is dynamic
+    // @ts-ignore
     program: bioData.program || "",
-    // @ts-expect-error bioData is dynamic
+    // @ts-ignore
     batch: bioData.batch || "",
   };
 };

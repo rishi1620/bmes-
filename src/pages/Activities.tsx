@@ -1,8 +1,8 @@
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Image, BookOpen, CalendarDays, MapPin, ArrowRight } from "lucide-react";
+import { Calendar, Users, Image, BookOpen, CalendarDays, MapPin, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -48,14 +48,6 @@ const Activities = () => {
       </PageLayout>
     );
   }
-
-  const galleryItems = (() => {
-    try {
-      return JSON.parse(settings.activities_gallery_json || "[]");
-    } catch {
-      return [];
-    }
-  })();
 
   return (
     <PageLayout>
@@ -138,44 +130,13 @@ const Activities = () => {
           <TabsContent value="gallery">
             <SectionHeading title="Gallery" description="Organized photo and video albums of tours, cultural events, and competitions." />
             <div className="mt-10">
-              {settings.activities_gallery_content && (
-                <Card className="mb-8">
-                  <CardContent className="p-6">
-                    <p className="text-center text-muted-foreground whitespace-pre-wrap">
-                      {settings.activities_gallery_content}
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-              
-              {galleryItems.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                  {galleryItems.map((item: { title: string; image_url: string; event_name: string; category: string; date: string }, index: number) => (
-                    <div key={index} className="group relative overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                      <div className="aspect-video overflow-hidden">
-                        <img 
-                          src={item.image_url || `https://picsum.photos/seed/${index}/800/600`} 
-                          alt={item.title} 
-                          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                          referrerPolicy="no-referrer"
-                        />
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-foreground line-clamp-1">{item.title}</h3>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                          {item.event_name && <span className="rounded-full bg-secondary px-2 py-0.5">{item.event_name}</span>}
-                          {item.category && <span className="rounded-full bg-primary/10 text-primary px-2 py-0.5">{item.category}</span>}
-                          {item.date && <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" /> {item.date}</span>}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-dashed border-border p-12 text-center">
-                  <p className="text-muted-foreground">Gallery will be updated shortly.</p>
-                </div>
-              )}
+              <Card>
+                <CardContent className="p-6">
+                  <p className="text-center text-muted-foreground whitespace-pre-wrap">
+                    {settings.activities_gallery_content || "Gallery will be updated shortly."}
+                  </p>
+                </CardContent>
+              </Card>
             </div>
           </TabsContent>
 

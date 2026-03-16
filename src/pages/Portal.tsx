@@ -128,7 +128,7 @@ const Portal = () => {
               
               {libraryLinks.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {libraryLinks.map((item: { title: string; url: string; file_url?: string; description: string; category: string }, i: number) => (
+                  {libraryLinks.map((item: { title: string; url: string; description: string; category: string }, i: number) => (
                     <Card key={i} className="flex flex-col">
                       <CardHeader className="pb-3">
                         <div className="mb-2">
@@ -140,22 +140,13 @@ const Portal = () => {
                       </CardHeader>
                       <CardContent className="flex-1 flex flex-col">
                         <p className="text-muted-foreground text-sm mb-4 flex-1">{item.description}</p>
-                        <div className="flex flex-col gap-2 mt-auto">
-                          {item.file_url && (
-                            <Button asChild variant="default" className="w-full" size="sm">
-                              <a href={item.file_url} target="_blank" rel="noopener noreferrer">
-                                <Download className="mr-2 h-4 w-4" /> Download PDF
-                              </a>
-                            </Button>
-                          )}
-                          {item.url && (
-                            <Button asChild variant="outline" className="w-full" size="sm">
-                              <a href={item.url} target="_blank" rel="noopener noreferrer">
-                                <ExternalLink className="mr-2 h-4 w-4" /> External Link
-                              </a>
-                            </Button>
-                          )}
-                        </div>
+                        {item.url && (
+                          <Button asChild variant="outline" className="w-full mt-auto" size="sm">
+                            <a href={item.url} target="_blank" rel="noopener noreferrer">
+                              <Download className="mr-2 h-4 w-4" /> Download / View
+                            </a>
+                          </Button>
+                        )}
                       </CardContent>
                     </Card>
                   ))}
