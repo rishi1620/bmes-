@@ -3,7 +3,7 @@ import AdminCrudPage from "@/components/admin/AdminCrudPage";
 const AdminFAQ = () => {
   return (
     <AdminCrudPage
-      tableName={"faqs" as any}
+      tableName={"faqs" as never}
       title="FAQs"
       columns={["question", "answer", "display_order"]}
       orderBy="display_order"

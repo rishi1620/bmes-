@@ -8,13 +8,38 @@ const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 const SUPABASE_URL = (envUrl && envUrl.startsWith('http')) ? envUrl : "https://placeholder-project.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = envKey || "placeholder-key";
 
-// Import the supabase client like this:
-// import { supabase } from "@/integrations/supabase/client";
+const isPlaceholder = SUPABASE_URL === "https://placeholder-project.supabase.co";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  }
-});
+// Cache the client instance to prevent "Lock broken by another request with the 'steal' option."
+// during Vite HMR.
+const globalForSupabase = globalThis as unknown as {
+  supabase: ReturnType<typeof createClient<Database>> | undefined;
+};
+
+export const supabase =
+  globalForSupabase.supabase ||
+  createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+    auth: {
+      storage: localStorage,
+      persistSession: !isPlaceholder,
+      autoRefreshToken: !isPlaceholder,
+      detectSessionInUrl: !isPlaceholder,
+    },
+    global: {
+      fetch: isPlaceholder
+        ? async (url) => {
+            console.warn("Supabase is using a placeholder URL. Mocking response.");
+            const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+            const isRest = urlString.includes('/rest/v1/');
+            return new Response(JSON.stringify(isRest ? [] : {}), {
+              status: 200,
+              headers: { "Content-Type": "application/json" },
+            });
+          }
+        : fetch,
+    },
+  });
+
+if (import.meta.env.DEV) {
+  globalForSupabase.supabase = supabase;
+}

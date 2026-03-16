@@ -9,7 +9,6 @@ import { Bell, BookOpen, Download, UserPlus, ExternalLink } from "lucide-react";
 
 const Portal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
@@ -17,7 +16,6 @@ const Portal = () => {
       const map: Record<string, string> = {};
       data?.forEach((s) => { map[s.setting_key] = s.setting_value; });
       setSettings(map);
-      setLoading(false);
     };
     load();
   }, []);
@@ -86,7 +84,7 @@ const Portal = () => {
               
               {notices.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2">
-                  {notices.map((notice: any, i: number) => (
+                  {notices.map((notice: { title: string; date: string; content: string }, i: number) => (
                     <Card key={i} className="flex flex-col">
                       <CardHeader className="pb-3">
                         <div className="mb-2 flex items-center justify-between">
@@ -130,7 +128,7 @@ const Portal = () => {
               
               {libraryLinks.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  {libraryLinks.map((item: { title: string; url: string; description: string; category: string }, i: number) => (
+                  {libraryLinks.map((item: { title: string; url: string; file_url?: string; description: string; category: string }, i: number) => (
                     <Card key={i} className="flex flex-col">
                       <CardHeader className="pb-3">
                         <div className="mb-2">
@@ -142,13 +140,22 @@ const Portal = () => {
                       </CardHeader>
                       <CardContent className="flex-1 flex flex-col">
                         <p className="text-muted-foreground text-sm mb-4 flex-1">{item.description}</p>
-                        {item.url && (
-                          <Button asChild variant="outline" className="w-full mt-auto" size="sm">
-                            <a href={item.url} target="_blank" rel="noopener noreferrer">
-                              <Download className="mr-2 h-4 w-4" /> Download / View
-                            </a>
-                          </Button>
-                        )}
+                        <div className="flex flex-col gap-2 mt-auto">
+                          {item.file_url && (
+                            <Button asChild variant="default" className="w-full" size="sm">
+                              <a href={item.file_url} target="_blank" rel="noopener noreferrer">
+                                <Download className="mr-2 h-4 w-4" /> Download PDF
+                              </a>
+                            </Button>
+                          )}
+                          {item.url && (
+                            <Button asChild variant="outline" className="w-full" size="sm">
+                              <a href={item.url} target="_blank" rel="noopener noreferrer">
+                                <ExternalLink className="mr-2 h-4 w-4" /> External Link
+                              </a>
+                            </Button>
+                          )}
+                        </div>
                       </CardContent>
                     </Card>
                   ))}
