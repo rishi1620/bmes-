@@ -31,7 +31,7 @@ const PersonCard = ({ person }: { person: Person }) => {
         bioData = { ...bioData, ...parsed };
       }
     }
-  } catch {
+  } catch (e) {
     // It's just text
   }
 
@@ -111,6 +111,7 @@ const People = () => {
 
   const faculty = advisors?.filter(p => p.role_type === "Faculty") || [];
   const staff = members?.filter(p => p.team === "Staff") || [];
+  const ec = members?.filter(p => p.team === "Executive Committee") || [];
   const advisory = advisors?.filter(p => p.role_type === "Advisor" || p.role_type === "Moderator") || [];
 
   const isLoading = isLoadingMembers || isLoadingAdvisors;

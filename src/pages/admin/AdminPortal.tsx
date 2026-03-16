@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
 
 interface Setting {
   id: string;
@@ -48,7 +47,7 @@ const AdminPortal = () => {
     ];
     
     for (const key of keysToSave) {
-      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
+      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
       
       if (!existing) {
         await supabase.from("site_settings").insert({
@@ -113,42 +112,17 @@ const AdminPortal = () => {
   const notices = getJsonArray("portal_notices_json");
   const libraryLinks = getJsonArray("portal_library_json");
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-  };
-
   return (
     <AdminLayout>
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
-      >
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Portal Page Content</h1>
         <Button onClick={handleSave} size="sm" disabled={saving}>
           <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-8"
-      >
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+      <div className="space-y-8">
+        <div className="rounded-lg border border-border bg-card p-5">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Hero Section</h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -160,9 +134,9 @@ const AdminPortal = () => {
               <Textarea value={settings.portal_hero_subtitle ?? ""} onChange={e => updateSetting("portal_hero_subtitle", e.target.value)} />
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Notices & Announcements</h2>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_notices_json", [{ id: Date.now().toString(), title: "New Notice", date: new Date().toISOString().split('T')[0], content: "" }, ...notices])}>
@@ -202,9 +176,9 @@ const AdminPortal = () => {
               {notices.length === 0 && <p className="text-sm text-muted-foreground">No notices added yet.</p>}
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Resource Library</h2>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_library_json", [{ title: "New Resource", description: "", url: "", category: "Document" }, ...libraryLinks])}>
@@ -269,9 +243,9 @@ const AdminPortal = () => {
               {libraryLinks.length === 0 && <p className="text-sm text-muted-foreground">No resources added yet.</p>}
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Software Links</h2>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_software_json", [...softwareLinks, { title: "New Software", description: "", url: "" }])}>
@@ -304,9 +278,9 @@ const AdminPortal = () => {
             ))}
             {softwareLinks.length === 0 && <p className="text-sm text-muted-foreground">No software links added yet.</p>}
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Membership Portal</h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -318,9 +292,9 @@ const AdminPortal = () => {
               <Input value={settings.portal_membership_url ?? ""} onChange={e => updateSetting("portal_membership_url", e.target.value)} />
             </div>
           </div>
-        </motion.div>
+        </div>
 
-      </motion.div>
+      </div>
     </AdminLayout>
   );
 };
