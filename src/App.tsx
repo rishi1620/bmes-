@@ -56,10 +56,10 @@ const App = () => (
             <div className="flex w-full max-w-screen-2xl flex-1 flex-col">
               <Toaster />
               <Sonner />
-              <CommandPalette />
-              <CursorBlob />
               <BrowserRouter>
                 <ScrollToTop />
+                <CommandPalette />
+                <CursorBlob />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/home" element={<Navigate to="/" replace />} />

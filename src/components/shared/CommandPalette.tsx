@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from "@/components/ui/command";
-import { Sun, Moon, Laptop, Copy, Mail, Home, Info, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell } from "lucide-react";
+import { Sun, Moon, Laptop, Copy, Home, Info, FlaskConical } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useToast } from "@/components/ui/use-toast";
 
