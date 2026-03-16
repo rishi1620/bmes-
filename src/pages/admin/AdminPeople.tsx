@@ -88,6 +88,16 @@ const AdminPeople = () => {
             fields={memberFields} 
             columns={["name", "role", "team", "is_active"]} 
             orderBy="display_order"
+            transformRow={(row) => ({
+              ...row,
+              bio: row.bio as string || "",
+              student_id: row.student_id || "",
+              program: row.program || "",
+              batch: row.batch || "",
+            })}
+            transformPayload={(payload) => ({
+              ...payload,
+            })}
           />
         </TabsContent>
         

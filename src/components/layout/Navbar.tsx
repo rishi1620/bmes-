@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import defaultLogo from "@/assets/logo.png";
 
 const Navbar = () => {
@@ -113,6 +114,7 @@ const Navbar = () => {
               </Button>
             </Link>
           )}
+          <ThemeToggle />
         </nav>
 
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}>

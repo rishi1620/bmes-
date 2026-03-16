@@ -9,6 +9,13 @@ import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { ShareButtons } from "@/components/shared/ShareButtons";
 
+import { Tables } from "@/integrations/supabase/types";
+
+type BlogPostType = Tables<"blog_posts"> & {
+  read_time?: number;
+  image_url?: string;
+};
+
 const BlogPost = () => {
   const { slug } = useParams();
 
@@ -22,7 +29,7 @@ const BlogPost = () => {
         .single();
       
       if (error) throw error;
-      return data as any;
+      return data as BlogPostType;
     },
   });
 

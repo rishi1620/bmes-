@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
+import { motion, AnimatePresence } from "framer-motion";
 
 const Auth = () => {
   const { user, loading } = useAuth();
@@ -37,42 +38,63 @@ const Auth = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-            <Dna className="h-6 w-6 text-primary-foreground" />
-          </div>
-          <CardTitle className="text-xl">{isLogin ? "Admin Login" : "Create Account"}</CardTitle>
-          <CardDescription>CUET Biomedical Engineering Society</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="w-full max-w-md"
+      >
+        <Card>
+          <CardHeader className="text-center">
+            <motion.div 
+              initial={{ rotate: -180, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              transition={{ duration: 0.5, type: "spring" }}
+              className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-xl bg-primary"
+            >
+              <Dna className="h-6 w-6 text-primary-foreground" />
+            </motion.div>
+            <CardTitle className="text-xl">{isLogin ? "Admin Login" : "Create Account"}</CardTitle>
+            <CardDescription>CUET Biomedical Engineering Society</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <AnimatePresence mode="wait">
+                {!isLogin && (
+                  <motion.div 
+                    key="name-field"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="space-y-2 overflow-hidden"
+                  >
+                    <Label htmlFor="name">Full Name</Label>
+                    <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                  </motion.div>
+                )}
+              </AnimatePresence>
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name</Label>
-                <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
               </div>
-            )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
-            </div>
-            <Button type="submit" className="w-full" disabled={submitting}>
-              {submitting ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
-            </Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-muted-foreground">
-            {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button onClick={() => setIsLogin(!isLogin)} className="font-medium text-primary hover:underline">
-              {isLogin ? "Sign Up" : "Sign In"}
-            </button>
-          </p>
-        </CardContent>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+              </div>
+              <Button type="submit" className="w-full" disabled={submitting}>
+                {submitting ? "Please wait..." : isLogin ? "Sign In" : "Sign Up"}
+              </Button>
+            </form>
+            <p className="mt-4 text-center text-sm text-muted-foreground">
+              {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
+              <button onClick={() => setIsLogin(!isLogin)} className="font-medium text-primary hover:underline">
+                {isLogin ? "Sign Up" : "Sign In"}
+              </button>
+            </p>
+          </CardContent>
+        </Card>
+      </motion.div>
     </div>
   );
 };

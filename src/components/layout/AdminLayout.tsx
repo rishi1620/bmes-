@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import AdminNotifications from "@/components/admin/AdminNotifications";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";

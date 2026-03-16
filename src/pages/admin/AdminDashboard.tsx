@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
 import { Users, Calendar, FolderOpen, Trophy, FileText, Inbox, Image, GraduationCap, UserCheck, Link as LinkIcon, Bell, CalendarDays } from "lucide-react";
+import { motion } from "framer-motion";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0 });
@@ -40,30 +41,55 @@ const AdminDashboard = () => {
     load();
   }, []);
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
   return (
     <AdminLayout>
-      <div className="mb-8 flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-8 flex items-center justify-between"
+      >
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">Overview of your system statistics and activity.</p>
         </div>
-      </div>
+      </motion.div>
       
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard value={String(counts.members)} label="Members" icon={Users} to="/admin/people?tab=ec" />
-        <StatCard value={String(counts.advisors)} label="Advisors" icon={UserCheck} to="/admin/people?tab=advisory" />
-        <StatCard value={String(counts.alumni)} label="Alumni" icon={GraduationCap} to="/admin/alumni" />
-        <StatCard value={String(counts.events)} label="Events" icon={Calendar} to="/admin/events" />
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+      >
+        <motion.div variants={itemVariants}><StatCard value={String(counts.members)} label="Members" icon={Users} to="/admin/people?tab=ec" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.advisors)} label="Advisors" icon={UserCheck} to="/admin/people?tab=advisory" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.alumni)} label="Alumni" icon={GraduationCap} to="/admin/alumni" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.events)} label="Events" icon={Calendar} to="/admin/events" /></motion.div>
         
-        <StatCard value={String(counts.registrations)} label="Registrations" icon={CalendarDays} to="/admin/registrations" />
-        <StatCard value={String(counts.projects)} label="Projects" icon={FolderOpen} to="/admin/projects" />
-        <StatCard value={String(counts.achievements)} label="Achievements" icon={Trophy} to="/admin/achievements" />
-        <StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} to="/admin/blog" />
+        <motion.div variants={itemVariants}><StatCard value={String(counts.registrations)} label="Registrations" icon={CalendarDays} to="/admin/registrations" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.projects)} label="Projects" icon={FolderOpen} to="/admin/projects" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.achievements)} label="Achievements" icon={Trophy} to="/admin/achievements" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} to="/admin/blog" /></motion.div>
         
-        <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
-        <StatCard value={String(counts.submissions)} label="Submissions" icon={Inbox} to="/admin/submissions" />
-        <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
-      </div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.submissions)} label="Submissions" icon={Inbox} to="/admin/submissions" /></motion.div>
+        <motion.div variants={itemVariants}><StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" /></motion.div>
+      </motion.div>
     </AdminLayout>
   );
 };
