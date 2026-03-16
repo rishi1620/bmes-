@@ -1,9 +1,10 @@
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
+import { ReactNode } from "react";
 
 interface Props {
-  value: string;
+  value: ReactNode;
   label: string;
   icon?: LucideIcon;
   className?: string;

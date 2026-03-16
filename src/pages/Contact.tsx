@@ -7,6 +7,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -59,15 +60,24 @@ const Contact = () => {
   return (
     <PageLayout>
       <section className="hero-gradient py-16">
-        <div className="container text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="container text-center"
+        >
           <h1 className="text-4xl font-bold text-primary-foreground md:text-5xl">Contact Us</h1>
           <p className="mt-4 text-primary-foreground/80 max-w-2xl mx-auto">Have a question or want to collaborate? Reach out to us.</p>
-        </div>
+        </motion.div>
       </section>
 
       <section className="container py-16">
         <div className="grid gap-12 lg:grid-cols-2">
-          <div>
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             <SectionHeading badge="Reach Out" title="Get in Touch" className="text-left" />
             <div className="mt-8 space-y-5">
               <div className="flex items-start gap-4">
@@ -94,10 +104,15 @@ const Contact = () => {
                 loading="lazy"
               ></iframe>
             </div>
-          </div>
+          </motion.div>
 
           {isSubmitted ? (
-            <div className="rounded-xl border border-border bg-card p-8 shadow-elevated text-center flex flex-col items-center justify-center space-y-4 h-full min-h-[400px]">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+              className="rounded-xl border border-border bg-card p-8 shadow-elevated text-center flex flex-col items-center justify-center space-y-4 h-full min-h-[400px]"
+            >
               <div className="h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
@@ -108,9 +123,16 @@ const Contact = () => {
               <Button variant="outline" onClick={() => setIsSubmitted(false)} className="mt-6">
                 Send Another Message
               </Button>
-            </div>
+            </motion.div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" noValidate>
+            <motion.form 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              onSubmit={handleSubmit} 
+              className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" 
+              noValidate
+            >
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
@@ -132,7 +154,7 @@ const Contact = () => {
               <Button type="submit" className="w-full" disabled={loading}>
                 <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
               </Button>
-            </form>
+            </motion.form>
           )}
         </div>
       </section>

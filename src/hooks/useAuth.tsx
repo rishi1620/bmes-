@@ -54,12 +54,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoading(false);
     });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Error getting session:", error);
+      }
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         checkAdmin(session.user.id, session.user.email);
       }
+      setLoading(false);
+    }).catch((error) => {
+      console.error("Failed to fetch session:", error);
       setLoading(false);
     });
 

@@ -2,6 +2,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import AdminCrudTable, { FieldDef } from "@/components/admin/AdminCrudTable";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useSearchParams } from "react-router-dom";
+import { motion } from "framer-motion";
 
 const advisorFields: FieldDef[] = [
   { key: "name", label: "Name", required: true },
@@ -78,18 +79,29 @@ const AdminPeople = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-8">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-8"
+      >
         <h1 className="text-3xl font-bold tracking-tight text-foreground">People Management</h1>
         <p className="text-muted-foreground mt-1">Manage faculty, staff, executive committee, and advisors.</p>
-      </div>
+      </motion.div>
       
       <Tabs value={currentTab} onValueChange={setTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
-          <TabsTrigger value="faculty">Faculty</TabsTrigger>
-          <TabsTrigger value="staff">Staff</TabsTrigger>
-          <TabsTrigger value="ec">BMES EC & Members</TabsTrigger>
-          <TabsTrigger value="advisory">Advisory</TabsTrigger>
-        </TabsList>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <TabsList className="grid w-full grid-cols-4 mb-8">
+            <TabsTrigger value="faculty">Faculty</TabsTrigger>
+            <TabsTrigger value="staff">Staff</TabsTrigger>
+            <TabsTrigger value="ec">BMES EC & Members</TabsTrigger>
+            <TabsTrigger value="advisory">Advisory</TabsTrigger>
+          </TabsList>
+        </motion.div>
         
         <TabsContent value="faculty">
           <AdminCrudTable 

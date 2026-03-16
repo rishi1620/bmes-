@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
 
 import { Tables } from "@/integrations/supabase/types";
 
@@ -49,10 +50,30 @@ const Activities = () => {
     );
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
+  };
+
   return (
     <PageLayout>
       <section className="hero-gradient py-16 md:py-24">
-        <div className="container text-center">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="container text-center"
+        >
           <span className="mb-3 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90">
             BMES Activities & Events
           </span>
@@ -62,7 +83,7 @@ const Activities = () => {
           <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed">
             {settings.activities_hero_subtitle || "Showcasing student life, flagship events, seminars, workshops, and publications."}
           </p>
-        </div>
+        </motion.div>
       </section>
 
       <section className="container py-16">
@@ -74,95 +95,120 @@ const Activities = () => {
           </TabsList>
 
           <TabsContent value="events">
-            <div className="flex items-center justify-between mb-8">
-              <SectionHeading title="Live Events" description="Join our upcoming sessions and workshops." />
-              <Button asChild variant="ghost" size="sm" className="text-primary">
-                <Link to="/events" className="flex items-center gap-1">
-                  View all <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-            
-            {events.length > 0 ? (
-              <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {events.map((event: Tables<"events">) => (
-                  <div key={event.id} className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                    <div className="relative h-40 overflow-hidden">
-                      <img 
-                        src={event.image_url || `https://picsum.photos/seed/${event.id}/800/600`} 
-                        alt={event.title} 
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        referrerPolicy="no-referrer"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                      <div className="absolute bottom-3 left-4 text-white">
-                        <p className="text-xs font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
-                      </div>
-                    </div>
-                    <div className="p-5">
-                      <h3 className="mb-2 text-lg font-bold text-foreground line-clamp-1">{event.title}</h3>
-                      <div className="mb-4 space-y-1.5">
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <CalendarDays className="h-3.5 w-3.5" />
-                          {format(new Date(event.date), "hh:mm a")}
-                        </div>
-                        {event.location && (
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <MapPin className="h-3.5 w-3.5" />
-                            {event.location}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <div className="flex items-center justify-between mb-8">
+                <SectionHeading title="Live Events" description="Join our upcoming sessions and workshops." />
+                <Button asChild variant="ghost" size="sm" className="text-primary">
+                  <Link to="/events" className="flex items-center gap-1">
+                    View all <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+              
+              {events.length > 0 ? (
+                <motion.div 
+                  variants={containerVariants}
+                  initial="hidden"
+                  animate="visible"
+                  className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
+                >
+                  {events.map((event: Tables<"events">) => (
+                    <motion.div variants={itemVariants} key={event.id}>
+                      <div className="group overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:shadow-md h-full flex flex-col">
+                        <div className="relative h-40 overflow-hidden">
+                          <img 
+                            src={event.image_url || `https://picsum.photos/seed/${event.id}/800/600`} 
+                            alt={event.title} 
+                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                          <div className="absolute bottom-3 left-4 text-white">
+                            <p className="text-xs font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
                           </div>
-                        )}
+                        </div>
+                        <div className="p-5 flex flex-col flex-1">
+                          <h3 className="mb-2 text-lg font-bold text-foreground line-clamp-1">{event.title}</h3>
+                          <div className="mb-4 space-y-1.5 flex-1">
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <CalendarDays className="h-3.5 w-3.5" />
+                              {format(new Date(event.date), "hh:mm a")}
+                            </div>
+                            {event.location && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                <MapPin className="h-3.5 w-3.5" />
+                                {event.location}
+                              </div>
+                            )}
+                          </div>
+                          <Button asChild variant="outline" size="sm" className="w-full rounded-lg mt-auto">
+                            <Link to="/events">Register Now</Link>
+                          </Button>
+                        </div>
                       </div>
-                      <Button asChild variant="outline" size="sm" className="w-full rounded-lg">
-                        <Link to="/events">Register Now</Link>
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-10 rounded-2xl border border-dashed border-border p-12 text-center">
-                <p className="text-muted-foreground">No live events scheduled at the moment.</p>
-              </div>
-            )}
+                    </motion.div>
+                  ))}
+                </motion.div>
+              ) : (
+                <div className="mt-10 rounded-2xl border border-dashed border-border p-12 text-center">
+                  <p className="text-muted-foreground">No live events scheduled at the moment.</p>
+                </div>
+              )}
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="gallery">
-            <SectionHeading title="Gallery" description="Organized photo and video albums of tours, cultural events, and competitions." />
-            <div className="mt-10">
-              <Card>
-                <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground whitespace-pre-wrap">
-                    {settings.activities_gallery_content || "Gallery will be updated shortly."}
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Gallery" description="Organized photo and video albums of tours, cultural events, and competitions." />
+              <div className="mt-10">
+                <Card>
+                  <CardContent className="p-6">
+                    <p className="text-center text-muted-foreground whitespace-pre-wrap">
+                      {settings.activities_gallery_content || "Gallery will be updated shortly."}
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+            </motion.div>
           </TabsContent>
 
           <TabsContent value="publications">
-            <SectionHeading title="Publications/Magazine" description="Digital copies of the annual club magazine, newsletters, or student-written articles." />
-            <div className="mt-10">
-              <Card>
-                <CardContent className="p-6">
-                  <p className="text-center text-muted-foreground whitespace-pre-wrap mb-4">
-                    {settings.activities_publications_content || "Magazine and newsletters will be available soon."}
-                  </p>
-                  {settings.activities_publications_pdf_url && (
-                    <div className="flex justify-center">
-                      <a 
-                        href={settings.activities_publications_pdf_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
-                      >
-                        Download PDF
-                      </a>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Publications/Magazine" description="Digital copies of the annual club magazine, newsletters, or student-written articles." />
+              <div className="mt-10">
+                <Card>
+                  <CardContent className="p-6">
+                    <p className="text-center text-muted-foreground whitespace-pre-wrap mb-4">
+                      {settings.activities_publications_content || "Magazine and newsletters will be available soon."}
+                    </p>
+                    {settings.activities_publications_pdf_url && (
+                      <div className="flex justify-center">
+                        <a 
+                          href={settings.activities_publications_pdf_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
+                        >
+                          Download PDF
+                        </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </motion.div>
           </TabsContent>
         </Tabs>
       </section>

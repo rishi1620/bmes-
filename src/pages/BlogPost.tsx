@@ -8,6 +8,7 @@ import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { ShareButtons } from "@/components/shared/ShareButtons";
+import { motion } from "framer-motion";
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -54,7 +55,12 @@ const BlogPost = () => {
 
   return (
     <PageLayout>
-      <article className="container py-16 max-w-4xl">
+      <motion.article 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="container py-16 max-w-4xl"
+      >
         <Button asChild variant="ghost" className="mb-8 pl-0 hover:bg-transparent hover:text-primary">
           <Link to="/blog" className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to Blog
@@ -96,22 +102,37 @@ const BlogPost = () => {
         </div>
 
         {post.image_url && (
-          <div className="mb-10 overflow-hidden rounded-2xl border border-border bg-muted">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mb-10 overflow-hidden rounded-2xl border border-border bg-muted"
+          >
             <img 
               src={post.image_url} 
               alt={post.title} 
               className="w-full object-cover max-h-[500px]"
               referrerPolicy="no-referrer"
             />
-          </div>
+          </motion.div>
         )}
 
-        <div className="prose prose-lg dark:prose-invert max-w-none">
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="prose prose-lg dark:prose-invert max-w-none"
+        >
           <ReactMarkdown>{post.content || ""}</ReactMarkdown>
-        </div>
+        </motion.div>
 
         {post.tags && post.tags.length > 0 && (
-          <div className="mt-12 pt-8 border-t border-border">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="mt-12 pt-8 border-t border-border"
+          >
             <h3 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wider">Tags</h3>
             <div className="flex flex-wrap gap-2">
               {post.tags.map((tag: string) => (
@@ -120,9 +141,9 @@ const BlogPost = () => {
                 </span>
               ))}
             </div>
-          </div>
+          </motion.div>
         )}
-      </article>
+      </motion.article>
     </PageLayout>
   );
 };
