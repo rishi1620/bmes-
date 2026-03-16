@@ -4,9 +4,6 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 
 const Projects = () => {
   const { data: projects = [], isLoading } = useQuery({
@@ -21,19 +18,8 @@ const Projects = () => {
     },
   });
 
-  const [filter, setFilter] = useState("All");
-  const [search, setSearch] = useState("");
-
-  const categories = ["All", "Web", "CLI", "UI"];
-
-  const filteredProjects = projects.filter((p) => {
-    const matchesCategory = filter === "All" || p.category === filter;
-    const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const ongoing = filteredProjects.filter((p) => p.status === "ongoing" || p.status === "In Progress" || p.status === "Planning" || p.status === "Paused");
-  const completed = filteredProjects.filter((p) => p.status === "completed" || p.status === "Completed");
+  const ongoing = projects.filter((p) => p.status === "ongoing" || p.status === "In Progress" || p.status === "Planning" || p.status === "Paused");
+  const completed = projects.filter((p) => p.status === "completed" || p.status === "Completed");
 
   return (
     <PageLayout>
@@ -45,32 +31,13 @@ const Projects = () => {
       </section>
 
       <section className="container py-16 animate-fade-up">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
-          <Input 
-            placeholder="Search projects..." 
-            value={search} 
-            onChange={(e) => setSearch(e.target.value)} 
-            className="max-w-sm"
-          />
-          <div className="flex gap-2">
-            {categories.map((cat) => (
-              <Button 
-                key={cat} 
-                variant={filter === cat ? "default" : "outline"} 
-                onClick={() => setFilter(cat)}
-              >
-                {cat}
-              </Button>
-            ))}
-          </div>
-        </div>
         <SectionHeading badge="Active" title="Ongoing Projects" />
         {isLoading ? (
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-44 rounded-xl" />)}
           </div>
         ) : ongoing.length === 0 ? (
-          <p className="mt-10 text-center text-muted-foreground">No ongoing projects matching your criteria.</p>
+          <p className="mt-10 text-center text-muted-foreground">No ongoing projects at the moment.</p>
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             {ongoing.map((p) => (

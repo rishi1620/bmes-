@@ -15,19 +15,6 @@ interface Setting {
   setting_group: string;
 }
 
-interface PortalNotice {
-  id: string;
-  title: string;
-  date: string;
-  content: string;
-}
-
-interface SoftwareLink {
-  title: string;
-  description: string;
-  url: string;
-}
-
 const AdminPortal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -86,12 +73,12 @@ const AdminPortal = () => {
     }
   };
 
-  const updateJsonArray = (key: string, arr: (PortalNotice | SoftwareLink)[]) => {
+  const updateJsonArray = (key: string, arr: any[]) => {
     updateSetting(key, JSON.stringify(arr));
   };
 
-  const softwareLinks = getJsonArray("portal_software_json") as SoftwareLink[];
-  const notices = getJsonArray("portal_notices_json") as PortalNotice[];
+  const softwareLinks = getJsonArray("portal_software_json");
+  const notices = getJsonArray("portal_notices_json");
 
   return (
     <AdminLayout>
@@ -131,7 +118,7 @@ const AdminPortal = () => {
             </div>
             
             <div className="space-y-4 border-t pt-4">
-              {notices.map((item: PortalNotice, i: number) => (
+              {notices.map((item: any, i: number) => (
                 <div key={item.id || i} className="flex gap-4 items-start border p-4 rounded-md">
                   <div className="grid gap-3 flex-1">
                     <div className="grid grid-cols-2 gap-3">
@@ -149,7 +136,7 @@ const AdminPortal = () => {
                       <Textarea value={item.content} onChange={e => { const arr = [...notices]; arr[i].content = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
                     </div>
                   </div>
-                  <Button variant="destructive" size="icon" onClick={() => { const arr = notices.filter((_, idx: number) => idx !== i); updateJsonArray("portal_notices_json", arr); }}>
+                  <Button variant="destructive" size="icon" onClick={() => { const arr = notices.filter((_: any, idx: number) => idx !== i); updateJsonArray("portal_notices_json", arr); }}>
                     <Trash className="h-4 w-4" />
                   </Button>
                 </div>
@@ -177,7 +164,7 @@ const AdminPortal = () => {
             </Button>
           </div>
           <div className="space-y-4">
-            {softwareLinks.map((item: SoftwareLink, i: number) => (
+            {softwareLinks.map((item: any, i: number) => (
               <div key={i} className="flex gap-4 items-start border p-4 rounded-md">
                 <div className="grid gap-3 flex-1">
                   <div className="grid grid-cols-2 gap-3">
@@ -195,7 +182,7 @@ const AdminPortal = () => {
                     <Textarea value={item.description} onChange={e => { const arr = [...softwareLinks]; arr[i].description = e.target.value; updateJsonArray("portal_software_json", arr); }} />
                   </div>
                 </div>
-                <Button variant="destructive" size="icon" onClick={() => { const arr = softwareLinks.filter((_, idx: number) => idx !== i); updateJsonArray("portal_software_json", arr); }}>
+                <Button variant="destructive" size="icon" onClick={() => { const arr = softwareLinks.filter((_: any, idx: number) => idx !== i); updateJsonArray("portal_software_json", arr); }}>
                   <Trash className="h-4 w-4" />
                 </Button>
               </div>

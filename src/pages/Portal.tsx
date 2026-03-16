@@ -86,7 +86,7 @@ const Portal = () => {
               
               {notices.length > 0 ? (
                 <div className="grid gap-6 md:grid-cols-2">
-                  {notices.map((notice: { title: string; date: string; content: string }, i: number) => (
+                  {notices.map((notice: any, i: number) => (
                     <Card key={i} className="flex flex-col">
                       <CardHeader className="pb-3">
                         <div className="mb-2 flex items-center justify-between">

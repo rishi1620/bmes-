@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Dna, Mail, MapPin, Phone, Facebook, Linkedin, Youtube } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { NowCard } from "@/components/shared/NowCard";
 
 const Footer = () => {
   const { data: settings } = useQuery({
@@ -37,9 +36,6 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Advancing biomedical engineering through research, innovation, and community at Chittagong University of Engineering & Technology.
             </p>
-            <div className="mt-6">
-              <NowCard />
-            </div>
             <div className="mt-6 flex gap-4">
               <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Facebook className="h-5 w-5" />

@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 import { ShareButtons } from "@/components/shared/ShareButtons";
 
 import { Tables } from "@/integrations/supabase/types";

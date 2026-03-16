@@ -4,11 +4,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import ScrollToTop from "@/components/shared/ScrollToTop";
-import { CommandPalette } from "@/components/shared/CommandPalette";
-import { CursorBlob } from "@/components/shared/CursorBlob";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Academics from "./pages/Academics";
@@ -49,64 +46,60 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <TooltipProvider>
-        <AuthProvider>
-          <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background text-foreground">
-            <div className="flex w-full max-w-screen-2xl flex-1 flex-col">
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <ScrollToTop />
-                <CommandPalette />
-                <CursorBlob />
-                <Routes>
-                  <Route path="/" element={<Index />} />
-                  <Route path="/home" element={<Navigate to="/" replace />} />
-                  <Route path="/about" element={<About />} />
-                  <Route path="/academics" element={<Academics />} />
-                  <Route path="/people" element={<People />} />
-                  <Route path="/members" element={<Navigate to="/people" replace />} />
-                  <Route path="/research" element={<Research />} />
-                  <Route path="/activities" element={<Activities />} />
-                  <Route path="/portal" element={<Portal />} />
-                  <Route path="/projects" element={<Projects />} />
-                  <Route path="/events" element={<Events />} />
-                  <Route path="/blog" element={<Blog />} />
-                  <Route path="/blog/:slug" element={<BlogPost />} />
-                  <Route path="/achievements" element={<Achievements />} />
-                  <Route path="/alumni" element={<Alumni />} />
-                  <Route path="/contact" element={<Contact />} />
-                  <Route path="/auth" element={<Auth />} />
-                  
-                  {/* Protected Admin Routes */}
-                  <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
-                  <Route path="/admin/home" element={<ProtectedRoute requireAdmin><AdminHomeSections /></ProtectedRoute>} />
-                  <Route path="/admin/about" element={<ProtectedRoute requireAdmin><AdminAbout /></ProtectedRoute>} />
-                  <Route path="/admin/academics" element={<ProtectedRoute requireAdmin><AdminAcademics /></ProtectedRoute>} />
-                  <Route path="/admin/activities" element={<ProtectedRoute requireAdmin><AdminActivities /></ProtectedRoute>} />
-                  <Route path="/admin/portal" element={<ProtectedRoute requireAdmin><AdminPortal /></ProtectedRoute>} />
-                  <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminPages /></ProtectedRoute>} />
-                  <Route path="/admin/people" element={<ProtectedRoute requireAdmin><AdminPeople /></ProtectedRoute>} />
-                  <Route path="/admin/events" element={<ProtectedRoute requireAdmin><AdminEvents /></ProtectedRoute>} />
-                  <Route path="/admin/projects" element={<ProtectedRoute requireAdmin><AdminProjects /></ProtectedRoute>} />
-                  <Route path="/admin/achievements" element={<ProtectedRoute requireAdmin><AdminAchievements /></ProtectedRoute>} />
-                  <Route path="/admin/blog" element={<ProtectedRoute requireAdmin><AdminBlog /></ProtectedRoute>} />
-                  <Route path="/admin/alumni" element={<ProtectedRoute requireAdmin><AdminAlumni /></ProtectedRoute>} />
-                  <Route path="/admin/faq" element={<ProtectedRoute requireAdmin><AdminFAQ /></ProtectedRoute>} />
-                  <Route path="/admin/media" element={<ProtectedRoute requireAdmin><AdminMedia /></ProtectedRoute>} />
-                  <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
-                  <Route path="/admin/submissions" element={<ProtectedRoute requireAdmin><AdminSubmissions /></ProtectedRoute>} />
-                  <Route path="/admin/registrations" element={<ProtectedRoute requireAdmin><AdminRegistrations /></ProtectedRoute>} />
-                  
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
-              </BrowserRouter>
-            </div>
+    <TooltipProvider>
+      <AuthProvider>
+        <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background text-foreground">
+          <div className="flex w-full max-w-screen-2xl flex-1 flex-col">
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ScrollToTop />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/home" element={<Navigate to="/" replace />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/academics" element={<Academics />} />
+                <Route path="/people" element={<People />} />
+                <Route path="/members" element={<Navigate to="/people" replace />} />
+                <Route path="/research" element={<Research />} />
+                <Route path="/activities" element={<Activities />} />
+                <Route path="/portal" element={<Portal />} />
+                <Route path="/projects" element={<Projects />} />
+                <Route path="/events" element={<Events />} />
+                <Route path="/blog" element={<Blog />} />
+                <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/achievements" element={<Achievements />} />
+                <Route path="/alumni" element={<Alumni />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/auth" element={<Auth />} />
+                
+                {/* Protected Admin Routes */}
+                <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
+                <Route path="/admin/home" element={<ProtectedRoute requireAdmin><AdminHomeSections /></ProtectedRoute>} />
+                <Route path="/admin/about" element={<ProtectedRoute requireAdmin><AdminAbout /></ProtectedRoute>} />
+                <Route path="/admin/academics" element={<ProtectedRoute requireAdmin><AdminAcademics /></ProtectedRoute>} />
+                <Route path="/admin/activities" element={<ProtectedRoute requireAdmin><AdminActivities /></ProtectedRoute>} />
+                <Route path="/admin/portal" element={<ProtectedRoute requireAdmin><AdminPortal /></ProtectedRoute>} />
+                <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminPages /></ProtectedRoute>} />
+                <Route path="/admin/people" element={<ProtectedRoute requireAdmin><AdminPeople /></ProtectedRoute>} />
+                <Route path="/admin/events" element={<ProtectedRoute requireAdmin><AdminEvents /></ProtectedRoute>} />
+                <Route path="/admin/projects" element={<ProtectedRoute requireAdmin><AdminProjects /></ProtectedRoute>} />
+                <Route path="/admin/achievements" element={<ProtectedRoute requireAdmin><AdminAchievements /></ProtectedRoute>} />
+                <Route path="/admin/blog" element={<ProtectedRoute requireAdmin><AdminBlog /></ProtectedRoute>} />
+                <Route path="/admin/alumni" element={<ProtectedRoute requireAdmin><AdminAlumni /></ProtectedRoute>} />
+                <Route path="/admin/faq" element={<ProtectedRoute requireAdmin><AdminFAQ /></ProtectedRoute>} />
+                <Route path="/admin/media" element={<ProtectedRoute requireAdmin><AdminMedia /></ProtectedRoute>} />
+                <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
+                <Route path="/admin/submissions" element={<ProtectedRoute requireAdmin><AdminSubmissions /></ProtectedRoute>} />
+                <Route path="/admin/registrations" element={<ProtectedRoute requireAdmin><AdminRegistrations /></ProtectedRoute>} />
+                
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
           </div>
-        </AuthProvider>
-      </TooltipProvider>
-    </ThemeProvider>
+        </div>
+      </AuthProvider>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
