@@ -6,7 +6,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
-import { motion, AnimatePresence } from "framer-motion";
 
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -121,66 +120,58 @@ const Navbar = () => {
         </Button>
       </div>
 
-      <AnimatePresence>
-        {mobileOpen &&
-        <motion.div 
-          initial={{ height: 0, opacity: 0 }}
-          animate={{ height: "auto", opacity: 1 }}
-          exit={{ height: 0, opacity: 0 }}
-          transition={{ duration: 0.3 }}
-          className="border-t border-border bg-background lg:hidden overflow-hidden"
-        >
-            <nav className="container flex flex-col gap-1 py-4 max-h-[calc(100vh-4rem)] overflow-y-auto">
-              {navLinks.map((link) =>
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
-                    location.pathname === link.path ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
-                  }`}
-                >
-                  {link.label}
-                </Link>
-              )}
-            
-            {isAdmin && (
+      {mobileOpen &&
+      <div className="border-t border-border bg-background lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <nav className="container flex flex-col gap-1 py-4">
+            {navLinks.map((link) =>
               <Link
-                to="/admin"
+                key={link.path}
+                to={link.path}
                 onClick={() => setMobileOpen(false)}
                 className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
-                  location.pathname.startsWith("/admin") ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
+                  location.pathname === link.path ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
                 }`}
               >
-                Admin Dashboard
+                {link.label}
               </Link>
             )}
+          
+          {isAdmin && (
+            <Link
+              to="/admin"
+              onClick={() => setMobileOpen(false)}
+              className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
+                location.pathname.startsWith("/admin") ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
+              }`}
+            >
+              Admin Dashboard
+            </Link>
+          )}
 
-            {user ? (
-              <button
-                onClick={() => {
-                  handleSignOut();
-                  setMobileOpen(false);
-                }}
-                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </button>
-            ) : (
-              <Link
-                to="/auth"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <UserIcon className="h-4 w-4" />
-                Login
-              </Link>
-            )}
-            </nav>
-          </motion.div>
-        }
-      </AnimatePresence>
+          {user ? (
+            <button
+              onClick={() => {
+                handleSignOut();
+                setMobileOpen(false);
+              }}
+              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <LogOut className="h-4 w-4" />
+              Sign Out
+            </button>
+          ) : (
+            <Link
+              to="/auth"
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <UserIcon className="h-4 w-4" />
+              Login
+            </Link>
+          )}
+          </nav>
+        </div>
+      }
     </header>);
 
 };

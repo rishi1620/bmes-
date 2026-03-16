@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
 
 interface BlogPost {
   id: string;
@@ -105,22 +104,12 @@ const AdminBlog = () => {
 
   return (
     <AdminLayout>
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
-      >
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Blog Posts</h1>
         <Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> New Post</Button>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-        className="rounded-lg border bg-card"
-      >
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -156,7 +145,7 @@ const AdminBlog = () => {
             ))}
           </TableBody>
         </Table>
-      </motion.div>
+      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
