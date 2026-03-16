@@ -13,8 +13,8 @@ import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tables } from "@/integrations/supabase/types";
-import HeroSection from "@/components/HeroSection";
-import StatsSection from "@/components/StatsSection";
+import HeroSection from "../components/HeroSection";
+import StatsSection from "../components/StatsSection";
 import { motion } from "framer-motion";
 
 const iconMap: Record<string, React.ElementType> = {
