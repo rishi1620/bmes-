@@ -1,0 +1,60 @@
+{
+  "entities": {
+    "Event": {
+      "title": "Society Event",
+      "description": "An event organized by the society.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the event." },
+        "description": { "type": "string", "description": "A detailed description of the event." },
+        "date": { "type": "string", "format": "date-time", "description": "The date and time of the event." },
+        "location": { "type": "string", "description": "Where the event will take place." },
+        "type": { "type": "string", "enum": ["workshop", "seminar", "social", "other"], "description": "The category of the event." },
+        "createdBy": { "type": "string", "description": "The UID of the user who created the event." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "When the event record was created." }
+      },
+      "required": ["title", "date", "type", "createdBy", "createdAt"]
+    },
+    "Member": {
+      "title": "Society Member",
+      "description": "Information about a society member.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name of the member." },
+        "email": { "type": "string", "format": "email", "description": "Email address of the member." },
+        "role": { "type": "string", "enum": ["member", "admin", "executive"], "description": "The role of the member in the society." },
+        "joinedAt": { "type": "string", "format": "date-time", "description": "When the member joined the society." },
+        "bio": { "type": "string", "description": "A short biography of the member." },
+        "uid": { "type": "string", "description": "The Firebase Auth UID of the member." }
+      },
+      "required": ["name", "email", "role", "uid"]
+    },
+    "Announcement": {
+      "title": "Society Announcement",
+      "description": "An announcement for society members.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string", "description": "The title of the announcement." },
+        "content": { "type": "string", "description": "The body of the announcement." },
+        "date": { "type": "string", "format": "date-time", "description": "When the announcement was posted." },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"], "description": "The priority level of the announcement." },
+        "createdBy": { "type": "string", "description": "The UID of the user who created the announcement." }
+      },
+      "required": ["title", "content", "date", "priority", "createdBy"]
+    }
+  },
+  "firestore": {
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Collection of society events."
+    },
+    "/members/{memberId}": {
+      "schema": "Member",
+      "description": "Collection of society members."
+    },
+    "/announcements/{announcementId}": {
+      "schema": "Announcement",
+      "description": "Collection of society announcements."
+    }
+  }
+}

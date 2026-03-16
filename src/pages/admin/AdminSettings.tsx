@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { seedData } from "@/utils/seedData";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
+import { motion } from "framer-motion";
 
 interface Setting {
   id: string;
@@ -110,9 +111,29 @@ const AdminSettings = () => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
+  };
+
   return (
     <AdminLayout>
-      <div className="mb-6 flex items-center justify-between">
+      <motion.div 
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="mb-6 flex items-center justify-between"
+      >
         <h1 className="text-2xl font-bold text-foreground">Site Settings</h1>
         <div className="flex gap-2">
           <Button onClick={handleSeedData} size="sm" variant="destructive" disabled={seeding}>
@@ -123,11 +144,16 @@ const AdminSettings = () => {
             <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
           </Button>
         </div>
-      </div>
+      </motion.div>
 
-      <div className="space-y-8">
+      <motion.div 
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-8"
+      >
         {groups.map((group) => (
-          <div key={group.key} className="rounded-lg border border-border bg-card p-5">
+          <motion.div variants={itemVariants} key={group.key} className="rounded-lg border border-border bg-card p-5">
             <h2 className="mb-4 text-lg font-semibold text-foreground">{group.label}</h2>
             <div className="space-y-4">
               {group.fields.map((field) => (
@@ -155,9 +181,9 @@ const AdminSettings = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </motion.div>
         ))}
-      </div>
+      </motion.div>
     </AdminLayout>
   );
 };

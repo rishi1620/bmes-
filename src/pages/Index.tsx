@@ -7,14 +7,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
-import StatCard from "@/components/shared/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Tables } from "@/integrations/supabase/types";
-import heroBg from "@/assets/hero-bg.jpg";
 import { motion } from "framer-motion";
+import HeroSection from "@/components/home/HeroSection";
+import StatsSection from "@/components/home/StatsSection";
 
 const iconMap: Record<string, React.ElementType> = {
   FlaskConical, Users, Calendar, BookOpen, Award, Microscope,
@@ -138,57 +138,16 @@ const Index = () => {
     <PageLayout>
       {/* Hero */}
       {hero && (
-        <section className="relative overflow-hidden">
-          <div className="absolute inset-0">
-            <motion.img 
-              initial={{ scale: 1.1 }}
-              animate={{ scale: 1 }}
-              transition={{ duration: 10, ease: "easeOut" }}
-              src={(hero.background_image as string) || heroBg} 
-              alt="" 
-              className="h-full w-full object-cover" 
-            />
-            <div className="absolute inset-0 hero-gradient opacity-85" />
-          </div>
-          <div className="container relative z-10 flex flex-col items-center py-16 text-center md:py-24">
-            <motion.span 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2 }}
-              className="mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90"
-            >
-              {hero.subtitle as string}
-            </motion.span>
-            <motion.h1 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="max-w-4xl text-3xl font-extrabold leading-tight text-primary-foreground sm:text-4xl md:text-6xl"
-            >
-              {hero.title as string}
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6 }}
-              className="mt-6 max-w-2xl text-base text-primary-foreground/80 md:text-lg leading-relaxed"
-            >
-              {hero.description as string}
-            </motion.p>
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 }}
-              className="mt-8 flex flex-wrap gap-4 justify-center"
-            >
-              {hero.button_text && (
-                <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                  <Link to={(hero.button_link as string) || "/members"}>{hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" /></Link>
-                </Button>
-              )}
-            </motion.div>
-          </div>
-        </section>
+        <HeroSection
+          title={hero.title as string}
+          subtitle={hero.subtitle as string}
+          description={hero.description as string}
+          backgroundImage={hero.background_image as string}
+          buttons={[
+            { label: "Explore Events", link: "/events" },
+            { label: "Join BMES", link: "/join" }
+          ]}
+        />
       )}
 
       {/* Quick Links */}
@@ -229,7 +188,7 @@ const Index = () => {
                 <div className="rounded-lg bg-primary/10 p-2 text-primary">
                   <BookOpen className="h-5 w-5" />
                 </div>
-                <h2 className="text-xl font-bold">{announcements.dept_title || "Departmental Notices"}</h2>
+                <h2 className="text-xl font-bold">{(announcements.dept_title as string) || "Departmental Notices"}</h2>
               </div>
               <div className="space-y-4">
                 {Array.isArray(announcements.dept_notices) && announcements.dept_notices.length > 0 ? (
@@ -251,7 +210,7 @@ const Index = () => {
                 <div className="rounded-lg bg-primary/10 p-2 text-primary">
                   <Users className="h-5 w-5" />
                 </div>
-                <h2 className="text-xl font-bold">{announcements.club_title || "Club News"}</h2>
+                <h2 className="text-xl font-bold">{(announcements.club_title as string) || "Club News"}</h2>
               </div>
               <div className="space-y-4">
                 {Array.isArray(announcements.club_news) && announcements.club_news.length > 0 ? (
@@ -357,7 +316,7 @@ const Index = () => {
               viewport={{ once: true }}
               className="lg:col-span-8 grid gap-6 md:grid-cols-2"
             >
-              {recentEvents.slice(1, 3).map((event: any) => (
+              {recentEvents.slice(1, 3).map((event: Tables<"events">) => (
                 <motion.div key={event.id} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                   <div className="relative h-48 overflow-hidden">
                     <img 
@@ -626,13 +585,13 @@ const Index = () => {
                 <Bell className="h-5 w-5" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">{notice.title || "Notice"}</h3>
+                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">{(notice.title as string) || "Notice"}</h3>
                 <p className="mt-2 text-sm text-blue-800/80 dark:text-blue-200/80 leading-relaxed whitespace-pre-wrap">
-                  {notice.content}
+                  {notice.content as any}
                 </p>
                 {notice.link_text && notice.link_url && (
                   <Button asChild variant="link" className="mt-2 h-auto p-0 text-blue-600 dark:text-blue-400">
-                    <Link to={notice.link_url}>{notice.link_text} <ArrowRight className="ml-1 h-3 w-3" /></Link>
+                    <Link to={notice.link_url as string}>{(notice.link_text as string)} <ArrowRight className="ml-1 h-3 w-3" /></Link>
                   </Button>
                 )}
               </div>
@@ -643,27 +602,13 @@ const Index = () => {
 
       {/* Stats */}
       {stats?.items && (
-        <section className="container -mt-12 relative z-20">
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className="grid grid-cols-2 gap-4 md:grid-cols-4"
-          >
-            {stats.items.map((s: any) => (
-              <motion.div key={s.label} variants={itemVariants}>
-                <StatCard value={s.value} label={s.label} />
-              </motion.div>
-            ))}
-          </motion.div>
-        </section>
+        <StatsSection stats={stats.items as { value: string; label: string }[]} />
       )}
 
       {/* Features */}
       {features && (
         <section className="container py-12">
-          <SectionHeading badge={features.badge} title={features.title} description={features.description} />
+          <SectionHeading badge={features.badge as string} title={features.title as string} description={features.description as string} />
           <motion.div 
             variants={containerVariants}
             initial="hidden"
@@ -679,7 +624,7 @@ const Index = () => {
                     <Icon className="h-5 w-5" />
                   </div>
                   <h3 className="text-lg font-semibold text-foreground">{f.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{f.description}</p>
                 </motion.div>
               );
             })}
@@ -697,11 +642,11 @@ const Index = () => {
           className="hero-gradient py-10"
         >
           <div className="container text-center">
-            <h2 className="text-3xl font-bold text-primary-foreground">{cta.title}</h2>
-            <p className="mt-3 text-primary-foreground/80">{cta.description}</p>
+            <h2 className="text-3xl font-bold text-primary-foreground">{cta.title as string}</h2>
+            <p className="mt-3 text-primary-foreground/80">{cta.description as any}</p>
             {cta.button_text && (
               <Button asChild size="lg" className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                <Link to={cta.button_link || "/contact"}>{cta.button_text} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to={(cta.button_link as string) || "/contact"}>{(cta.button_text as string)} <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             )}
           </div>

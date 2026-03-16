@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 
 const linkGroups = [
   {
@@ -149,11 +150,16 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   if (!user) return <Navigate to="/auth" replace />;
   if (!isAdmin) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center bg-muted/30">
-      <div className="rounded-xl border bg-card p-8 shadow-sm">
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.3 }}
+        className="rounded-xl border bg-card p-8 shadow-sm"
+      >
         <h1 className="text-2xl font-bold text-foreground">Access Denied</h1>
         <p className="mt-2 text-muted-foreground">You don't have admin privileges to view this page.</p>
         <Button variant="outline" className="mt-6" onClick={signOut}>Sign Out</Button>
-      </div>
+      </motion.div>
     </div>
   );
 
@@ -196,12 +202,18 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           </div>
         </header>
 
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full animate-fade-up">
+        <motion.main 
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full"
+        >
           <div className="md:hidden mb-6">
             <Breadcrumbs />
           </div>
           {children}
-        </main>
+        </motion.main>
       </div>
     </div>
   );
