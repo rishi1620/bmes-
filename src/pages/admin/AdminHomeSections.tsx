@@ -10,7 +10,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
-import { motion } from "framer-motion";
 
 interface HomeSection {
   id: string;
@@ -143,41 +142,16 @@ const AdminHomeSections = () => {
     setNewKey("");
   };
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.05
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-  };
-
   return (
     <AdminLayout>
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
-      >
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Home Page Sections</h1>
         <Button onClick={() => setAddingNew(true)} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add Section</Button>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-4"
-      >
+      <div className="space-y-4">
         {sections.map((s, index) => (
-          <motion.div variants={itemVariants} key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
+          <div key={s.id} className="flex items-center justify-between rounded-lg border border-border bg-card p-4">
             <div>
               <h3 className="font-semibold text-foreground">{sectionLabels[s.section_key] || s.section_key}</h3>
               <p className="text-xs text-muted-foreground">Key: {s.section_key} · Order: {s.display_order} · {s.is_visible ? "Visible" : "Hidden"}</p>
@@ -197,10 +171,10 @@ const AdminHomeSections = () => {
                 <Trash className="h-4 w-4" />
               </Button>
             </div>
-          </motion.div>
+          </div>
         ))}
         {sections.length === 0 && <p className="text-center text-muted-foreground py-8">No home sections found.</p>}
-      </motion.div>
+      </div>
 
       <Dialog open={addingNew} onOpenChange={setAddingNew}>
         <DialogContent className="sm:max-w-md">

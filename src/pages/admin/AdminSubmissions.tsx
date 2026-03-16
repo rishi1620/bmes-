@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
-import { motion } from "framer-motion";
 
 interface Submission {
   id: string;
@@ -65,12 +64,7 @@ const AdminSubmissions = () => {
 
   return (
     <AdminLayout>
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
-      >
+      <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <h1 className="text-2xl font-bold text-foreground">Contact Submissions</h1>
           {unreadCount > 0 && <Badge variant="destructive">{unreadCount} new</Badge>}
@@ -78,14 +72,9 @@ const AdminSubmissions = () => {
         <Button onClick={exportCsv} size="sm" variant="outline" disabled={rows.length === 0}>
           <Download className="mr-1.5 h-4 w-4" /> Export CSV
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, delay: 0.1 }}
-        className="rounded-lg border bg-card"
-      >
+      <div className="rounded-lg border bg-card">
         <Table>
           <TableHeader>
             <TableRow>
@@ -119,7 +108,7 @@ const AdminSubmissions = () => {
             ))}
           </TableBody>
         </Table>
-      </motion.div>
+      </div>
 
       <Dialog open={!!selected} onOpenChange={(v) => !v && setSelected(null)}>
         <DialogContent className="sm:max-w-lg">
