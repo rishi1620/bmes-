@@ -36,7 +36,7 @@ const EventsSection = ({ events, title, description }: EventsSectionProps) => {
           >
             <div className="h-48 overflow-hidden">
               <img
-                src={event.image_url || "/placeholder.svg"}
+                src={event.poster_url || "/placeholder.svg"}
                 alt={event.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 referrerPolicy="no-referrer"
