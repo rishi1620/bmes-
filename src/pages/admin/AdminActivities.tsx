@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Save, Plus, Trash } from "lucide-react";
+import { Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
-import { motion } from "framer-motion";
 
 interface Setting {
   id: string;
@@ -42,7 +41,7 @@ const AdminActivities = () => {
     ];
     
     for (const key of keysToSave) {
-      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
+      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
       
       if (!existing) {
         await supabase.from("site_settings").insert({
@@ -63,55 +62,17 @@ const AdminActivities = () => {
     setSettings(prev => ({ ...prev, [key]: value }));
   };
 
-  // Helper for JSON arrays
-  const getJsonArray = (key: string) => {
-    try {
-      return JSON.parse(settings[key] || "[]");
-    } catch {
-      return [];
-    }
-  };
-
-  const updateJsonArray = (key: string, arr: Record<string, unknown>[]) => {
-    updateSetting(key, JSON.stringify(arr));
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
-  };
-
   return (
     <AdminLayout>
-      <motion.div 
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
-      >
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Activities Page Content</h1>
         <Button onClick={handleSave} size="sm" disabled={saving}>
           <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
         </Button>
-      </motion.div>
+      </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-8"
-      >
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+      <div className="space-y-8">
+        <div className="rounded-lg border border-border bg-card p-5">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Hero Section</h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -123,9 +84,9 @@ const AdminActivities = () => {
               <Textarea value={settings.activities_hero_subtitle ?? ""} onChange={e => updateSetting("activities_hero_subtitle", e.target.value)} />
             </div>
           </div>
-        </motion.div>
+        </div>
 
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
+        <div className="rounded-lg border border-border bg-card p-5">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Gallery & Publications</h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -141,9 +102,9 @@ const AdminActivities = () => {
               <Input value={settings.activities_publications_pdf_url ?? ""} onChange={e => updateSetting("activities_publications_pdf_url", e.target.value)} />
             </div>
           </div>
-        </motion.div>
+        </div>
 
-      </motion.div>
+      </div>
     </AdminLayout>
   );
 };

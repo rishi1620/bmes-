@@ -25,75 +25,57 @@ export interface FieldDef {
 
 type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "faqs" | "event_registrations";
 
-interface Props<T extends Record<string, any> = Record<string, any>> {
+interface Props {
   tableName: TableName;
   title: string;
   description?: string;
   fields: FieldDef[];
   columns: string[];
   orderBy?: string;
-  filter?: (row: T) => boolean;
-  defaultValues?: Partial<T>;
+  filter?: (row: Record<string, unknown>) => boolean;
+  defaultValues?: Record<string, unknown>;
   hiddenFields?: string[];
   addLabel?: string;
-  transformRow?: (row: any) => T;
-  transformPayload?: (payload: T) => any;
 }
 
-const AdminCrudTable = <T extends Record<string, any> = Record<string, any>>({ 
-  tableName, 
-  title, 
-  description, 
-  fields, 
-  columns, 
-  orderBy, 
-  filter, 
-  defaultValues, 
-  hiddenFields = [], 
-  addLabel, 
-  transformRow, 
-  transformPayload 
-}: Props<T>) => {
-  const [rows, setRows] = useState<T[]>([]);
+const AdminCrudTable = ({ tableName, title, description, fields, columns, orderBy, filter, defaultValues, hiddenFields = [], addLabel }: Props) => {
+  const [rows, setRows] = useState<Record<string, unknown>[]>([]);
   const [open, setOpen] = useState(false);
-  const [editing, setEditing] = useState<T | null>(null);
-  const [form, setForm] = useState<Partial<T>>({});
+  const [editing, setEditing] = useState<Record<string, unknown> | null>(null);
+  const [form, setForm] = useState<Record<string, unknown>>({});
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
   const fetchRows = useCallback(async () => {
-    // Using 'as any' for tableName because some tables like 'faqs' might be missing from generated types
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data } = await supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
-    let allRows = (data as any[]) ?? [];
-    if (transformRow) {
-      allRows = allRows.map(transformRow);
-    }
+    const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
-  }, [tableName, orderBy, filter, transformRow]);
+  }, [tableName, orderBy, filter]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
   const openNew = () => {
     setEditing(null);
-    const defaults: Partial<T> = { ...defaultValues } as Partial<T>;
+    const defaults: Record<string, unknown> = { ...defaultValues };
     fields.forEach((f) => {
-        if (defaults[f.key as keyof T] === undefined) {
-             (defaults as any)[f.key] = f.type === "number" ? 0 : f.type === "boolean" ? true : f.type === "select" && f.options?.length ? f.options[0] : "";
+        if (defaults[f.key] === undefined) {
+             defaults[f.key] = f.type === "number" ? 0 : f.type === "boolean" ? true : f.type === "select" && f.options?.length ? f.options[0] : "";
         }
     });
     setForm(defaults);
     setOpen(true);
   };
 
-  const openEdit = (row: T) => {
+  const openEdit = (row: Record<string, unknown>) => {
     setEditing(row);
-    const vals: Partial<T> = {};
-    fields.forEach((f) => { (vals as any)[f.key] = row[f.key] ?? ""; });
+    const vals: Record<string, unknown> = {};
+    fields.forEach((f) => { vals[f.key] = row[f.key] ?? ""; });
     // Merge default values if they are missing
     if (defaultValues) {
         Object.keys(defaultValues).forEach(k => {
-            if ((vals as any)[k] === undefined || (vals as any)[k] === "") {
-                (vals as any)[k] = (defaultValues as any)[k];
+            if (vals[k] === undefined || vals[k] === "") {
+                vals[k] = defaultValues[k];
             }
         });
     }
@@ -103,26 +85,24 @@ const AdminCrudTable = <T extends Record<string, any> = Record<string, any>>({
 
   const save = async () => {
     setLoading(true);
-    let payload: any = { ...form };
+    const payload = { ...form };
     // Ensure default values are present only if not already set in form
     if (defaultValues) {
         Object.keys(defaultValues).forEach(k => {
             if (payload[k] === undefined || payload[k] === "") {
-                payload[k] = (defaultValues as any)[k];
+                payload[k] = defaultValues[k];
             }
         });
     }
 
-    if (transformPayload) {
-      payload = transformPayload(payload as T);
-    }
-
     if (editing) {
-      const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing.id);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing.id as string);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Updated successfully" }); }
     } else {
-      const { error } = await supabase.from(tableName as any).insert(payload);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from(tableName as any).insert(payload as any);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Created successfully" }); }
     }
@@ -133,6 +113,7 @@ const AdminCrudTable = <T extends Record<string, any> = Record<string, any>>({
 
   const remove = async (id: string) => {
     if (!confirm("Are you sure you want to delete this item? This action cannot be undone.")) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await supabase.from(tableName as any).delete().eq("id", id);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     else { toast({ title: "Deleted successfully" }); fetchRows(); }
@@ -185,32 +166,31 @@ const AdminCrudTable = <T extends Record<string, any> = Record<string, any>>({
                   </TableCell>
                 </TableRow>
               )}
-              {filteredRows.map((row, rowIndex) => (
-                <TableRow key={row.id || rowIndex} className="hover:bg-muted/50">
+              {filteredRows.map((row) => (
+                <TableRow key={row.id as string} className="hover:bg-muted/50">
                   {columns.map((c) => {
                     const field = fields.find(f => f.key === c);
-                    const value = row[c];
                     return (
                       <TableCell key={c} className="max-w-[300px] truncate py-3">
-                        {typeof value === "boolean" ? (
-                          <Badge variant={value ? "default" : "secondary"} className={value ? "bg-green-500 hover:bg-green-600" : ""}>
-                            {value ? "Active" : "Inactive"}
+                        {typeof row[c] === "boolean" ? (
+                          <Badge variant={row[c] ? "default" : "secondary"} className={row[c] ? "bg-green-500 hover:bg-green-600" : ""}>
+                            {row[c] ? "Active" : "Inactive"}
                           </Badge>
                         ) : field?.type === "datetime" ? (
                           <div className="flex flex-col gap-1">
-                            <span className="text-sm font-medium">{value ? format(new Date(value as string), "MMM d, yyyy") : ""}</span>
-                            <span className="text-xs text-muted-foreground">{value ? format(new Date(value as string), "h:mm a") : ""}</span>
+                            <span className="text-sm font-medium">{format(new Date(row[c] as string), "MMM d, yyyy")}</span>
+                            <span className="text-xs text-muted-foreground">{format(new Date(row[c] as string), "h:mm a")}</span>
                           </div>
                         ) : field?.type === "list" ? (
                           <div className="flex flex-wrap gap-1">
-                            {Array.isArray(value) ? (value as string[]).map((item, i) => (
+                            {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
                               <Badge key={i} variant="outline" className="text-[10px] font-normal">{item}</Badge>
-                            )) : String(value ?? "")}
+                            )) : String(row[c] ?? "")}
                           </div>
-                        ) : field?.type === "image" && value ? (
-                          <img src={value as string} alt="Thumbnail" className="h-8 w-8 rounded object-cover border" />
+                        ) : field?.type === "image" && row[c] ? (
+                          <img src={row[c] as string} alt="Thumbnail" className="h-8 w-8 rounded object-cover border" />
                         ) : (
-                          <span className="text-sm">{String(value ?? "")}</span>
+                          <span className="text-sm">{String(row[c] ?? "")}</span>
                         )}
                       </TableCell>
                     );
@@ -246,20 +226,20 @@ const AdminCrudTable = <T extends Record<string, any> = Record<string, any>>({
                 
                 {f.type === "textarea" ? (
                   <Textarea 
-                    value={(form as any)[f.key] as string ?? ""} 
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value } as Partial<T>)}
+                    value={form[f.key] as string ?? ""} 
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })}
                     className="min-h-[100px]"
                   />
                 ) : f.type === "number" ? (
                   <Input 
                     type="number" 
-                    value={(form as any)[f.key] as number ?? 0} 
-                    onChange={(e) => setForm({ ...form, [f.key]: Number(e.target.value) } as Partial<T>)} 
+                    value={form[f.key] as number ?? 0} 
+                    onChange={(e) => setForm({ ...form, [f.key]: Number(e.target.value) })} 
                   />
                 ) : f.type === "select" ? (
                   <Select 
-                    value={(form as any)[f.key] as string ?? ""} 
-                    onValueChange={(val) => setForm({ ...form, [f.key]: val } as Partial<T>)}
+                    value={form[f.key] as string ?? ""} 
+                    onValueChange={(val) => setForm({ ...form, [f.key]: val })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select option" />
@@ -271,49 +251,49 @@ const AdminCrudTable = <T extends Record<string, any> = Record<string, any>>({
                 ) : f.type === "boolean" ? (
                   <div className="flex items-center space-x-2">
                     <Switch 
-                      checked={(form as any)[f.key] as boolean} 
-                      onCheckedChange={(checked) => setForm({ ...form, [f.key]: checked } as Partial<T>)} 
+                      checked={form[f.key] as boolean} 
+                      onCheckedChange={(checked) => setForm({ ...form, [f.key]: checked })} 
                     />
-                    <span className="text-sm text-muted-foreground">{(form as any)[f.key] ? "Yes" : "No"}</span>
+                    <span className="text-sm text-muted-foreground">{form[f.key] ? "Yes" : "No"}</span>
                   </div>
                 ) : f.type === "datetime" ? (
                   <Input 
                     type="datetime-local" 
-                    value={typeof (form as any)[f.key] === 'string' ? ((form as any)[f.key] as string).slice(0, 16) : ""} 
-                    onChange={(e) => setForm({ ...form, [f.key]: new Date(e.target.value).toISOString() } as Partial<T>)} 
+                    value={typeof form[f.key] === 'string' ? (form[f.key] as string).slice(0, 16) : ""} 
+                    onChange={(e) => setForm({ ...form, [f.key]: new Date(e.target.value).toISOString() })} 
                   />
                 ) : f.type === "list" ? (
                   <div className="space-y-2">
                     <Input 
                       placeholder="Comma separated values..." 
-                      value={Array.isArray((form as any)[f.key]) ? ((form as any)[f.key] as string[]).join(", ") : ((form as any)[f.key] as string ?? "")} 
-                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value.split(",").map(s => s.trim()).filter(Boolean) } as Partial<T>)} 
+                      value={Array.isArray(form[f.key]) ? (form[f.key] as string[]).join(", ") : (form[f.key] as string ?? "")} 
+                      onChange={(e) => setForm({ ...form, [f.key]: e.target.value.split(",").map(s => s.trim()).filter(Boolean) })} 
                     />
                     <p className="text-[10px] text-muted-foreground">Enter items separated by commas.</p>
                   </div>
                 ) : f.type === "image" ? (
                   <div className="flex flex-col gap-3 rounded-md border p-3 bg-muted/20">
-                    {(form as any)[f.key] && (
+                    {form[f.key] && (
                       <div className="relative aspect-video w-full overflow-hidden rounded-md border bg-background">
-                        <img src={(form as any)[f.key] as string} alt="Preview" className="h-full w-full object-contain" />
+                        <img src={form[f.key] as string} alt="Preview" className="h-full w-full object-contain" />
                       </div>
                     )}
                     <div className="flex gap-2">
                       <Input 
-                        value={(form as any)[f.key] as string ?? ""} 
-                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value } as Partial<T>)} 
+                        value={form[f.key] as string ?? ""} 
+                        onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} 
                         placeholder="Image URL"
                         className="flex-1"
                       />
                       <MediaSelectorDialog 
-                        onSelect={(url) => setForm({ ...form, [f.key]: url } as Partial<T>)} 
+                        onSelect={(url) => setForm({ ...form, [f.key]: url })} 
                       />
                     </div>
                   </div>
                 ) : (
                   <Input 
-                    value={(form as any)[f.key] as string ?? ""} 
-                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value } as Partial<T>)} 
+                    value={form[f.key] as string ?? ""} 
+                    onChange={(e) => setForm({ ...form, [f.key]: e.target.value })} 
                     required={f.required} 
                   />
                 )}

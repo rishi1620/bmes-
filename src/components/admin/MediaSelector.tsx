@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { FileText, Film, Loader2, Check } from "lucide-react";
+import { Image as ImageIcon, FileText, Film, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -19,6 +19,7 @@ interface MediaSelectorProps {
 const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
 
   const fetchFiles = async () => {
@@ -40,6 +41,7 @@ const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
   }, []);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    setUploading(true);
     for (const file of acceptedFiles) {
       const name = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
       const { error } = await supabase.storage.from("media").upload(name, file);
@@ -47,6 +49,7 @@ const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
         toast({ title: `Failed to upload ${file.name}`, description: error.message, variant: "destructive" });
       }
     }
+    setUploading(false);
     fetchFiles();
   }, []);
 

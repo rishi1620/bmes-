@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import AdminNotifications from "@/components/admin/AdminNotifications";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -167,6 +167,9 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
       {/* Mobile Sidebar */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+          <div className="sr-only">
+            <SheetTitle>Admin Navigation</SheetTitle>
+          </div>
           <SidebarContent pathname={location.pathname} signOut={signOut} logoUrl={logoUrl} />
         </SheetContent>
       </Sheet>
