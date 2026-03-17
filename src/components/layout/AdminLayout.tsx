@@ -1,5 +1,5 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, Bell, CalendarDays, HelpCircle, Menu, ExternalLink } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
@@ -49,6 +49,7 @@ const linkGroups = [
       { label: "Media", path: "/admin/media", icon: Image },
       { label: "Contact Form", path: "/admin/submissions", icon: Inbox },
       { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays },
+      { label: "Membership Apps", path: "/admin/membership", icon: UserCheck },
       { label: "Settings", path: "/admin/settings", icon: Settings },
     ]
   }

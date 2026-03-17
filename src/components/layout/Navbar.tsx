@@ -12,7 +12,7 @@ const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, isAdmin, signOut } = useAuth();
+  const { user, signOut } = useAuth();
 
   const { data: pages } = useQuery({
     queryKey: ["nav-pages"],

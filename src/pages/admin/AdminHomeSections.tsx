@@ -33,6 +33,17 @@ const sectionLabels: Record<string, string> = {
   notice: "Notice Board (Legacy)",
 };
 
+interface StatItem {
+  label: string;
+  value: string;
+}
+
+interface FeatureItem {
+  title: string;
+  desc: string;
+  icon: string;
+}
+
 const AdminHomeSections = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [sections, setSections] = useState<HomeSection[]>([]);
@@ -403,7 +414,7 @@ const AdminHomeSections = () => {
                   <Label>Statistics</Label>
                   <Button size="sm" onClick={() => updateItems([...data.items, { label: "New Stat", value: "0" }])}><Plus className="h-4 w-4 mr-1"/> Add Stat</Button>
                 </div>
-                {data.items.map((item: any, i: number) => (
+                {data.items.map((item: StatItem, i: number) => (
                   <div key={i} className="flex gap-2 items-center">
                     <Input value={item.label || ""} onChange={e => {
                       const newItems = [...data.items];
@@ -453,11 +464,10 @@ const AdminHomeSections = () => {
                     <Label>Feature Items</Label>
                     <Button size="sm" onClick={() => updateItems([...data.items, { title: "New Feature", desc: "Description", icon: "FlaskConical" }])}><Plus className="h-4 w-4 mr-1"/> Add Item</Button>
                   </div>
-                  {Array.isArray(data.items) && data.items.map((item: any, i: number) => (
+                  {Array.isArray(data.items) && data.items.map((item: FeatureItem, i: number) => (
                     <div key={i} className="space-y-2 border p-3 rounded-md relative">
                       <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive hover:bg-destructive/10" onClick={() => {
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        const newItems = (data.items as any[]).filter((_: any, idx: number) => idx !== i);
+                        const newItems = (data.items as FeatureItem[]).filter((_: FeatureItem, idx: number) => idx !== i);
                         updateItems(newItems);
                       }}><Trash className="h-4 w-4" /></Button>
                       

@@ -33,6 +33,7 @@ import AdminMedia from "./pages/admin/AdminMedia";
 import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSubmissions from "./pages/admin/AdminSubmissions";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
+import AdminMembershipRegistrations from "./pages/admin/AdminMembershipRegistrations";
 import AdminAlumni from "./pages/admin/AdminAlumni";
 import AdminFAQ from "./pages/admin/AdminFAQ";
 import AdminPages from "./pages/admin/AdminPages";
@@ -94,6 +95,7 @@ const App = () => (
                   <Route path="/admin/settings" element={<ProtectedRoute requireAdmin><AdminSettings /></ProtectedRoute>} />
                   <Route path="/admin/submissions" element={<ProtectedRoute requireAdmin><AdminSubmissions /></ProtectedRoute>} />
                   <Route path="/admin/registrations" element={<ProtectedRoute requireAdmin><AdminRegistrations /></ProtectedRoute>} />
+                  <Route path="/admin/membership" element={<ProtectedRoute requireAdmin><AdminMembershipRegistrations /></ProtectedRoute>} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>

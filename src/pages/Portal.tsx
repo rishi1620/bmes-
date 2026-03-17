@@ -3,10 +3,9 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -19,11 +18,11 @@ import {
   FileText, 
   Image as ImageIcon,
   Loader2,
-  Search,
   Filter,
   Upload
 } from "lucide-react";
 import { toast } from "sonner";
+import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
 import Markdown from "react-markdown";
 import { generateStudyMaterial } from "@/services/geminiService";
 import * as pdfjsLib from 'pdfjs-dist';
@@ -63,6 +62,13 @@ interface SoftwareLink {
   description: string;
 }
 
+interface CustomTable {
+  id: string;
+  title: string;
+  headers: string[];
+  rows: string[][];
+}
+
 const Portal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const location = useLocation();
@@ -71,7 +77,6 @@ const Portal = () => {
   const [generating, setGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiResult, setAiResult] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [fileTypeFilter, setFileTypeFilter] = useState<"all" | "image" | "pdf" | "video">("all");
   const [semesterFilter, setSemesterFilter] = useState("all");
   const [resources, setResources] = useState<Resource[]>([]);
@@ -93,12 +98,17 @@ const Portal = () => {
       for (let i = 1; i <= pdf.numPages; i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
-        text += content.items.map((item: any) => item.str).join(' ');
+        text += content.items.map((item: unknown) => {
+          if (typeof item === 'object' && item !== null && 'str' in item) {
+            return (item as { str: string }).str;
+          }
+          return '';
+        }).join(' ');
       }
       setFileContent(text);
       toast.success("PDF uploaded and parsed successfully!");
-    } catch (error) {
-      console.error("Error parsing PDF:", error);
+    } catch {
+      console.error("Error parsing PDF.");
       toast.error("Failed to parse PDF.");
     } finally {
       setUploading(false);
@@ -106,7 +116,7 @@ const Portal = () => {
   };
 
   const fetchResources = useCallback(async () => {
-    const { data, error } = await supabase.storage
+    const { data } = await supabase.storage
       .from("media")
       .list("", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
     
@@ -169,13 +179,13 @@ const Portal = () => {
     }
   })();
 
-  const customTables = (() => {
+  const customTables: CustomTable[] = useMemo(() => {
     try {
       return JSON.parse(settings.portal_custom_tables_json || "[]");
     } catch {
       return [];
     }
-  })();
+  }, [settings.portal_custom_tables_json]);
 
   const notices = (() => {
     try {
@@ -195,10 +205,9 @@ const Portal = () => {
       console.error("Error parsing resourceSemesters:", e);
       return {};
     }
-  }, [settings.portal_resource_semesters_json]);
+  }, [settings]);
 
   const filteredResources = resources.filter(res => {
-    const matchesSearch = res.file_name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = fileTypeFilter === "all" || 
       (fileTypeFilter === "image" && res.file_type.includes("image")) ||
       (fileTypeFilter === "pdf" && res.file_type.includes("pdf")) ||
@@ -208,7 +217,7 @@ const Portal = () => {
     console.log(`Resource: ${res.file_name}, Semester: ${semester}, Filter: ${semesterFilter}`);
     
     const matchesSemester = semesterFilter === "all" || (semester === semesterFilter);
-    return matchesSearch && matchesType && matchesSemester;
+    return matchesType && matchesSemester;
   });
 
   return (
@@ -269,15 +278,6 @@ const Portal = () => {
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div className="relative">
-                        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                        <Input 
-                          placeholder="Search resources..." 
-                          className="pl-10"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                      </div>
                       <div className="flex flex-wrap gap-2 mt-4">
                         {(["all", "image", "pdf", "video"] as const).map((type) => (
                           <button
@@ -352,7 +352,7 @@ const Portal = () => {
 
                   {customTables.length > 0 && (
                     <div className="mt-16 space-y-12">
-                      {customTables.map((table: any) => (
+                      {customTables.map((table: CustomTable) => (
                         <div key={table.id} className="space-y-6">
                           <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">{table.title}</h3>
                           <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950">
@@ -549,12 +549,19 @@ const Portal = () => {
                     </div>
                     <div className="flex flex-col items-center gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
                       <p className="text-sm text-slate-500 font-medium">Ready to take the next step?</p>
-                      <Button asChild size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-white px-12">
-                        <a href={settings.portal_membership_url || "#"} target="_blank" rel="noopener noreferrer">
-                          Register Now
-                        </a>
+                      <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-white px-12" onClick={() => document.getElementById('registration-form')?.scrollIntoView({ behavior: 'smooth' })}>
+                        Register Now
                       </Button>
                     </div>
+                  </CardContent>
+                </Card>
+                
+                <Card id="registration-form" className="mt-10 border-emerald-500/20 shadow-lg">
+                  <CardHeader className="bg-emerald-500/5 border-b border-emerald-500/10">
+                    <CardTitle className="text-emerald-600">Membership Application</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-8">
+                    <MembershipRegistrationForm />
                   </CardContent>
                 </Card>
               </div>

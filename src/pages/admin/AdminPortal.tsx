@@ -15,6 +15,27 @@ interface Setting {
   setting_group: string;
 }
 
+interface Notice {
+  id: string;
+  title: string;
+  date: string;
+  content: string;
+}
+
+interface SoftwareLink {
+  id: string;
+  title: string;
+  url: string;
+  description: string;
+}
+
+interface CustomTable {
+  id: string;
+  title: string;
+  headers: string[];
+  rows: string[][];
+}
+
 const AdminPortal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -87,15 +108,15 @@ const AdminPortal = () => {
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateJsonArray = (key: string, arr: Record<string, any>[]) => {
+  const updateJsonArray = (key: string, arr: any[]) => {
     updateSetting(key, JSON.stringify(arr));
   };
 
-  const softwareLinks = getJsonArray("portal_software_json");
-  const notices = getJsonArray("portal_notices_json");
-  const customTables = getJsonArray("portal_custom_tables_json");
+  const softwareLinks: SoftwareLink[] = getJsonArray("portal_software_json");
+  const notices: Notice[] = getJsonArray("portal_notices_json");
+  const customTables: CustomTable[] = getJsonArray("portal_custom_tables_json");
   const resourceSemesters = JSON.parse(settings.portal_resource_semesters_json || "{}");
-  const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+  const [mediaFiles, setMediaFiles] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -194,7 +215,7 @@ const AdminPortal = () => {
             {customTables.length > 0 && (
               <div className="space-y-4 border-t pt-4">
                 <h3 className="font-medium text-sm text-muted-foreground">Custom Tables</h3>
-                {customTables.map((table: any, tableIndex: number) => (
+                {customTables.map((table: CustomTable, tableIndex: number) => (
                   <div key={table.id} className="border rounded-md p-4 space-y-4 bg-slate-50 dark:bg-slate-900/50">
                     <div className="flex items-center justify-between">
                       <Input 
@@ -207,7 +228,7 @@ const AdminPortal = () => {
                         }} 
                       />
                       <Button variant="destructive" size="icon" onClick={() => {
-                        updateJsonArray("portal_custom_tables_json", customTables.filter((t: any) => t.id !== table.id));
+                        updateJsonArray("portal_custom_tables_json", customTables.filter((t: CustomTable) => t.id !== table.id));
                       }}>
                         <Trash className="h-4 w-4" />
                       </Button>
@@ -309,27 +330,6 @@ const AdminPortal = () => {
               </div>
             ))}
             {softwareLinks.length === 0 && <p className="text-sm text-muted-foreground">No software links added yet.</p>}
-          </div>
-        </div>
-
-        <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Resource Semesters</h2>
-          <div className="space-y-4">
-            {mediaFiles.map((file) => (
-              <div key={file.id} className="flex items-center justify-between gap-4 p-3 border rounded-md">
-                <span className="text-sm truncate flex-1">{file.name}</span>
-                <select 
-                  className="text-sm border rounded p-1"
-                  value={resourceSemesters[file.name] || "all"}
-                  onChange={(e) => updateResourceSemester(file.name, e.target.value)}
-                >
-                  <option value="all">All Semesters</option>
-                  {[1, 2, 3, 4].map(level => [1, 2].map(term => (
-                    <option key={`${level}-${term}`} value={`Level-${level} Term-${term}`}>Level-{level} Term-${term}</option>
-                  )))}
-                </select>
-              </div>
-            ))}
           </div>
         </div>
 
