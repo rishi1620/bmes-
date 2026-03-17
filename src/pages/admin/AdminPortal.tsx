@@ -57,6 +57,8 @@ const AdminPortal = () => {
     const keysToSave = [
       "portal_hero_title",
       "portal_hero_subtitle",
+      "portal_dept_notices_title",
+      "portal_club_news_title",
       "portal_notices_content",
       "portal_notices_json",
       "portal_library_content",
@@ -108,8 +110,7 @@ const AdminPortal = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const updateJsonArray = (key: string, arr: any[]) => {
+  const updateJsonArray = (key: string, arr: unknown[]) => {
     updateSetting(key, JSON.stringify(arr));
   };
 
@@ -117,7 +118,7 @@ const AdminPortal = () => {
   const notices: Notice[] = getJsonArray("portal_notices_json");
   const customTables: CustomTable[] = getJsonArray("portal_custom_tables_json");
   const resourceSemesters = JSON.parse(settings.portal_resource_semesters_json || "{}");
-  const [mediaFiles, setMediaFiles] = useState<any[]>([]); // eslint-disable-line @typescript-eslint/no-explicit-any
+  const [mediaFiles, setMediaFiles] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     const fetchMedia = async () => {
@@ -166,14 +167,35 @@ const AdminPortal = () => {
             </Button>
           </div>
           <div className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label>Departmental Notices Title</Label>
+                <Input placeholder="Departmental Notices" value={settings.portal_dept_notices_title ?? ""} onChange={e => updateSetting("portal_dept_notices_title", e.target.value)} />
+              </div>
+              <div className="space-y-1.5">
+                <Label>Club News Title</Label>
+                <Input placeholder="Club News" value={settings.portal_club_news_title ?? ""} onChange={e => updateSetting("portal_club_news_title", e.target.value)} />
+              </div>
+            </div>
             <div className="space-y-1.5 mb-6">
               <Label>Notice Board Description (Optional)</Label>
               <Textarea placeholder="Official announcements and academic updates." value={settings.portal_notices_content ?? ""} onChange={e => updateSetting("portal_notices_content", e.target.value)} />
             </div>
             
             <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Manage Notices</h3>
+                <div className="flex gap-2">
+                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600">
+                    Dept
+                  </span>
+                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600">
+                    Club
+                  </span>
+                </div>
+              </div>
               {notices.map((item: Notice, i: number) => (
-                <div key={item.id || i} className="flex gap-4 items-start border p-4 rounded-md">
+                <div key={item.id || i} className={`flex gap-4 items-start border p-4 rounded-md transition-colors ${item.category === 'club' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-card'}`}>
                   <div className="grid gap-3 flex-1">
                     <div className="grid grid-cols-3 gap-3">
                       <div>

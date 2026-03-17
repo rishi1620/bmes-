@@ -40,6 +40,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 import { motion } from "framer-motion";
 
@@ -502,7 +509,7 @@ const Portal = () => {
                       <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100">
                         <BookOpen className="h-6 w-6" />
                       </div>
-                      <CardTitle className="text-2xl font-bold">Departmental Notices</CardTitle>
+                      <CardTitle className="text-2xl font-bold">{settings.portal_dept_notices_title || "Departmental Notices"}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -511,13 +518,29 @@ const Portal = () => {
                         .filter((n: Notice) => n.category === "departmental" || !n.category)
                         .slice(0, 5)
                         .map((notice: Notice, i: number) => (
-                          <div key={i} className="group cursor-pointer">
-                            <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
-                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span className="text-sm">{notice.date}</span>
-                            </div>
-                          </div>
+                          <Dialog key={i}>
+                            <DialogTrigger asChild>
+                              <div className="group cursor-pointer border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                                <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
+                                <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  <span className="text-sm">{notice.date}</span>
+                                </div>
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-xl">
+                              <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold text-emerald-600">{notice.title}</DialogTitle>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                                  <Calendar className="h-4 w-4" />
+                                  {notice.date}
+                                </div>
+                              </DialogHeader>
+                              <div className="mt-6 prose dark:prose-invert max-w-none">
+                                <Markdown>{notice.content}</Markdown>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         ))
                     ) : (
                       <p className="text-muted-foreground text-sm italic">No departmental notices found.</p>
@@ -532,7 +555,7 @@ const Portal = () => {
                       <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-emerald-600 dark:text-emerald-400">
                         <Users className="h-6 w-6" />
                       </div>
-                      <CardTitle className="text-2xl font-bold">Club News</CardTitle>
+                      <CardTitle className="text-2xl font-bold">{settings.portal_club_news_title || "Club News"}</CardTitle>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -541,13 +564,29 @@ const Portal = () => {
                         .filter((n: Notice) => n.category === "club")
                         .slice(0, 5)
                         .map((notice: Notice, i: number) => (
-                          <div key={i} className="group cursor-pointer">
-                            <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
-                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                              <Calendar className="h-3.5 w-3.5" />
-                              <span className="text-sm">{notice.date}</span>
-                            </div>
-                          </div>
+                          <Dialog key={i}>
+                            <DialogTrigger asChild>
+                              <div className="group cursor-pointer border-b border-border/50 pb-4 last:border-0 last:pb-0">
+                                <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
+                                <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                                  <Calendar className="h-3.5 w-3.5" />
+                                  <span className="text-sm">{notice.date}</span>
+                                </div>
+                              </div>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-xl">
+                              <DialogHeader>
+                                <DialogTitle className="text-2xl font-bold text-emerald-600">{notice.title}</DialogTitle>
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                                  <Calendar className="h-4 w-4" />
+                                  {notice.date}
+                                </div>
+                              </DialogHeader>
+                              <div className="mt-6 prose dark:prose-invert max-w-none">
+                                <Markdown>{notice.content}</Markdown>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
                         ))
                     ) : (
                       <p className="text-muted-foreground text-sm italic">No club news found.</p>
