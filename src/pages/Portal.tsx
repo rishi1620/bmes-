@@ -20,11 +20,17 @@ import {
   Image as ImageIcon,
   Loader2,
   Search,
-  Filter
+  Filter,
+  Upload
 } from "lucide-react";
 import { toast } from "sonner";
 import Markdown from "react-markdown";
 import { generateStudyMaterial } from "@/services/geminiService";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
 import {
   Table,
   TableBody,
@@ -69,6 +75,35 @@ const Portal = () => {
   const [fileTypeFilter, setFileTypeFilter] = useState<"all" | "image" | "pdf" | "video">("all");
   const [semesterFilter, setSemesterFilter] = useState("all");
   const [resources, setResources] = useState<Resource[]>([]);
+  const [fileContent, setFileContent] = useState("");
+  const [fileName, setFileName] = useState("");
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || file.type !== 'application/pdf') {
+      toast.error("Please upload a valid PDF file.");
+      return;
+    }
+    setUploading(true);
+    setFileName(file.name);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: any) => item.str).join(' ');
+      }
+      setFileContent(text);
+      toast.success("PDF uploaded and parsed successfully!");
+    } catch (error) {
+      console.error("Error parsing PDF:", error);
+      toast.error("Failed to parse PDF.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const fetchResources = useCallback(async () => {
     const { data, error } = await supabase.storage
@@ -116,7 +151,7 @@ const Portal = () => {
 
     setGenerating(true);
     try {
-      const result = await generateStudyMaterial(aiPrompt);
+      const result = await generateStudyMaterial(aiPrompt, fileContent);
       setAiResult(result || "No content generated.");
       toast.success("Study material generated!");
     } catch {
@@ -376,10 +411,28 @@ const Portal = () => {
                           value={aiPrompt}
                           onChange={(e) => setAiPrompt(e.target.value)}
                         />
+                        <div className="flex items-center gap-4">
+                          <Button 
+                            variant="outline" 
+                            className="w-full"
+                            onClick={() => document.getElementById('pdf-upload')?.click()}
+                            disabled={uploading}
+                          >
+                            <Upload className="mr-2 h-4 w-4" />
+                            {fileName ? fileName : "Upload Lecture Notes (PDF)"}
+                          </Button>
+                          <input 
+                            id="pdf-upload" 
+                            type="file" 
+                            accept="application/pdf" 
+                            className="hidden" 
+                            onChange={handleFileUpload} 
+                          />
+                        </div>
                       </div>
                       <Button 
                         onClick={handleGenerate} 
-                        disabled={generating}
+                        disabled={generating || uploading}
                         className="w-full bg-emerald-500 hover:bg-emerald-600 text-white h-12 text-lg font-semibold"
                       >
                         {generating ? (
