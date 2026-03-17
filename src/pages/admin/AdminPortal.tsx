@@ -38,27 +38,40 @@ const AdminPortal = () => {
       "portal_notices_content",
       "portal_notices_json",
       "portal_library_content",
+      "portal_custom_tables_json",
+      "portal_resource_semesters_json",
       "portal_software_json",
       "portal_membership_content",
       "portal_membership_url"
     ];
     
-    for (const key of keysToSave) {
-      const { data: existing } = await supabase.from("site_settings").select("id").eq("setting_key", key).single();
-      
-      if (!existing) {
-        await supabase.from("site_settings").insert({
-          setting_group: "portal_page",
-          setting_key: key,
-          setting_value: settings[key] || ""
-        });
-      } else {
-        await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
-      }
-    }
+    try {
+      for (const key of keysToSave) {
+        const { data: existing, error } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
+        
+        if (error) {
+          console.error("Error fetching setting:", key, error);
+          continue;
+        }
 
-    toast({ title: "Portal page content saved" });
-    setSaving(false);
+        if (!existing) {
+          await supabase.from("site_settings").insert({
+            setting_group: "portal_page",
+            setting_key: key,
+            setting_value: settings[key] || ""
+          });
+        } else {
+          await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
+        }
+      }
+
+      toast({ title: "Portal page content saved" });
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Error saving portal content", variant: "destructive" });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const updateSetting = (key: string, value: string) => {
@@ -80,6 +93,24 @@ const AdminPortal = () => {
 
   const softwareLinks = getJsonArray("portal_software_json");
   const notices = getJsonArray("portal_notices_json");
+  const customTables = getJsonArray("portal_custom_tables_json");
+  const resourceSemesters = JSON.parse(settings.portal_resource_semesters_json || "{}");
+  const [mediaFiles, setMediaFiles] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchMedia = async () => {
+      const { data } = await supabase.storage.from("media").list();
+      if (data) setMediaFiles(data.filter(f => f.name !== ".emptyFolderPlaceholder"));
+    };
+    fetchMedia();
+  }, []);
+
+  const updateResourceSemester = (fileName: string, semester: string) => {
+    console.log("Updating semester for", fileName, "to", semester);
+    const newSemesters = { ...resourceSemesters, [fileName]: semester };
+    console.log("New semesters:", newSemesters);
+    updateSetting("portal_resource_semesters_json", JSON.stringify(newSemesters));
+  };
 
   return (
     <AdminLayout>
@@ -96,11 +127,11 @@ const AdminPortal = () => {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Title</Label>
-              <Input value={settings.portal_hero_title ?? ""} onChange={e => updateSetting("portal_hero_title", e.target.value)} />
+              <Input placeholder="Academic Hub" value={settings.portal_hero_title ?? ""} onChange={e => updateSetting("portal_hero_title", e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label>Subtitle</Label>
-              <Textarea value={settings.portal_hero_subtitle ?? ""} onChange={e => updateSetting("portal_hero_subtitle", e.target.value)} />
+              <Textarea placeholder="Your central destination for lecture notes, software, and AI-powered study assistance." value={settings.portal_hero_subtitle ?? ""} onChange={e => updateSetting("portal_hero_subtitle", e.target.value)} />
             </div>
           </div>
         </div>
@@ -115,7 +146,7 @@ const AdminPortal = () => {
           <div className="space-y-4">
             <div className="space-y-1.5 mb-6">
               <Label>Notice Board Description (Optional)</Label>
-              <Textarea value={settings.portal_notices_content ?? ""} onChange={e => updateSetting("portal_notices_content", e.target.value)} />
+              <Textarea placeholder="Official announcements and academic updates." value={settings.portal_notices_content ?? ""} onChange={e => updateSetting("portal_notices_content", e.target.value)} />
             </div>
             
             <div className="space-y-4 border-t pt-4">
@@ -148,12 +179,101 @@ const AdminPortal = () => {
         </div>
 
         <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Resource Library</h2>
-          <div className="space-y-4">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-foreground">Resource Library</h2>
+            <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_custom_tables_json", [...customTables, { id: Date.now().toString(), title: "New Table", headers: ["Column 1", "Column 2"], rows: [["", ""]] }])}>
+              <Plus className="mr-1.5 h-4 w-4" /> Add Custom Table
+            </Button>
+          </div>
+          <div className="space-y-6">
             <div className="space-y-1.5">
-              <Label>Resource Library Content</Label>
-              <Textarea value={settings.portal_library_content ?? ""} onChange={e => updateSetting("portal_library_content", e.target.value)} />
+              <Label>Resource Library Description</Label>
+              <Textarea placeholder="Access lecture notes, reference books, and question banks." value={settings.portal_library_content ?? ""} onChange={e => updateSetting("portal_library_content", e.target.value)} />
             </div>
+
+            {customTables.length > 0 && (
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="font-medium text-sm text-muted-foreground">Custom Tables</h3>
+                {customTables.map((table: any, tableIndex: number) => (
+                  <div key={table.id} className="border rounded-md p-4 space-y-4 bg-slate-50 dark:bg-slate-900/50">
+                    <div className="flex items-center justify-between">
+                      <Input 
+                        className="max-w-xs font-semibold" 
+                        value={table.title} 
+                        onChange={e => {
+                          const newTables = [...customTables];
+                          newTables[tableIndex].title = e.target.value;
+                          updateJsonArray("portal_custom_tables_json", newTables);
+                        }} 
+                      />
+                      <Button variant="destructive" size="icon" onClick={() => {
+                        updateJsonArray("portal_custom_tables_json", customTables.filter((t: any) => t.id !== table.id));
+                      }}>
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-xs">Columns (comma separated)</Label>
+                      <Input 
+                        value={table.headers.join(", ")} 
+                        onChange={e => {
+                          const newTables = [...customTables];
+                          const newHeaders = e.target.value.split(",").map((h: string) => h.trim());
+                          newTables[tableIndex].headers = newHeaders;
+                          newTables[tableIndex].rows = newTables[tableIndex].rows.map((row: string[]) => {
+                            const newRow = [...row];
+                            while (newRow.length < newHeaders.length) newRow.push("");
+                            return newRow.slice(0, newHeaders.length);
+                          });
+                          updateJsonArray("portal_custom_tables_json", newTables);
+                        }} 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs">Rows</Label>
+                        <Button size="sm" variant="secondary" onClick={() => {
+                          const newTables = [...customTables];
+                          newTables[tableIndex].rows.push(new Array(table.headers.length).fill(""));
+                          updateJsonArray("portal_custom_tables_json", newTables);
+                        }}>
+                          <Plus className="h-3 w-3 mr-1" /> Add Row
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {table.rows.map((row: string[], rowIndex: number) => (
+                          <div key={rowIndex} className="flex gap-2 items-center">
+                            {row.map((cell: string, colIndex: number) => (
+                              <Input 
+                                key={colIndex}
+                                value={cell}
+                                placeholder={table.headers[colIndex] || `Column ${colIndex + 1}`}
+                                onChange={e => {
+                                  const newTables = [...customTables];
+                                  newTables[tableIndex].rows[rowIndex][colIndex] = e.target.value;
+                                  updateJsonArray("portal_custom_tables_json", newTables);
+                                }}
+                              />
+                            ))}
+                            <Button variant="ghost" size="icon" onClick={() => {
+                              const newTables = [...customTables];
+                              newTables[tableIndex].rows.splice(rowIndex, 1);
+                              updateJsonArray("portal_custom_tables_json", newTables);
+                            }}>
+                              <Trash className="h-4 w-4 text-red-500" />
+                            </Button>
+                          </div>
+                        ))}
+                        {table.rows.length === 0 && <p className="text-xs text-muted-foreground">No rows added.</p>}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -193,11 +313,53 @@ const AdminPortal = () => {
         </div>
 
         <div className="rounded-lg border border-border bg-card p-5">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Resource Semesters</h2>
+          <div className="space-y-4">
+            {mediaFiles.map((file) => (
+              <div key={file.id} className="flex items-center justify-between gap-4 p-3 border rounded-md">
+                <span className="text-sm truncate flex-1">{file.name}</span>
+                <select 
+                  className="text-sm border rounded p-1"
+                  value={resourceSemesters[file.name] || "all"}
+                  onChange={(e) => updateResourceSemester(file.name, e.target.value)}
+                >
+                  <option value="all">All Semesters</option>
+                  {[1, 2, 3, 4].map(level => [1, 2].map(term => (
+                    <option key={`${level}-${term}`} value={`Level-${level} Term-${term}`}>Level-{level} Term-${term}</option>
+                  )))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-5">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Resource Semesters</h2>
+          <div className="space-y-4">
+            {mediaFiles.map((file) => (
+              <div key={file.id} className="flex items-center justify-between gap-4 p-3 border rounded-md">
+                <span className="text-sm truncate flex-1">{file.name}</span>
+                <select 
+                  className="text-sm border rounded p-1"
+                  value={resourceSemesters[file.name] || "all"}
+                  onChange={(e) => updateResourceSemester(file.name, e.target.value)}
+                >
+                  <option value="all">All Semesters</option>
+                  {[1, 2, 3, 4].map(level => [1, 2].map(term => (
+                    <option key={`${level}-${term}`} value={`Level-${level} Term-${term}`}>Level-{level} Term-${term}</option>
+                  )))}
+                </select>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-lg border border-border bg-card p-5">
           <h2 className="mb-4 text-lg font-semibold text-foreground">Membership Portal</h2>
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label>Membership Content</Label>
-              <Textarea value={settings.portal_membership_content ?? ""} onChange={e => updateSetting("portal_membership_content", e.target.value)} />
+              <Textarea placeholder="### Why Join CUET BMES?..." className="min-h-[150px]" value={settings.portal_membership_content ?? ""} onChange={e => updateSetting("portal_membership_content", e.target.value)} />
             </div>
             <div className="space-y-1.5">
               <Label>Registration/Renewal Form URL</Label>

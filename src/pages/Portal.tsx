@@ -1,4 +1,5 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
@@ -6,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Bell, 
@@ -14,16 +16,23 @@ import {
   UserPlus, 
   ExternalLink, 
   Sparkles, 
-  Upload, 
   FileText, 
+  Image as ImageIcon,
   Loader2,
   Search,
   Filter
 } from "lucide-react";
-import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 import Markdown from "react-markdown";
 import { generateStudyMaterial } from "@/services/geminiService";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 import { motion } from "framer-motion";
 
@@ -50,26 +59,45 @@ interface SoftwareLink {
 
 const Portal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
+  const location = useLocation();
   const [, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiResult, setAiResult] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [fileTypeFilter, setFileTypeFilter] = useState<"all" | "image" | "pdf" | "video">("all");
+  const [semesterFilter, setSemesterFilter] = useState("all");
   const [resources, setResources] = useState<Resource[]>([]);
 
   const fetchResources = useCallback(async () => {
-    const { data } = await supabase
-      .from("media_library")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const { data, error } = await supabase.storage
+      .from("media")
+      .list("", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
     
-    setResources(data || []);
+    if (data) {
+      const mappedResources = data
+        .filter(file => file.name !== ".emptyFolderPlaceholder")
+        .map(file => {
+          const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(file.name);
+          return {
+            id: file.id,
+            file_name: file.name,
+            file_url: publicUrl,
+            file_type: file.metadata?.mimetype || "unknown",
+            file_size: file.metadata?.size || 0,
+            created_at: file.created_at
+          };
+        });
+      setResources(mappedResources);
+    }
   }, []);
 
   useEffect(() => {
     const load = async () => {
+      console.log("Portal loading settings...");
       await supabase.from("site_settings").select("*").eq("setting_group", "portal_page").then(({ data }) => {
+        console.log("Portal settings fetched:", data);
         const map: Record<string, string> = {};
         data?.forEach((s) => { map[s.setting_key] = s.setting_value || ""; });
         setSettings(map);
@@ -78,60 +106,7 @@ const Portal = () => {
       setLoading(false);
     };
     load();
-  }, [fetchResources]);
-
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
-
-    if (file.type !== "application/pdf") {
-      toast.error("Please upload a PDF file.");
-      return;
-    }
-
-    setUploading(true);
-    try {
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Math.random()}.${fileExt}`;
-      const filePath = `resources/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("media")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from("media")
-        .getPublicUrl(filePath);
-
-      // Save to media_library table
-      const { error: dbError } = await supabase.from("media_library").insert({
-        file_name: file.name,
-        file_url: publicUrl,
-        file_type: "pdf",
-        file_size: file.size,
-        folder: "Student Resources"
-      });
-
-      if (dbError) throw dbError;
-
-      toast.success("File uploaded successfully!");
-      fetchResources();
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Failed to upload file.";
-      toast.error(message);
-    } finally {
-      setUploading(false);
-    }
-  }, [fetchResources]);
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop,
-    accept: { "application/pdf": [".pdf"] },
-    multiple: false
-  });
+  }, [fetchResources, location]);
 
   const handleGenerate = async () => {
     if (!aiPrompt.trim()) {
@@ -159,6 +134,14 @@ const Portal = () => {
     }
   })();
 
+  const customTables = (() => {
+    try {
+      return JSON.parse(settings.portal_custom_tables_json || "[]");
+    } catch {
+      return [];
+    }
+  })();
+
   const notices = (() => {
     try {
       return JSON.parse(settings.portal_notices_json || "[]");
@@ -167,9 +150,31 @@ const Portal = () => {
     }
   })();
 
-  const filteredResources = resources.filter(res => 
-    res.file_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const resourceSemesters = useMemo(() => {
+    try {
+      console.log("Portal settings:", settings);
+      const parsed = JSON.parse(settings.portal_resource_semesters_json || "{}");
+      console.log("Parsed resourceSemesters:", parsed);
+      return parsed;
+    } catch (e) {
+      console.error("Error parsing resourceSemesters:", e);
+      return {};
+    }
+  }, [settings.portal_resource_semesters_json]);
+
+  const filteredResources = resources.filter(res => {
+    const matchesSearch = res.file_name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = fileTypeFilter === "all" || 
+      (fileTypeFilter === "image" && res.file_type.includes("image")) ||
+      (fileTypeFilter === "pdf" && res.file_type.includes("pdf")) ||
+      (fileTypeFilter === "video" && res.file_type.includes("video"));
+    
+    const semester = resourceSemesters[res.file_name];
+    console.log(`Resource: ${res.file_name}, Semester: ${semester}, Filter: ${semesterFilter}`);
+    
+    const matchesSemester = semesterFilter === "all" || (semester === semesterFilter);
+    return matchesSearch && matchesType && matchesSemester;
+  });
 
   return (
     <PageLayout>
@@ -221,40 +226,6 @@ const Portal = () => {
             <TabsContent value="library" className="space-y-8">
               <div className="grid gap-8 lg:grid-cols-3">
                 <div className="lg:col-span-1 space-y-6">
-                  <Card className="border-emerald-500/20 bg-emerald-500/5">
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Upload className="h-5 w-5 text-emerald-500" />
-                        Upload Resource
-                      </CardTitle>
-                      <CardDescription>
-                        Share study materials with the community.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div 
-                        {...getRootProps()} 
-                        className={`cursor-pointer rounded-xl border-2 border-dashed p-8 text-center transition-colors ${
-                          isDragActive ? "border-emerald-500 bg-emerald-500/10" : "border-slate-200 dark:border-slate-800 hover:border-emerald-500/50"
-                        }`}
-                      >
-                        <input {...getInputProps()} />
-                        {uploading ? (
-                          <div className="flex flex-col items-center gap-2">
-                            <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
-                            <p className="text-sm font-medium">Uploading PDF...</p>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center gap-2">
-                            <FileText className="h-8 w-8 text-slate-400" />
-                            <p className="text-sm font-medium">Click or drag PDF here</p>
-                            <p className="text-xs text-slate-500">Max size 10MB</p>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-
                   <Card>
                     <CardHeader>
                       <CardTitle className="flex items-center gap-2">
@@ -272,12 +243,40 @@ const Portal = () => {
                           onChange={(e) => setSearchQuery(e.target.value)}
                         />
                       </div>
+                      <div className="flex flex-wrap gap-2 mt-4">
+                        {(["all", "image", "pdf", "video"] as const).map((type) => (
+                          <button
+                            key={type}
+                            onClick={() => setFileTypeFilter(type)}
+                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
+                              fileTypeFilter === type
+                                ? "bg-emerald-500 text-white"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            }`}
+                          >
+                            {type.toUpperCase()}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="mt-4">
+                        <Label className="text-xs text-slate-500 mb-2 block">Semester</Label>
+                        <select 
+                          className="w-full text-sm border rounded p-2"
+                          value={semesterFilter}
+                          onChange={(e) => setSemesterFilter(e.target.value)}
+                        >
+                          <option value="all">All Semesters</option>
+                          {[1, 2, 3, 4].map(level => [1, 2].map(term => (
+                            <option key={`${level}-${term}`} value={`Level-${level} Term-${term}`}>Level-{level} Term-{term}</option>
+                          )))}
+                        </select>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
 
                 <div className="lg:col-span-2">
-                  <SectionHeading title="Resource Library" description="Access lecture notes, reference books, and question banks." />
+                  <SectionHeading title="Resource Library" description={settings.portal_library_content || "Access lecture notes, reference books, and question banks."} />
                   <div className="mt-8 grid gap-4 md:grid-cols-2">
                     {filteredResources.length > 0 ? (
                       filteredResources.map((res) => (
@@ -285,7 +284,11 @@ const Portal = () => {
                           <CardContent className="p-5">
                             <div className="flex items-start gap-4">
                               <div className="rounded-lg bg-emerald-500/10 p-3 text-emerald-500">
-                                <FileText className="h-6 w-6" />
+                                {res.file_type.includes("image") ? (
+                                  <ImageIcon className="h-6 w-6" />
+                                ) : (
+                                  <FileText className="h-6 w-6" />
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
                                 <h3 className="font-semibold truncate">{res.file_name}</h3>
@@ -311,6 +314,46 @@ const Portal = () => {
                       </div>
                     )}
                   </div>
+
+                  {customTables.length > 0 && (
+                    <div className="mt-16 space-y-12">
+                      {customTables.map((table: any) => (
+                        <div key={table.id} className="space-y-6">
+                          <h3 className="text-xl font-semibold text-slate-800 dark:text-slate-200">{table.title}</h3>
+                          <div className="rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950">
+                            <div className="overflow-x-auto">
+                              <Table>
+                                <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
+                                  <TableRow>
+                                    {table.headers.map((h: string, i: number) => (
+                                      <TableHead key={i} className="font-semibold text-slate-700 dark:text-slate-300">{h}</TableHead>
+                                    ))}
+                                  </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                  {table.rows.map((row: string[], i: number) => (
+                                    <TableRow key={i}>
+                                      {row.map((cell: string, j: number) => (
+                                        <TableCell key={j}>
+                                          {cell.startsWith('http') ? (
+                                            <a href={cell} target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline inline-flex items-center gap-1">
+                                              Link <ExternalLink className="h-3 w-3" />
+                                            </a>
+                                          ) : (
+                                            cell
+                                          )}
+                                        </TableCell>
+                                      ))}
+                                    </TableRow>
+                                  ))}
+                                </TableBody>
+                              </Table>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </TabsContent>
@@ -374,7 +417,7 @@ const Portal = () => {
             </TabsContent>
 
             <TabsContent value="notices">
-              <SectionHeading title="Notice Board" description="Official announcements and academic updates." />
+              <SectionHeading title="Notice Board" description={settings.portal_notices_content || "Official announcements and academic updates."} />
               <div className="mt-10 grid gap-6 md:grid-cols-2">
                 {notices.length > 0 ? (
                   notices.map((notice: Notice, i: number) => (
@@ -441,17 +484,15 @@ const Portal = () => {
                   <div className="h-2 bg-emerald-500" />
                   <CardContent className="p-8 space-y-8">
                     <div className="prose dark:prose-invert max-w-none">
-                      {settings.portal_membership_content || (
-                        <>
-                          <h3>Why Join CUET BMES?</h3>
-                          <ul>
-                            <li>Access to exclusive workshops and seminars.</li>
-                            <li>Networking opportunities with industry professionals.</li>
-                            <li>Participation in national and international competitions.</li>
-                            <li>Access to premium study resources and research mentorship.</li>
-                          </ul>
-                        </>
-                      )}
+                      <Markdown>
+                        {settings.portal_membership_content || `
+### Why Join CUET BMES?
+- Access to exclusive workshops and seminars.
+- Networking opportunities with industry professionals.
+- Participation in national and international competitions.
+- Access to premium study resources and research mentorship.
+                        `}
+                      </Markdown>
                     </div>
                     <div className="flex flex-col items-center gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
                       <p className="text-sm text-slate-500 font-medium">Ready to take the next step?</p>
