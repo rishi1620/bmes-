@@ -20,6 +20,7 @@ interface Notice {
   title: string;
   date: string;
   content: string;
+  category?: "departmental" | "club";
 }
 
 interface SoftwareLink {
@@ -160,7 +161,7 @@ const AdminPortal = () => {
         <div className="rounded-lg border border-border bg-card p-5">
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold text-foreground">Notices & Announcements</h2>
-            <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_notices_json", [{ id: Date.now().toString(), title: "New Notice", date: new Date().toISOString().split('T')[0], content: "" }, ...notices])}>
+            <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_notices_json", [{ id: Date.now().toString(), title: "New Notice", date: new Date().toISOString().split('T')[0], content: "", category: "departmental" }, ...notices])}>
               <Plus className="mr-1.5 h-4 w-4" /> Add Notice
             </Button>
           </div>
@@ -171,10 +172,10 @@ const AdminPortal = () => {
             </div>
             
             <div className="space-y-4 border-t pt-4">
-              {notices.map((item: { id: string; title: string; date: string; content: string }, i: number) => (
+              {notices.map((item: Notice, i: number) => (
                 <div key={item.id || i} className="flex gap-4 items-start border p-4 rounded-md">
                   <div className="grid gap-3 flex-1">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-3">
                       <div>
                         <Label className="text-xs">Title</Label>
                         <Input value={item.title} onChange={e => { const arr = [...notices]; arr[i].title = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
@@ -182,6 +183,17 @@ const AdminPortal = () => {
                       <div>
                         <Label className="text-xs">Date</Label>
                         <Input type="date" value={item.date} onChange={e => { const arr = [...notices]; arr[i].date = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Category</Label>
+                        <select 
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          value={item.category || "departmental"}
+                          onChange={e => { const arr = [...notices]; arr[i].category = e.target.value as "departmental" | "club"; updateJsonArray("portal_notices_json", arr); }}
+                        >
+                          <option value="departmental">Departmental</option>
+                          <option value="club">Club News</option>
+                        </select>
                       </div>
                     </div>
                     <div>

@@ -19,7 +19,10 @@ import {
   Image as ImageIcon,
   Loader2,
   Filter,
-  Upload
+  Upload,
+  Calendar,
+  ChevronRight,
+  Users
 } from "lucide-react";
 import { toast } from "sonner";
 import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
@@ -54,6 +57,7 @@ interface Notice {
   title: string;
   content: string;
   date: string;
+  category?: "departmental" | "club";
 }
 
 interface SoftwareLink {
@@ -489,31 +493,74 @@ const Portal = () => {
             </TabsContent>
 
             <TabsContent value="notices">
-              <SectionHeading title="Notice Board" description={settings.portal_notices_content || "Official announcements and academic updates."} />
-              <div className="mt-10 grid gap-6 md:grid-cols-2">
-                {notices.length > 0 ? (
-                  notices.map((notice: Notice, i: number) => (
-                    <Card key={i} className="group hover:border-emerald-500/30 transition-all">
-                      <CardHeader>
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[10px] font-bold text-emerald-600 uppercase tracking-widest">
-                            Official
-                          </span>
-                          <span className="text-xs text-muted-foreground">{notice.date}</span>
-                        </div>
-                        <CardTitle className="group-hover:text-emerald-500 transition-colors">{notice.title}</CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-muted-foreground text-sm leading-relaxed">{notice.content}</p>
-                      </CardContent>
-                    </Card>
-                  ))
-                ) : (
-                  <div className="col-span-full py-20 text-center">
-                    <Bell className="mx-auto h-12 w-12 text-muted-foreground/20 mb-4" />
-                    <p className="text-muted-foreground">No active notices at this time.</p>
-                  </div>
-                )}
+              <SectionHeading title="Latest Announcements" description={settings.portal_notices_content || "Stay updated with the latest departmental and club news."} />
+              
+              <div className="mt-10 grid gap-8 md:grid-cols-2">
+                {/* Departmental Notices */}
+                <Card className="overflow-hidden border-border bg-card shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+                    <div className="flex items-center gap-4">
+                      <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100">
+                        <BookOpen className="h-6 w-6" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold">Departmental Notices</CardTitle>
+                    </div>
+                    <Button variant="link" className="text-emerald-500 gap-1 p-0 h-auto font-medium">
+                      View All <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {notices.filter((n: Notice) => n.category === "departmental" || !n.category).length > 0 ? (
+                      notices
+                        .filter((n: Notice) => n.category === "departmental" || !n.category)
+                        .slice(0, 5)
+                        .map((notice: Notice, i: number) => (
+                          <div key={i} className="group cursor-pointer">
+                            <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
+                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span className="text-sm">{notice.date}</span>
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm italic">No departmental notices found.</p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Club News */}
+                <Card className="overflow-hidden border-border bg-card shadow-sm">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+                    <div className="flex items-center gap-4">
+                      <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-emerald-600 dark:text-emerald-400">
+                        <Users className="h-6 w-6" />
+                      </div>
+                      <CardTitle className="text-2xl font-bold">Club News</CardTitle>
+                    </div>
+                    <Button variant="link" className="text-emerald-500 gap-1 p-0 h-auto font-medium">
+                      View All <ChevronRight className="h-4 w-4" />
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {notices.filter((n: Notice) => n.category === "club").length > 0 ? (
+                      notices
+                        .filter((n: Notice) => n.category === "club")
+                        .slice(0, 5)
+                        .map((notice: Notice, i: number) => (
+                          <div key={i} className="group cursor-pointer">
+                            <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
+                            <div className="flex items-center gap-2 mt-1 text-muted-foreground">
+                              <Calendar className="h-3.5 w-3.5" />
+                              <span className="text-sm">{notice.date}</span>
+                            </div>
+                          </div>
+                        ))
+                    ) : (
+                      <p className="text-muted-foreground text-sm italic">No club news found.</p>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
             </TabsContent>
 

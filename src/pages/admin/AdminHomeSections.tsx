@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { Save, Eye, EyeOff, Pencil, Plus, Trash, ArrowUp, ArrowDown, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -313,10 +313,9 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "announcements" && (() => {
-            let data: { dept_title: string; club_title: string; dept_notices: { title: string; date: string; url: string }[]; club_news: { title: string; date: string; url: string }[] } = { dept_title: "", club_title: "", dept_notices: [], club_news: [] };
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            let data: any = { dept_title: "", club_title: "" };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
-            if (!data.dept_notices) data.dept_notices = [];
-            if (!data.club_news) data.club_news = [];
 
             const update = (key: string, val: unknown) => {
               const d = { ...data, [key]: val };
@@ -330,42 +329,8 @@ const AdminHomeSections = () => {
                   <div className="space-y-1.5"><Label>Club News Title</Label><Input value={data.club_title ?? ""} onChange={e => update("club_title", e.target.value)} /></div>
                 </div>
                 
-                <div className="space-y-3 border p-4 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <Label>Department Notices</Label>
-                    <Button size="sm" variant="outline" onClick={() => update("dept_notices", [...data.dept_notices, { title: "New Notice", date: "", url: "" }])}><Plus className="h-4 w-4 mr-1"/> Add Notice</Button>
-                  </div>
-                  {data.dept_notices.map((item: { title: string; date: string; url: string }, i: number) => (
-                    <div key={i} className="flex gap-2 items-start">
-                      <div className="grid gap-2 flex-1">
-                        <Input value={item.title} onChange={e => { const arr = [...data.dept_notices]; arr[i].title = e.target.value; update("dept_notices", arr); }} placeholder="Notice Title" />
-                        <div className="flex gap-2">
-                          <Input value={item.date} onChange={e => { const arr = [...data.dept_notices]; arr[i].date = e.target.value; update("dept_notices", arr); }} placeholder="Date (e.g. Oct 12, 2026)" className="w-1/3" />
-                          <Input value={item.url} onChange={e => { const arr = [...data.dept_notices]; arr[i].url = e.target.value; update("dept_notices", arr); }} placeholder="Link URL" className="flex-1" />
-                        </div>
-                      </div>
-                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.dept_notices.filter((_: unknown, idx: number) => idx !== i); update("dept_notices", arr); }}><Trash className="h-4 w-4" /></Button>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="space-y-3 border p-4 rounded-md">
-                  <div className="flex justify-between items-center">
-                    <Label>Club News</Label>
-                    <Button size="sm" variant="outline" onClick={() => update("club_news", [...data.club_news, { title: "New News", date: "", url: "" }])}><Plus className="h-4 w-4 mr-1"/> Add News</Button>
-                  </div>
-                  {data.club_news.map((item: { title: string; date: string; url: string }, i: number) => (
-                    <div key={i} className="flex gap-2 items-start">
-                      <div className="grid gap-2 flex-1">
-                        <Input value={item.title} onChange={e => { const arr = [...data.club_news]; arr[i].title = e.target.value; update("club_news", arr); }} placeholder="News Title" />
-                        <div className="flex gap-2">
-                          <Input value={item.date} onChange={e => { const arr = [...data.club_news]; arr[i].date = e.target.value; update("club_news", arr); }} placeholder="Date (e.g. Oct 12, 2026)" className="w-1/3" />
-                          <Input value={item.url} onChange={e => { const arr = [...data.club_news]; arr[i].url = e.target.value; update("club_news", arr); }} placeholder="Link URL" className="flex-1" />
-                        </div>
-                      </div>
-                      <Button variant="destructive" size="icon" onClick={() => { const arr = data.club_news.filter((_: unknown, idx: number) => idx !== i); update("club_news", arr); }}><Trash className="h-4 w-4" /></Button>
-                    </div>
-                  ))}
+                <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
+                  <p><strong>Note:</strong> The notices for this section are now fetched dynamically from the <strong>Portal Notices</strong>. You can manage the actual notices in the <Link to="/admin/portal" className="text-primary hover:underline">Portal Admin</Link> page.</p>
                 </div>
               </div>
             );

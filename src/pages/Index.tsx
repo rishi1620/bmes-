@@ -57,6 +57,32 @@ const Index = () => {
     },
   });
 
+  const { data: siteSettings } = useQuery({
+    queryKey: ["site-settings"],
+    queryFn: async () => {
+      const { data } = await supabase.from("site_settings").select("*").single();
+      return data;
+    },
+  });
+
+  const portalNotices = useMemo(() => {
+    if (!siteSettings?.portal_notices_json) return [];
+    try {
+      return JSON.parse(siteSettings.portal_notices_json);
+    } catch (e) {
+      console.error("Error parsing portal notices:", e);
+      return [];
+    }
+  }, [siteSettings]);
+
+  const deptNotices = useMemo(() => 
+    portalNotices.filter((n: { category?: string }) => n.category === "departmental" || !n.category).slice(0, 3),
+  [portalNotices]);
+
+  const clubNews = useMemo(() => 
+    portalNotices.filter((n: { category?: string }) => n.category === "club").slice(0, 3),
+  [portalNotices]);
+
   const { data: recentEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ["home-recent-events"],
     queryFn: async () => {
@@ -262,8 +288,8 @@ const Index = () => {
               </div>
 
               <div className="space-y-6 relative z-10">
-                {Array.isArray(announcements.dept_notices) && announcements.dept_notices.length > 0 ? (
-                  (announcements.dept_notices as Record<string, string>[]).map((notice, i: number) => (
+                {deptNotices.length > 0 ? (
+                  deptNotices.map((notice: { title: string; date: string }, i: number) => (
                     <motion.div 
                       key={i} 
                       initial={{ opacity: 0, x: -10 }}
@@ -271,10 +297,10 @@ const Index = () => {
                       transition={{ delay: i * 0.1 }}
                       className="group/item"
                     >
-                      <a href={notice.url || "#"} className="block">
+                      <div className="block">
                         <div className="flex items-start justify-between gap-4">
                           <div className="space-y-1">
-                            <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug">
+                            <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug line-clamp-2">
                               {notice.title}
                             </h4>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -282,11 +308,8 @@ const Index = () => {
                               {notice.date}
                             </div>
                           </div>
-                          <div className="opacity-0 group-hover/item:opacity-100 transition-all transform translate-x-[-10px] group-hover/item:translate-x-0">
-                            <ArrowRight className="h-4 w-4 text-primary" />
-                          </div>
                         </div>
-                      </a>
+                      </div>
                     </motion.div>
                   ))
                 ) : (
@@ -318,8 +341,8 @@ const Index = () => {
               </div>
 
               <div className="space-y-6 relative z-10">
-                {Array.isArray(announcements.club_news) && announcements.club_news.length > 0 ? (
-                  (announcements.club_news as Record<string, string>[]).map((news, i: number) => (
+                {clubNews.length > 0 ? (
+                  clubNews.map((news: { title: string; date: string }, i: number) => (
                     <motion.div 
                       key={i} 
                       initial={{ opacity: 0, x: -10 }}
@@ -327,10 +350,10 @@ const Index = () => {
                       transition={{ delay: i * 0.1 }}
                       className="group/item"
                     >
-                      <a href={news.url || "#"} className="block">
+                      <div className="block">
                         <div className="flex items-start justify-between gap-4">
                           <div className="space-y-1">
-                            <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug">
+                            <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug line-clamp-2">
                               {news.title}
                             </h4>
                             <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -338,11 +361,8 @@ const Index = () => {
                               {news.date}
                             </div>
                           </div>
-                          <div className="opacity-0 group-hover/item:opacity-100 transition-all transform translate-x-[-10px] group-hover/item:translate-x-0">
-                            <ArrowRight className="h-4 w-4 text-emerald-600" />
-                          </div>
                         </div>
-                      </a>
+                      </div>
                     </motion.div>
                   ))
                 ) : (
