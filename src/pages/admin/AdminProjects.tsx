@@ -16,7 +16,7 @@ const AdminProjects = () => (
     tableName="projects" 
     title="Projects" 
     fields={fields} 
-    columns={["title", "status", "progress", "lead"]} 
+    columns={["title", "status", "progress", "lead", "team_members"]} 
     defaultValues={{ status: "Planning" }}
   />
 );
