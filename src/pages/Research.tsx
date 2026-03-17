@@ -39,12 +39,22 @@ const Research = () => {
 
       <section className="container py-16">
         <Tabs defaultValue="labs" className="w-full">
-          <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="labs" className="gap-1.5 text-xs md:text-sm"><FlaskConical className="h-4 w-4" /> Laboratories</TabsTrigger>
-            <TabsTrigger value="areas" className="gap-1.5 text-xs md:text-sm"><Microscope className="h-4 w-4" /> Areas</TabsTrigger>
-            <TabsTrigger value="publications" className="gap-1.5 text-xs md:text-sm"><BookOpen className="h-4 w-4" /> Publications</TabsTrigger>
-            <TabsTrigger value="projects" className="gap-1.5 text-xs md:text-sm"><FileText className="h-4 w-4" /> Projects</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-10">
+            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-800 rounded-2xl">
+              <TabsTrigger value="labs" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <FlaskConical className="h-4 w-4" /> Laboratories
+              </TabsTrigger>
+              <TabsTrigger value="areas" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <Microscope className="h-4 w-4" /> Areas
+              </TabsTrigger>
+              <TabsTrigger value="publications" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <BookOpen className="h-4 w-4" /> Publications
+              </TabsTrigger>
+              <TabsTrigger value="projects" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <FileText className="h-4 w-4" /> Projects
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="labs">
             <SectionHeading title="Laboratories" description="Individual pages for each lab detailing the equipment available." />

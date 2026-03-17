@@ -57,13 +57,13 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-emerald-500/10 bg-gradient-to-r from-emerald-50/80 via-background/80 to-teal-50/80 backdrop-blur-xl dark:from-emerald-950/30 dark:via-background/80 dark:to-teal-950/30 shadow-sm">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <img
             src={logoUrl || defaultLogo}
             alt={siteName}
-            className="h-12 w-auto object-contain" />
+            className="h-12 w-auto object-contain transition-all duration-300 dark:brightness-0 dark:invert" />
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
@@ -71,8 +71,8 @@ const Navbar = () => {
             <Link
               key={link.path}
               to={link.path}
-              className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                location.pathname === link.path ? "text-primary" : "text-muted-foreground"
+              className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-primary hover:bg-emerald-500/5 dark:hover:bg-emerald-400/5 ${
+                location.pathname === link.path ? "text-primary bg-emerald-500/5 dark:bg-emerald-400/5" : "text-muted-foreground"
               }`}
             >
               {link.label}
@@ -107,7 +107,7 @@ const Navbar = () => {
       </div>
 
       {mobileOpen &&
-      <div className="border-t border-border bg-background lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="border-t border-emerald-500/10 bg-gradient-to-b from-background to-emerald-50/50 dark:to-emerald-950/30 lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="container flex flex-col gap-1 py-4">
             {navLinks.map((link) =>
               <Link

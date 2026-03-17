@@ -87,12 +87,22 @@ const Achievements = () => {
 
       <section className="container py-16">
         <Tabs defaultValue="competitions" className="w-full">
-          <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="competitions" className="gap-1.5 text-xs md:text-sm"><Trophy className="h-4 w-4" /> Competitions</TabsTrigger>
-            <TabsTrigger value="publications" className="gap-1.5 text-xs md:text-sm"><BookOpen className="h-4 w-4" /> Publications</TabsTrigger>
-            <TabsTrigger value="grants" className="gap-1.5 text-xs md:text-sm"><DollarSign className="h-4 w-4" /> Grants</TabsTrigger>
-            <TabsTrigger value="media" className="gap-1.5 text-xs md:text-sm"><Newspaper className="h-4 w-4" /> Media</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-10">
+            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-800 rounded-2xl">
+              <TabsTrigger value="competitions" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <Trophy className="h-4 w-4" /> Competitions
+              </TabsTrigger>
+              <TabsTrigger value="publications" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <BookOpen className="h-4 w-4" /> Publications
+              </TabsTrigger>
+              <TabsTrigger value="grants" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <DollarSign className="h-4 w-4" /> Grants
+              </TabsTrigger>
+              <TabsTrigger value="media" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <Newspaper className="h-4 w-4" /> Media
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="competitions">
             <motion.div

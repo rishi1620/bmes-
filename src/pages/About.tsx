@@ -58,12 +58,22 @@ const About = () => {
 
       <section className="container py-16">
         <Tabs defaultValue="messages" className="w-full">
-          <TabsList className="mx-auto mb-10 grid w-full max-w-2xl grid-cols-2 md:grid-cols-4">
-            <TabsTrigger value="messages" className="gap-1.5 text-xs md:text-sm"><MessageSquare className="h-4 w-4" /> {settings.about_tab_messages || "Messages"}</TabsTrigger>
-            <TabsTrigger value="dept" className="gap-1.5 text-xs md:text-sm"><Building className="h-4 w-4" /> {settings.about_tab_dept || "Dept Profile"}</TabsTrigger>
-            <TabsTrigger value="bmes" className="gap-1.5 text-xs md:text-sm"><Users className="h-4 w-4" /> {settings.about_tab_bmes || "BMES Profile"}</TabsTrigger>
-            <TabsTrigger value="constitution" className="gap-1.5 text-xs md:text-sm"><FileText className="h-4 w-4" /> {settings.about_tab_constitution || "Constitution"}</TabsTrigger>
-          </TabsList>
+          <div className="flex justify-center mb-10">
+            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-800 rounded-2xl">
+              <TabsTrigger value="messages" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <MessageSquare className="h-4 w-4" /> {settings.about_tab_messages || "Messages"}
+              </TabsTrigger>
+              <TabsTrigger value="dept" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <Building className="h-4 w-4" /> {settings.about_tab_dept || "Dept Profile"}
+              </TabsTrigger>
+              <TabsTrigger value="bmes" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <Users className="h-4 w-4" /> {settings.about_tab_bmes || "BMES Profile"}
+              </TabsTrigger>
+              <TabsTrigger value="constitution" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+                <FileText className="h-4 w-4" /> {settings.about_tab_constitution || "Constitution"}
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
           <TabsContent value="messages">
             <motion.div

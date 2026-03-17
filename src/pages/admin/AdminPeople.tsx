@@ -45,12 +45,22 @@ const AdminPeople = () => {
       </div>
       
       <Tabs value={currentTab} onValueChange={setTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 mb-8">
-          <TabsTrigger value="faculty">Faculty</TabsTrigger>
-          <TabsTrigger value="staff">Staff</TabsTrigger>
-          <TabsTrigger value="ec">BMES EC & Members</TabsTrigger>
-          <TabsTrigger value="advisory">Advisory</TabsTrigger>
-        </TabsList>
+        <div className="flex justify-start mb-8">
+          <TabsList className="h-auto flex-wrap justify-start gap-2 bg-slate-100 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-2xl">
+            <TabsTrigger value="faculty" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              Faculty
+            </TabsTrigger>
+            <TabsTrigger value="staff" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              Staff
+            </TabsTrigger>
+            <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              BMES EC & Members
+            </TabsTrigger>
+            <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              Advisory
+            </TabsTrigger>
+          </TabsList>
+        </div>
         
         <TabsContent value="faculty">
           <AdminCrudTable 
