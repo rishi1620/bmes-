@@ -1,14 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, XCircle, AlertCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
+
+interface RegistrationStatus {
+  status: 'pending' | 'approved' | 'rejected';
+  created_at: string;
+  full_name: string;
+}
 
 export function MembershipRegistrationForm() {
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+  const [existingRegistration, setExistingRegistration] = useState<RegistrationStatus | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
@@ -20,26 +31,168 @@ export function MembershipRegistrationForm() {
     transaction_id: "",
   });
 
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({ ...prev, email: user.email || "", full_name: user.user_metadata?.full_name || "" }));
+      checkExistingRegistration();
+    } else {
+      setCheckingStatus(false);
+    }
+  }, [user]);
+
+  const checkExistingRegistration = async () => {
+    if (!user) return;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data, error } = await (supabase as any)
+        .from("membership_registrations")
+        .select("status, created_at, full_name")
+        .eq("email", user.email)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setExistingRegistration(data);
+      }
+    } catch (error) {
+      console.error("Error checking registration:", error);
+    } finally {
+      setCheckingStatus(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Email domain validation
+    if (!formData.email.toLowerCase().endsWith("@student.cuet.ac.bd")) {
+      toast.error("Please use your official university email (@student.cuet.ac.bd)");
+      return;
+    }
+
     setLoading(true);
 
     try {
+      const payload = {
+        ...formData,
+        user_id: user?.id || null
+      };
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("membership_registrations").insert([formData]);
+      const { error } = await (supabase as any).from("membership_registrations").insert([payload]);
 
       if (error) throw error;
 
       toast.success("Registration submitted successfully!");
       setSubmitted(true);
-    } catch (error: unknown) {
-      console.error("Registration error:", error);
+      checkExistingRegistration();
+    } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      toast.error((error as any).message || "Failed to submit registration. Please ensure the database table exists.");
+      const error = err as any;
+      console.error("Registration error:", error);
+      
+      let errorMessage = "Failed to submit registration. Please try again later.";
+      
+      // Handle Supabase specific error codes for better user feedback
+      if (error.code === "23505") { // Unique violation
+        if (error.message?.toLowerCase().includes("email")) {
+          errorMessage = "An application with this email address already exists.";
+        } else if (error.message?.toLowerCase().includes("student_id")) {
+          errorMessage = "An application with this Student ID already exists.";
+        } else {
+          errorMessage = "You have already submitted an application with these details.";
+        }
+      } else if (error.code === "42P01") { // Table not found
+        errorMessage = "The registration system is currently unavailable. Please contact an administrator.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  if (checkingStatus) {
+    return (
+      <div className="flex justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+      </div>
+    );
+  }
+
+  if (existingRegistration && !submitted) {
+    const { status, full_name } = existingRegistration;
+    
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center animate-fade-in space-y-6">
+        {status === 'pending' && (
+          <>
+            <div className="h-20 w-20 rounded-full bg-amber-100 flex items-center justify-center mb-2">
+              <Clock className="h-10 w-10 text-amber-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-foreground">Application Pending</h3>
+              <p className="text-muted-foreground max-w-md">
+                Hello <strong>{full_name}</strong>, your membership application is currently being reviewed by the executive committee.
+              </p>
+            </div>
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-sm max-w-md">
+              Please wait for approval. You will receive an email notification once your status is updated.
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-amber-700 hover:text-amber-800 hover:bg-amber-100"
+              onClick={checkExistingRegistration}
+              disabled={loading}
+            >
+              {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Clock className="h-4 w-4 mr-2" />}
+              Refresh Status
+            </Button>
+          </>
+        )}
+
+        {status === 'approved' && (
+          <>
+            <div className="h-20 w-20 rounded-full bg-emerald-100 flex items-center justify-center mb-2">
+              <CheckCircle2 className="h-10 w-10 text-emerald-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-foreground">Welcome, Member!</h3>
+              <p className="text-muted-foreground max-w-md">
+                Congratulations! Your membership has been <strong>Approved</strong>. You are now an official member of the CUET Biomedical Engineering Society.
+              </p>
+            </div>
+            <Button asChild className="bg-emerald-500 hover:bg-emerald-600">
+              <Link to="/portal">Go to Portal</Link>
+            </Button>
+          </>
+        )}
+
+        {status === 'rejected' && (
+          <>
+            <div className="h-20 w-20 rounded-full bg-red-100 flex items-center justify-center mb-2">
+              <XCircle className="h-10 w-10 text-red-600" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-foreground">Application Rejected</h3>
+              <p className="text-muted-foreground max-w-md">
+                We regret to inform you that your membership application was not approved at this time.
+              </p>
+            </div>
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-sm max-w-md">
+              If you believe this is a mistake or would like to re-apply with corrected information, please contact the society administrators.
+            </div>
+            <Button variant="outline" onClick={() => setExistingRegistration(null)}>
+              Try Re-applying
+            </Button>
+          </>
+        )}
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
@@ -49,8 +202,26 @@ export function MembershipRegistrationForm() {
         <p className="text-muted-foreground mt-2 max-w-md">
           Your membership application has been submitted for review. We will contact you at <strong>{formData.email}</strong> once your status is updated.
         </p>
-        <Button variant="outline" className="mt-8" onClick={() => setSubmitted(false)}>
-          Submit Another Application
+        <Button variant="outline" className="mt-8" onClick={() => {
+          setSubmitted(false);
+          checkExistingRegistration();
+        }}>
+          View Status
+        </Button>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl">
+        <AlertCircle className="h-12 w-12 text-slate-400 mb-4" />
+        <h3 className="text-xl font-semibold">Authentication Required</h3>
+        <p className="text-muted-foreground mt-2 max-w-xs">
+          Please log in to your account to apply for membership and track your application status.
+        </p>
+        <Button asChild className="mt-6 bg-emerald-500 hover:bg-emerald-600">
+          <Link to="/auth">Log In / Sign Up</Link>
         </Button>
       </div>
     );
@@ -70,15 +241,18 @@ export function MembershipRegistrationForm() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">Email Address</Label>
+          <Label htmlFor="email">University Email Address</Label>
           <Input 
             id="email" 
             type="email" 
             required 
             value={formData.email} 
             onChange={e => setFormData({...formData, email: e.target.value})} 
-            placeholder="your.email@example.com"
+            placeholder="student_id@student.cuet.ac.bd"
           />
+          <p className="text-[10px] text-muted-foreground">
+            Must be your official <strong>@student.cuet.ac.bd</strong> email.
+          </p>
         </div>
         <div className="space-y-2">
           <Label htmlFor="student_id">Student ID</Label>

@@ -23,18 +23,75 @@ async function startServer() {
 
     try {
       const { data, error } = await resend.emails.send({
-        from: "BMES Club <onboarding@resend.dev>", // Replace with your verified domain in production
+        from: "BMES Society <onboarding@resend.dev>", // Replace with your verified domain in production
         to: [email],
         subject: `Registration Confirmed: ${eventTitle}`,
         html: `
-          <h1>Registration Confirmed!</h1>
-          <p>Hi ${name},</p>
-          <p>You have successfully registered for <strong>${eventTitle}</strong>.</p>
-          <p>We look forward to seeing you there!</p>
-          <br/>
-          <p>Best regards,</p>
-          <p>BMES Club Team</p>
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; rounded: 8px;">
+            <h1 style="color: #10b981;">Registration Confirmed!</h1>
+            <p>Hi ${name},</p>
+            <p>You have successfully registered for <strong>${eventTitle}</strong>.</p>
+            <p>We look forward to seeing you there!</p>
+            <br/>
+            <p>Best regards,</p>
+            <p>BMES Society Team</p>
+          </div>
         `,
+      });
+
+      if (error) {
+        console.error("Resend error:", error);
+        return res.status(500).json({ error: error.message });
+      }
+
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error("Server error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  app.post("/api/send-membership-status", async (req, res) => {
+    const { email, name, status, reason } = req.body;
+
+    if (!email || !name || !status) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const isApproved = status === 'approved';
+    const subject = isApproved 
+      ? "Welcome to CUET BMES Society!" 
+      : "Update on your BMES Membership Application";
+
+    const html = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+        <h1 style="color: ${isApproved ? '#10b981' : '#ef4444'};">${isApproved ? 'Application Approved!' : 'Application Update'}</h1>
+        <p>Hi ${name},</p>
+        <p>Your membership application for the <strong>CUET Biomedical Engineering Society</strong> has been <strong>${status}</strong>.</p>
+        
+        ${isApproved ? `
+          <p>Congratulations! You are now an official member. You can now access exclusive resources and features in the student portal.</p>
+          <div style="margin: 30px 0;">
+            <a href="${process.env.APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+          </div>
+        ` : `
+          <p>We regret to inform you that your application was not approved at this time.</p>
+          ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
+          <p>If you believe this is a mistake, please feel free to reach out to us or re-apply with corrected information.</p>
+        `}
+        
+        <br/>
+        <p>Best regards,</p>
+        <p><strong>CUET BMES Executive Committee</strong></p>
+      </div>
+    `;
+
+    try {
+      const { data, error } = await resend.emails.send({
+        from: "CUET BMES <onboarding@resend.dev>",
+        to: [email],
+        subject: subject,
+        html: html,
       });
 
       if (error) {

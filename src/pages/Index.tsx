@@ -120,7 +120,6 @@ const Index = () => {
   const stats = getSection("stats");
   const features = getSection("features");
   const cta = getSection("cta");
-  const notice = getSection("notice");
 
   if (isLoading || isLoadingEvents || isLoadingAchievements) {
     return (
@@ -611,36 +610,6 @@ const Index = () => {
           </div>
         )}
       </motion.section>
-
-      {/* Notice (Legacy) */}
-      {notice && (
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="container mt-8 relative z-20"
-        >
-          <div className="rounded-xl border border-blue-200 bg-blue-50/50 p-6 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/20">
-            <div className="flex items-start gap-4">
-              <div className="mt-1 rounded-full bg-blue-100 p-2 text-blue-600 dark:bg-blue-900/50 dark:text-blue-400">
-                <Bell className="h-5 w-5" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-blue-900 dark:text-blue-100">{notice.title || "Notice"}</h3>
-                <p className="mt-2 text-sm text-blue-800/80 dark:text-blue-200/80 leading-relaxed whitespace-pre-wrap">
-                  {notice.content}
-                </p>
-                {notice.link_text && notice.link_url && (
-                  <Button asChild variant="link" className="mt-2 h-auto p-0 text-blue-600 dark:text-blue-400">
-                    <Link to={notice.link_url}>{notice.link_text} <ArrowRight className="ml-1 h-3 w-3" /></Link>
-                  </Button>
-                )}
-              </div>
-            </div>
-          </div>
-        </motion.section>
-      )}
 
       {/* Stats */}
       {stats?.items && (

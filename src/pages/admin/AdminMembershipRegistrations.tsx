@@ -50,6 +50,9 @@ const AdminMembershipRegistrations = () => {
   }, []);
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
+    const registration = registrations.find(r => r.id === id);
+    if (!registration) return;
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
@@ -58,7 +61,30 @@ const AdminMembershipRegistrations = () => {
         .eq("id", id);
 
       if (error) throw error;
+      
       toast.success(`Registration ${status} successfully`);
+      
+      // Send email notification
+      try {
+        const response = await fetch("/api/send-membership-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: registration.email,
+            name: registration.full_name,
+            status: status
+          }),
+        });
+        
+        if (!response.ok) {
+          console.error("Failed to send email notification");
+        } else {
+          toast.info(`Notification email sent to ${registration.email}`);
+        }
+      } catch (emailError) {
+        console.error("Email notification error:", emailError);
+      }
+
       fetchRegistrations();
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

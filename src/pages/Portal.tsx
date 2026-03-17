@@ -107,9 +107,9 @@ const Portal = () => {
       }
       setFileContent(text);
       toast.success("PDF uploaded and parsed successfully!");
-    } catch {
-      console.error("Error parsing PDF.");
-      toast.error("Failed to parse PDF.");
+    } catch (error) {
+      console.error("Error parsing PDF:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to parse PDF. Please ensure it's a readable document.");
     } finally {
       setUploading(false);
     }
@@ -140,15 +140,24 @@ const Portal = () => {
 
   useEffect(() => {
     const load = async () => {
-      console.log("Portal loading settings...");
-      await supabase.from("site_settings").select("*").eq("setting_group", "portal_page").then(({ data }) => {
+      try {
+        console.log("Portal loading settings...");
+        const { data, error } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+        
+        if (error) throw error;
+
         console.log("Portal settings fetched:", data);
         const map: Record<string, string> = {};
         data?.forEach((s) => { map[s.setting_key] = s.setting_value || ""; });
         setSettings(map);
-      });
-      await fetchResources();
-      setLoading(false);
+        
+        await fetchResources();
+      } catch (error) {
+        console.error("Error loading portal data:", error);
+        toast.error("Failed to load some portal content. Please refresh the page.");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [fetchResources, location]);
@@ -164,8 +173,9 @@ const Portal = () => {
       const result = await generateStudyMaterial(aiPrompt, fileContent);
       setAiResult(result || "No content generated.");
       toast.success("Study material generated!");
-    } catch {
-      toast.error("Failed to generate content. Please try again.");
+    } catch (error) {
+      console.error("AI Generation error:", error);
+      toast.error("Failed to generate content. The AI service might be temporarily unavailable.");
     } finally {
       setGenerating(false);
     }
