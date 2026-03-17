@@ -284,7 +284,7 @@ const Index = () => {
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">{announcements.dept_title || "Departmental Notices"}</h3>
                 </div>
-                <Link to="/notices" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+                <Link to="/portal?tab=notices" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
                   View All <ChevronRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -337,7 +337,7 @@ const Index = () => {
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">{announcements.club_title || "Club News"}</h3>
                 </div>
-                <Link to="/news" className="text-xs font-medium text-emerald-600 hover:underline flex items-center gap-1">
+                <Link to="/portal?tab=notices" className="text-xs font-medium text-emerald-600 hover:underline flex items-center gap-1">
                   View All <ChevronRight className="h-3 w-3" />
                 </Link>
               </div>

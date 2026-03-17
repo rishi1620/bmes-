@@ -75,6 +75,8 @@ const App = () => (
                   <Route path="/alumni" element={<Alumni />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/auth" element={<Auth />} />
+                  <Route path="/notices" element={<Navigate to="/portal?tab=notices" replace />} />
+                  <Route path="/news" element={<Navigate to="/portal?tab=notices" replace />} />
                   
                   {/* Protected Admin Routes */}
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />

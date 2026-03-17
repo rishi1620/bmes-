@@ -21,7 +21,6 @@ import {
   Filter,
   Upload,
   Calendar,
-  ChevronRight,
   Users
 } from "lucide-react";
 import { toast } from "sonner";
@@ -505,9 +504,6 @@ const Portal = () => {
                       </div>
                       <CardTitle className="text-2xl font-bold">Departmental Notices</CardTitle>
                     </div>
-                    <Button variant="link" className="text-emerald-500 gap-1 p-0 h-auto font-medium">
-                      View All <ChevronRight className="h-4 w-4" />
-                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {notices.filter((n: Notice) => n.category === "departmental" || !n.category).length > 0 ? (
@@ -538,9 +534,6 @@ const Portal = () => {
                       </div>
                       <CardTitle className="text-2xl font-bold">Club News</CardTitle>
                     </div>
-                    <Button variant="link" className="text-emerald-500 gap-1 p-0 h-auto font-medium">
-                      View All <ChevronRight className="h-4 w-4" />
-                    </Button>
                   </CardHeader>
                   <CardContent className="space-y-6">
                     {notices.filter((n: Notice) => n.category === "club").length > 0 ? (
