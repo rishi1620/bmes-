@@ -1,9 +1,9 @@
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
@@ -58,10 +58,12 @@ const Index = () => {
   });
 
   const { data: siteSettings } = useQuery({
-    queryKey: ["site-settings"],
+    queryKey: ["site-settings-portal"],
     queryFn: async () => {
-      const { data } = await supabase.from("site_settings").select("*").single();
-      return data;
+      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+      const map: Record<string, string> = {};
+      data?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+      return map;
     },
   });
 
