@@ -64,11 +64,6 @@ const Navbar = () => {
             src={logoUrl || defaultLogo}
             alt={siteName}
             className="h-12 w-auto object-contain" />
-          
-          <div className="flex flex-col">
-            <span className="text-sm font-bold leading-tight text-foreground">{siteName}</span>
-            <span className="text-[10px] leading-tight text-muted-foreground"> Biomedical Engineering Society</span>
-          </div>
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">

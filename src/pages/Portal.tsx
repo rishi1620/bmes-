@@ -72,6 +72,16 @@ interface CustomTable {
 const Portal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const location = useLocation();
+  const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const [activeTab, setActiveTab] = useState(queryParams.get("tab") || "library");
+
+  useEffect(() => {
+    const tab = queryParams.get("tab");
+    if (tab && tab !== activeTab) {
+      setActiveTab(tab);
+    }
+  }, [queryParams, activeTab]);
+
   const [, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -175,7 +185,8 @@ const Portal = () => {
       toast.success("Study material generated!");
     } catch (error) {
       console.error("AI Generation error:", error);
-      toast.error("Failed to generate content. The AI service might be temporarily unavailable.");
+      const errorMessage = error instanceof Error ? error.message : "The AI service might be temporarily unavailable.";
+      toast.error(`Failed to generate content: ${errorMessage}`);
     } finally {
       setGenerating(false);
     }
@@ -255,7 +266,7 @@ const Portal = () => {
       </section>
 
       <section className="container -mt-12 pb-24">
-        <Tabs defaultValue="library" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-center">
             <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-800 rounded-2xl">
               <TabsTrigger value="library" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
