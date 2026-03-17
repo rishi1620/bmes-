@@ -4,6 +4,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { Check, X, Trash2, Download } from "lucide-react";
@@ -25,6 +26,7 @@ interface Registration {
 const AdminMembershipRegistrations = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<string>("all");
 
   const fetchRegistrations = async () => {
     setLoading(true);
@@ -146,6 +148,10 @@ const AdminMembershipRegistrations = () => {
     }
   };
 
+  const filteredRegistrations = registrations.filter(reg => 
+    statusFilter === "all" ? true : reg.status === statusFilter
+  );
+
   return (
     <AdminLayout>
       <div className="flex items-center justify-between mb-8">
@@ -153,9 +159,22 @@ const AdminMembershipRegistrations = () => {
           <h1 className="text-3xl font-bold tracking-tight">Membership Applications</h1>
           <p className="text-muted-foreground mt-1">Review and manage student membership requests.</p>
         </div>
-        <Button onClick={exportCSV} variant="outline" className="gap-2">
-          <Download className="h-4 w-4" /> Export CSV
-        </Button>
+        <div className="flex items-center gap-4">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button onClick={exportCSV} variant="outline" className="gap-2">
+            <Download className="h-4 w-4" /> Export CSV
+          </Button>
+        </div>
       </div>
 
       <motion.div 
@@ -179,12 +198,12 @@ const AdminMembershipRegistrations = () => {
               <TableRow>
                 <TableCell colSpan={6} className="h-32 text-center">Loading applications...</TableCell>
               </TableRow>
-            ) : registrations.length === 0 ? (
+            ) : filteredRegistrations.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">No applications found.</TableCell>
               </TableRow>
             ) : (
-              registrations.map((reg) => (
+              filteredRegistrations.map((reg) => (
                 <TableRow key={reg.id}>
                   <TableCell>
                     <div className="flex flex-col">

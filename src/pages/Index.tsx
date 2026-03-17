@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -201,15 +201,26 @@ const Index = () => {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-4 md:grid-cols-4"
           >
-            {(quickLinks.links as Record<string, string>[]).map((link) => (
-              <motion.div key={link.label} variants={itemVariants}>
-                <Button asChild variant="outline" className="h-auto py-4 flex flex-col items-center justify-center gap-2 bg-card hover:bg-primary/5 hover:text-primary transition-colors shadow-sm w-full">
-                  <Link to={link.url}>
-                    <span className="font-semibold">{link.label}</span>
-                  </Link>
-                </Button>
-              </motion.div>
-            ))}
+            {(quickLinks.links as Record<string, string>[]).map((link, idx) => {
+              const Icon = idx === 0 ? Bell : idx === 1 ? Calendar : idx === 2 ? BookOpen : Users;
+              return (
+                <motion.div 
+                  key={link.label} 
+                  variants={itemVariants}
+                  whileHover={{ y: -5 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <Button asChild variant="outline" className="h-auto py-5 flex flex-col items-center justify-center gap-3 bg-card hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-sm w-full group">
+                    <Link to={link.url}>
+                      <div className="rounded-full bg-primary/5 p-2 group-hover:bg-primary/10 transition-colors">
+                        <Icon className="h-5 w-5 text-primary/70 group-hover:text-primary" />
+                      </div>
+                      <span className="font-semibold tracking-tight">{link.label}</span>
+                    </Link>
+                  </Button>
+                </motion.div>
+              );
+            })}
           </motion.div>
         </section>
       )}
@@ -221,53 +232,127 @@ const Index = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="container py-8"
+          className="container py-12"
         >
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <h2 className="text-2xl font-bold tracking-tight">Latest Announcements</h2>
+            </div>
+          </div>
+
           <div className="grid gap-8 md:grid-cols-2">
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                  <BookOpen className="h-5 w-5" />
+            {/* Departmental Notices */}
+            <motion.div 
+              whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+              
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-xl bg-primary/10 p-3 text-primary shadow-inner">
+                    <BookOpen className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight">{announcements.dept_title || "Departmental Notices"}</h3>
                 </div>
-                <h2 className="text-xl font-bold">{announcements.dept_title || "Departmental Notices"}</h2>
+                <Link to="/notices" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+                  View All <ChevronRight className="h-3 w-3" />
+                </Link>
               </div>
-              <div className="space-y-4">
+
+              <div className="space-y-6 relative z-10">
                 {Array.isArray(announcements.dept_notices) && announcements.dept_notices.length > 0 ? (
                   (announcements.dept_notices as Record<string, string>[]).map((notice, i: number) => (
-                    <div key={i} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                      <a href={notice.url || "#"} className="group block">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{notice.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{notice.date}</p>
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group/item"
+                    >
+                      <a href={notice.url || "#"} className="block">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug">
+                              {notice.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {notice.date}
+                            </div>
+                          </div>
+                          <div className="opacity-0 group-hover/item:opacity-100 transition-all transform translate-x-[-10px] group-hover/item:translate-x-0">
+                            <ArrowRight className="h-4 w-4 text-primary" />
+                          </div>
+                        </div>
                       </a>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">No recent departmental notices.</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Bell className="h-8 w-8 opacity-20 mb-2" />
+                    <p className="text-sm italic">No recent departmental notices.</p>
+                  </div>
                 )}
               </div>
-            </div>
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="rounded-lg bg-primary/10 p-2 text-primary">
-                  <Users className="h-5 w-5" />
+            </motion.div>
+
+            {/* Club News */}
+            <motion.div 
+              whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/10 transition-colors" />
+
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-600 shadow-inner">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight">{announcements.club_title || "Club News"}</h3>
                 </div>
-                <h2 className="text-xl font-bold">{announcements.club_title || "Club News"}</h2>
+                <Link to="/news" className="text-xs font-medium text-emerald-600 hover:underline flex items-center gap-1">
+                  View All <ChevronRight className="h-3 w-3" />
+                </Link>
               </div>
-              <div className="space-y-4">
+
+              <div className="space-y-6 relative z-10">
                 {Array.isArray(announcements.club_news) && announcements.club_news.length > 0 ? (
                   (announcements.club_news as Record<string, string>[]).map((news, i: number) => (
-                    <div key={i} className="border-b border-border pb-3 last:border-0 last:pb-0">
-                      <a href={news.url || "#"} className="group block">
-                        <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">{news.title}</h3>
-                        <p className="text-xs text-muted-foreground mt-1">{news.date}</p>
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group/item"
+                    >
+                      <a href={news.url || "#"} className="block">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug">
+                              {news.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {news.date}
+                            </div>
+                          </div>
+                          <div className="opacity-0 group-hover/item:opacity-100 transition-all transform translate-x-[-10px] group-hover/item:translate-x-0">
+                            <ArrowRight className="h-4 w-4 text-emerald-600" />
+                          </div>
+                        </div>
                       </a>
-                    </div>
+                    </motion.div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground italic">No recent club news.</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Bell className="h-8 w-8 opacity-20 mb-2" />
+                    <p className="text-sm italic">No recent club news.</p>
+                  </div>
                 )}
               </div>
-            </div>
+            </motion.div>
           </div>
         </motion.section>
       )}
