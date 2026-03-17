@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import defaultLogo from "@/assets/logo.png";
 
 const Navbar = () => {
@@ -86,20 +87,6 @@ const Navbar = () => {
             </Link>
           )}
           
-          {isAdmin && (
-            <Link
-              to="/admin"
-              className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-colors hover:text-primary ${
-                location.pathname.startsWith("/admin") ? "text-primary" : "text-muted-foreground"
-              }`}
-            >
-              Admin
-              <span className={`absolute inset-x-3 -bottom-1 h-0.5 rounded-full bg-primary transition-transform duration-300 ${
-                location.pathname.startsWith("/admin") ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-              }`} />
-            </Link>
-          )}
-
           {user ? (
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4" />
@@ -113,11 +100,15 @@ const Navbar = () => {
               </Button>
             </Link>
           )}
+          <ThemeToggle />
         </nav>
 
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </Button>
+        <div className="flex items-center gap-2 lg:hidden">
+          <ThemeToggle />
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
       </div>
 
       {mobileOpen &&
@@ -136,18 +127,6 @@ const Navbar = () => {
               </Link>
             )}
           
-          {isAdmin && (
-            <Link
-              to="/admin"
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
-                location.pathname.startsWith("/admin") ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
-              }`}
-            >
-              Admin Dashboard
-            </Link>
-          )}
-
           {user ? (
             <button
               onClick={() => {
