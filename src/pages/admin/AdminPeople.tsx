@@ -46,17 +46,17 @@ const AdminPeople = () => {
       
       <Tabs value={currentTab} onValueChange={setTab} className="w-full">
         <div className="flex justify-start mb-8">
-          <TabsList className="h-auto flex-wrap justify-start gap-2 bg-slate-100 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-200 dark:border-slate-800 rounded-2xl">
-            <TabsTrigger value="faculty" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+          <TabsList className="h-auto flex-wrap justify-start gap-2 bg-slate-200/50 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-300/50 dark:border-slate-800 rounded-2xl">
+            <TabsTrigger value="faculty" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
               Faculty
             </TabsTrigger>
-            <TabsTrigger value="staff" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="staff" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
               Staff
             </TabsTrigger>
-            <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
               BMES EC & Members
             </TabsTrigger>
-            <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
               Advisory
             </TabsTrigger>
           </TabsList>

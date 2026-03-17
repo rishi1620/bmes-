@@ -268,20 +268,20 @@ const Portal = () => {
       <section className="container -mt-12 pb-24">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-center">
-            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-800 rounded-2xl">
-              <TabsTrigger value="library" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-200/50 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-300/50 dark:border-slate-800 rounded-2xl">
+              <TabsTrigger value="library" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <BookOpen className="mr-2 h-4 w-4" /> Library
               </TabsTrigger>
-              <TabsTrigger value="generate" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <TabsTrigger value="generate" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <Sparkles className="mr-2 h-4 w-4" /> AI Assistant
               </TabsTrigger>
-              <TabsTrigger value="notices" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <TabsTrigger value="notices" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <Bell className="mr-2 h-4 w-4" /> Notices
               </TabsTrigger>
-              <TabsTrigger value="software" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <TabsTrigger value="software" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <Download className="mr-2 h-4 w-4" /> Software
               </TabsTrigger>
-              <TabsTrigger value="membership" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white">
+              <TabsTrigger value="membership" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <UserPlus className="mr-2 h-4 w-4" /> Membership
               </TabsTrigger>
             </TabsList>

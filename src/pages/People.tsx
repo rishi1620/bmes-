@@ -109,17 +109,17 @@ const People = () => {
       <section className="container py-16">
         <Tabs defaultValue="faculty" className="w-full">
           <div className="flex justify-center mb-10">
-            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-800 rounded-2xl">
-              <TabsTrigger value="faculty" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+            <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-200/50 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-300/50 dark:border-slate-800 rounded-2xl">
+              <TabsTrigger value="faculty" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <GraduationCap className="h-4 w-4" /> Faculty
               </TabsTrigger>
-              <TabsTrigger value="staff" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="staff" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <Briefcase className="h-4 w-4" /> Staff
               </TabsTrigger>
-              <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <Users className="h-4 w-4" /> BMES EC & Members
               </TabsTrigger>
-              <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <UserCheck className="h-4 w-4" /> Advisory
               </TabsTrigger>
             </TabsList>
