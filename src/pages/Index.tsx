@@ -676,16 +676,28 @@ const Index = () => {
             className="mt-10 grid gap-6 md:grid-cols-3"
           >
             {recentBlogPosts.map((post: Record<string, unknown>) => (
-              <motion.div key={post.id as string} variants={itemVariants} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
-                <div className="mb-2 flex items-center justify-between">
-                  <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{post.category as string}</span>
+              <motion.div key={post.id as string} variants={itemVariants} className="rounded-xl border border-border bg-card overflow-hidden shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
+                {post.featured_image && (
+                  <div className="aspect-video w-full overflow-hidden border-b">
+                    <img 
+                      src={post.featured_image as string} 
+                      alt={post.title as string} 
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+                <div className="p-6 flex flex-col flex-1">
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{post.category as string}</span>
+                  </div>
+                  <h3 className="font-bold text-lg mb-2 line-clamp-1">{post.title as string}</h3>
+                  <p className="text-sm text-primary font-medium mb-3">{format(new Date(post.created_at as string), "PPP")}</p>
+                  <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{post.excerpt as string}</p>
+                  <Button asChild variant="outline" size="sm" className="w-full mt-auto">
+                    <Link to={`/blog/${post.slug}`}>Read More</Link>
+                  </Button>
                 </div>
-                <h3 className="font-bold text-lg mb-2">{post.title as string}</h3>
-                <p className="text-sm text-primary font-medium mb-3">{format(new Date(post.created_at as string), "PPP")}</p>
-                <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-3">{post.excerpt as string}</p>
-                <Button asChild variant="outline" size="sm" className="w-full mt-auto">
-                  <Link to={`/blog/${post.slug}`}>Read More</Link>
-                </Button>
               </motion.div>
             ))}
           </motion.div>

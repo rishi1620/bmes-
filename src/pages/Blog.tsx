@@ -85,17 +85,28 @@ const Blog = () => {
               <motion.article 
                 variants={itemVariants}
                 key={p.id} 
-                className="group rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1 flex flex-col h-full"
+                className="group rounded-xl border border-border bg-card overflow-hidden shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1 flex flex-col h-full"
               >
-                <div>
-                  {p.category && (
-                    <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{p.category}</span>
-                  )}
-                  <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{p.title}</h3>
-                  <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{p.excerpt}</p>
-                </div>
-                
-                <div className="mt-auto pt-4">
+                {p.featured_image && (
+                  <div className="aspect-video w-full overflow-hidden border-b">
+                    <img 
+                      src={p.featured_image} 
+                      alt={p.title} 
+                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                )}
+                <div className="p-6 flex flex-col flex-1">
+                  <div>
+                    {p.category && (
+                      <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{p.category}</span>
+                    )}
+                    <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{p.title}</h3>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2">{p.excerpt}</p>
+                  </div>
+                  
+                  <div className="mt-auto pt-4">
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                     {p.author && <span className="flex items-center gap-1"><User className="h-3.5 w-3.5" />{p.author}</span>}
                     {p.published_at && <span className="flex items-center gap-1"><Clock className="h-3.5 w-3.5" />{format(new Date(p.published_at), "MMM d, yyyy")}</span>}
@@ -111,7 +122,8 @@ const Blog = () => {
                     <Link to={`/blog/${p.slug}`}>Read Article <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
                   </Button>
                 </div>
-              </motion.article>
+              </div>
+            </motion.article>
             ))}
           </motion.div>
         )}

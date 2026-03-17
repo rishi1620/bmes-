@@ -36,6 +36,7 @@ const AdminBlog = () => {
     category: "", tags: "", status: "draft", author: "",
   });
   const [saving, setSaving] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchPosts = async () => {
     const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
@@ -103,16 +104,31 @@ const AdminBlog = () => {
     fetchPosts();
   };
 
+  const filteredPosts = posts.filter(post => 
+    statusFilter === "all" ? true : post.status === statusFilter
+  );
+
   return (
     <AdminLayout>
       <motion.div 
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
+        className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
       >
         <h1 className="text-2xl font-bold text-foreground">Blog Posts</h1>
-        <Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> New Post</Button>
+        <div className="flex items-center gap-3">
+          <select 
+            className="flex h-9 w-32 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">All Status</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+          <Button onClick={openNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> New Post</Button>
+        </div>
       </motion.div>
 
       <motion.div 
@@ -124,6 +140,7 @@ const AdminBlog = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-16">Image</TableHead>
               <TableHead>Title</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Author</TableHead>
@@ -132,11 +149,18 @@ const AdminBlog = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {posts.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="text-center text-muted-foreground py-8">No blog posts yet</TableCell></TableRow>
+            {filteredPosts.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-8">No blog posts found</TableCell></TableRow>
             )}
-            {posts.map((post) => (
+            {filteredPosts.map((post) => (
               <TableRow key={post.id}>
+                <TableCell>
+                  {post.featured_image ? (
+                    <img src={post.featured_image} alt="" className="h-10 w-10 rounded object-cover border" />
+                  ) : (
+                    <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground">No img</div>
+                  )}
+                </TableCell>
                 <TableCell className="max-w-[200px] truncate font-medium">{post.title}</TableCell>
                 <TableCell>{post.category}</TableCell>
                 <TableCell>{post.author}</TableCell>
@@ -186,7 +210,14 @@ const AdminBlog = () => {
             </div>
             <div className="space-y-1.5">
               <Label>Featured Image URL</Label>
-              <Input value={form.featured_image} onChange={(e) => setForm({ ...form, featured_image: e.target.value })} />
+              <div className="flex gap-2">
+                <Input value={form.featured_image} onChange={(e) => setForm({ ...form, featured_image: e.target.value })} placeholder="https://..." className="flex-1" />
+              </div>
+              {form.featured_image && (
+                <div className="mt-2 relative aspect-video w-full overflow-hidden rounded-md border bg-muted">
+                  <img src={form.featured_image} alt="Preview" className="h-full w-full object-cover" />
+                </div>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label>Excerpt</Label>

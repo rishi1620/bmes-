@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2, Clock, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 
@@ -207,21 +207,6 @@ export function MembershipRegistrationForm() {
           checkExistingRegistration();
         }}>
           View Status
-        </Button>
-      </div>
-    );
-  }
-
-  if (!user) {
-    return (
-      <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-slate-200 rounded-2xl">
-        <AlertCircle className="h-12 w-12 text-slate-400 mb-4" />
-        <h3 className="text-xl font-semibold">Authentication Required</h3>
-        <p className="text-muted-foreground mt-2 max-w-xs">
-          Please log in to your account to apply for membership and track your application status.
-        </p>
-        <Button asChild className="mt-6 bg-emerald-500 hover:bg-emerald-600">
-          <Link to="/auth">Log In / Sign Up</Link>
         </Button>
       </div>
     );
