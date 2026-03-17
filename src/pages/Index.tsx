@@ -107,6 +107,7 @@ const Index = () => {
     },
   });
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getSection = (key: string) => (sections?.find((s) => s.section_key === key)?.section_data || {}) as Record<string, any>;
 
   const hero = getSection("hero");
@@ -357,7 +358,7 @@ const Index = () => {
               viewport={{ once: true }}
               className="lg:col-span-8 grid gap-6 md:grid-cols-2"
             >
-              {recentEvents.slice(1, 3).map((event: any) => (
+              {recentEvents.slice(1, 3).map((event: Tables<"events">) => (
                 <motion.div key={event.id} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                   <div className="relative h-48 overflow-hidden">
                     <img 
@@ -671,7 +672,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3"
           >
-            {features.items?.map((f: { title: string; icon: string }) => {
+            {features.items?.map((f: { title: string; icon: string; desc: string }) => {
               const Icon = iconMap[f.icon] || FlaskConical;
               return (
                 <motion.div key={f.title} variants={itemVariants} className="group rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">

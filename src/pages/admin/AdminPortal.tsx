@@ -73,6 +73,7 @@ const AdminPortal = () => {
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const updateJsonArray = (key: string, arr: Record<string, any>[]) => {
     updateSetting(key, JSON.stringify(arr));
   };

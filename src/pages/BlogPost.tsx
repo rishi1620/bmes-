@@ -1,6 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Tables } from "@/integrations/supabase/types";
 import PageLayout from "@/components/layout/PageLayout";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -85,20 +86,20 @@ const BlogPost = () => {
                 <span>{format(new Date(post.published_at), "MMMM d, yyyy")}</span>
               </div>
             )}
-            {post.read_time && (
+            {post.excerpt && (
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                <span>{post.read_time} min read</span>
+                <span>{post.excerpt}</span>
               </div>
             )}
           </div>
           <ShareButtons url={window.location.href} title={post.title} />
         </div>
 
-        {post.image_url && (
+        {post.featured_image && (
           <div className="mb-10 overflow-hidden rounded-2xl border border-border bg-muted">
             <img 
-              src={post.image_url} 
+              src={post.featured_image} 
               alt={post.title} 
               className="w-full object-cover max-h-[500px]"
               referrerPolicy="no-referrer"

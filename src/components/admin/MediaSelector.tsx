@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Image as ImageIcon, FileText, Film, Loader2, Check } from "lucide-react";
+import { FileText, Film, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
@@ -19,7 +19,7 @@ interface MediaSelectorProps {
 const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
   const [files, setFiles] = useState<MediaFile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [uploading, setUploading] = useState(false);
+  const [, setUploading] = useState(false);
   const [search, setSearch] = useState("");
 
   const fetchFiles = async () => {

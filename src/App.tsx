@@ -7,8 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import ScrollToTop from "@/components/shared/ScrollToTop";
-import { CommandPalette } from "@/components/shared/CommandPalette";
-import { CursorBlob } from "@/components/shared/CursorBlob";
 import Index from "./pages/Index";
 import About from "./pages/About";
 import Academics from "./pages/Academics";
@@ -58,8 +56,6 @@ const App = () => (
               <Sonner />
               <BrowserRouter>
                 <ScrollToTop />
-                <CommandPalette />
-                <CursorBlob />
                 <Routes>
                   <Route path="/" element={<Index />} />
                   <Route path="/home" element={<Navigate to="/" replace />} />

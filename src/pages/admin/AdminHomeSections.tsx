@@ -361,6 +361,7 @@ const AdminHomeSections = () => {
           })()}
 
           {(editing?.section_key === "upcoming_events" || editing?.section_key === "recent_achievements" || editing?.section_key === "featured_projects" || editing?.section_key === "recent_blog") && (() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let data: any = { title: "", description: "" };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
 
@@ -386,10 +387,12 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "stats" && (() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let data: any = { items: [] };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             if (!data.items || !Array.isArray(data.items)) data.items = [];
             
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const updateItems = (newItems: any[]) => {
               setJsonText(JSON.stringify({ ...data, items: newItems }, null, 2));
             };
@@ -413,6 +416,7 @@ const AdminHomeSections = () => {
                       updateItems(newItems);
                     }} placeholder="Value (e.g. 150+)" />
                     <Button variant="destructive" size="icon" onClick={() => {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
                       const newItems = data.items.filter((_: any, idx: number) => idx !== i);
                       updateItems(newItems);
                     }}><Trash className="h-4 w-4" /></Button>
@@ -423,6 +427,7 @@ const AdminHomeSections = () => {
           })()}
 
           {editing?.section_key === "features" && (() => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             let data: any = { items: [] };
             try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
             if (!data.items || !Array.isArray(data.items)) data.items = [];
@@ -432,6 +437,7 @@ const AdminHomeSections = () => {
               setJsonText(JSON.stringify(d, null, 2));
             };
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const updateItems = (newItems: any[]) => {
               setJsonText(JSON.stringify({ ...data, items: newItems }, null, 2));
             };
@@ -447,17 +453,18 @@ const AdminHomeSections = () => {
                     <Label>Feature Items</Label>
                     <Button size="sm" onClick={() => updateItems([...data.items, { title: "New Feature", desc: "Description", icon: "FlaskConical" }])}><Plus className="h-4 w-4 mr-1"/> Add Item</Button>
                   </div>
-                  {data.items.map((item: any, i: number) => (
+                  {Array.isArray(data.items) && data.items.map((item: any, i: number) => (
                     <div key={i} className="space-y-2 border p-3 rounded-md relative">
                       <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive hover:bg-destructive/10" onClick={() => {
-                        const newItems = data.items.filter((_: any, idx: number) => idx !== i);
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        const newItems = (data.items as any[]).filter((_: any, idx: number) => idx !== i);
                         updateItems(newItems);
                       }}><Trash className="h-4 w-4" /></Button>
                       
                       <div className="grid grid-cols-2 gap-2 pr-8">
                         <div className="space-y-1">
                           <Label className="text-xs">Title</Label>
-                          <Input value={item.title} onChange={e => {
+                          <Input value={item.title || ""} onChange={e => {
                             const newItems = [...data.items];
                             newItems[i].title = e.target.value;
                             updateItems(newItems);
@@ -465,7 +472,7 @@ const AdminHomeSections = () => {
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs">Icon Key</Label>
-                          <Input value={item.icon} onChange={e => {
+                          <Input value={item.icon || ""} onChange={e => {
                             const newItems = [...data.items];
                             newItems[i].icon = e.target.value;
                             updateItems(newItems);
@@ -474,7 +481,7 @@ const AdminHomeSections = () => {
                       </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Description</Label>
-                        <Textarea value={item.desc} onChange={e => {
+                        <Textarea value={item.desc || ""} onChange={e => {
                           const newItems = [...data.items];
                           newItems[i].desc = e.target.value;
                           updateItems(newItems);
