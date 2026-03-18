@@ -230,20 +230,24 @@ const Index = () => {
             className="grid grid-cols-2 gap-4 md:grid-cols-4"
           >
             {(quickLinks.links as Record<string, string>[]).map((link, idx) => {
-              const Icon = idx === 0 ? Bell : idx === 1 ? Calendar : idx === 2 ? BookOpen : Users;
+              // Map icons and handle direct link for Academic Resources
+              const Icon = idx === 0 ? Bell : idx === 1 ? BookOpen : idx === 2 ? Calendar : Users;
+              const url = idx === 1 ? "/academics" : link.url;
+              const label = idx === 1 ? "Academic Resources" : link.label;
+              
               return (
                 <motion.div 
-                  key={link.label} 
+                  key={label} 
                   variants={itemVariants}
                   whileHover={{ y: -5 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   <Button asChild variant="outline" className="h-auto py-5 flex flex-col items-center justify-center gap-3 bg-card hover:bg-primary/5 hover:text-primary hover:border-primary/30 transition-all shadow-sm w-full group">
-                    <Link to={link.url}>
+                    <Link to={url}>
                       <div className="rounded-full bg-primary/5 p-2 group-hover:bg-primary/10 transition-colors">
                         <Icon className="h-5 w-5 text-primary/70 group-hover:text-primary" />
                       </div>
-                      <span className="font-semibold tracking-tight">{link.label}</span>
+                      <span className="font-semibold tracking-tight">{label}</span>
                     </Link>
                   </Button>
                 </motion.div>
