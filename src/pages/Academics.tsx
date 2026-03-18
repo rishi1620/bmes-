@@ -2,6 +2,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 import { BookOpen, FileText, Calendar, GraduationCap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -56,8 +57,11 @@ const Academics = () => {
               <TabsTrigger value="undergrad" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <GraduationCap className="h-4 w-4" /> B.Sc. Program
               </TabsTrigger>
-              <TabsTrigger value="batches" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
-                <BookOpen className="h-4 w-4" /> Batch-wise Resources
+              <TabsTrigger value="syllabus" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
+                <BookOpen className="h-4 w-4" /> Syllabus
+              </TabsTrigger>
+              <TabsTrigger value="resources" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
+                <FileText className="h-4 w-4" /> Resources
               </TabsTrigger>
               <TabsTrigger value="postgrad" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <GraduationCap className="h-4 w-4" /> Postgrad
@@ -106,48 +110,86 @@ const Academics = () => {
             </motion.div>
           </TabsContent>
 
-          <TabsContent value="batches">
+          <TabsContent value="syllabus">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4 }}
             >
-              <SectionHeading title="Batch-wise Syllabus & Resources" description="Access syllabus and resources for your batch." />
-              <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {[2021, 2022, 2023, 2024, 2025, 2026].map(year => {
-                  if (settings[`academics_batch_${year}_enabled`] !== "true") return null;
-                  const pdfKey = `academics_batch_${year}_syllabus_pdf`;
-                  const resPdfKey = `academics_batch_${year}_resources_pdf`;
-                  const resMediaKey = `academics_batch_${year}_resources_media`;
-                  return (
-                    <Card key={year}>
-                      <CardHeader><CardTitle>Batch {year}</CardTitle></CardHeader>
-                      <CardContent className="flex flex-col gap-2">
-                        {settings[pdfKey] && (
-                          <Button asChild variant="outline" size="sm">
-                            <a href={settings[pdfKey]} target="_blank" rel="noopener noreferrer">
-                              <FileText className="mr-2 h-4 w-4" /> Syllabus PDF
-                            </a>
-                          </Button>
-                        )}
-                        {settings[resPdfKey] && (
-                          <Button asChild variant="outline" size="sm">
-                            <a href={settings[resPdfKey]} target="_blank" rel="noopener noreferrer">
-                              <FileText className="mr-2 h-4 w-4" /> Resource PDF
-                            </a>
-                          </Button>
-                        )}
-                        {settings[resMediaKey] && (
-                          <Button asChild variant="outline" size="sm">
-                            <a href={settings[resMediaKey]} target="_blank" rel="noopener noreferrer">
-                              <BookOpen className="mr-2 h-4 w-4" /> Media
-                            </a>
-                          </Button>
-                        )}
+              <SectionHeading title="Syllabus & Curriculum" description="Term-by-term breakdown of courses." />
+              <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+                {Array.from({ length: 4 }, (_, l) => 
+                  Array.from({ length: 2 }, (_, t) => {
+                    const pdfKey = `academics_syllabus_l${l + 1}t${t + 1}_pdf`;
+                    const mediaKey = `academics_syllabus_l${l + 1}t${t + 1}_media`;
+                    return (
+                      <Card key={`${l}-${t}`}>
+                        <CardHeader><CardTitle className="text-lg">Level {l + 1} Term {t + 1}</CardTitle></CardHeader>
+                        <CardContent className="flex flex-col gap-2">
+                          {settings[pdfKey] && (
+                            <Button asChild variant="outline" size="sm">
+                              <a href={settings[pdfKey]} target="_blank" rel="noopener noreferrer">
+                                <FileText className="mr-2 h-4 w-4" /> Syllabus PDF
+                              </a>
+                            </Button>
+                          )}
+                          {settings[mediaKey] && (
+                            <Button asChild variant="outline" size="sm">
+                              <a href={settings[mediaKey]} target="_blank" rel="noopener noreferrer">
+                                <BookOpen className="mr-2 h-4 w-4" /> Media
+                              </a>
+                            </Button>
+                          )}
+                        </CardContent>
+                      </Card>
+                    );
+                  })
+                ).flat()}
+              </div>
+            </motion.div>
+          </TabsContent>
+
+          <TabsContent value="resources">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <SectionHeading title="Academic Resources" description="Downloadable academic calendar, class routine, and exam schedules." />
+              <div className="mt-10 grid gap-6 md:grid-cols-3">
+                <a href={settings.academics_calendar_url || "#"} target={settings.academics_calendar_url ? "_blank" : "_self"} rel="noopener noreferrer" className="block">
+                  <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                      <CardContent className="flex flex-col items-center p-6 text-center">
+                        <Calendar className="h-10 w-10 text-primary mb-4" />
+                        <h3 className="font-semibold">Academic Calendar</h3>
+                        <p className="text-sm text-muted-foreground mt-2">Current academic year schedule</p>
                       </CardContent>
                     </Card>
-                  );
-                })}
+                  </motion.div>
+                </a>
+                <a href={settings.academics_routine_url || "#"} target={settings.academics_routine_url ? "_blank" : "_self"} rel="noopener noreferrer" className="block">
+                  <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                      <CardContent className="flex flex-col items-center p-6 text-center">
+                        <FileText className="h-10 w-10 text-primary mb-4" />
+                        <h3 className="font-semibold">Class Routine</h3>
+                        <p className="text-sm text-muted-foreground mt-2">Current term schedule</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </a>
+                <a href={settings.academics_exam_url || "#"} target={settings.academics_exam_url ? "_blank" : "_self"} rel="noopener noreferrer" className="block">
+                  <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
+                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+                      <CardContent className="flex flex-col items-center p-6 text-center">
+                        <BookOpen className="h-10 w-10 text-primary mb-4" />
+                        <h3 className="font-semibold">Exam Schedule</h3>
+                        <p className="text-sm text-muted-foreground mt-2">Upcoming examinations</p>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                </a>
               </div>
             </motion.div>
           </TabsContent>

@@ -16,7 +16,7 @@ interface Setting {
   setting_group: string;
 }
 
-const groups: { key: string; label: string; fields: { key: string; label: string; type?: "text" | "textarea" | "file" }[] }[] = [
+const groups: { key: string; label: string; fields: { key: string; label: string; type?: string }[] }[] = [
   {
     key: "academics_hero",
     label: "Hero Section",
@@ -35,15 +35,33 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     ],
   },
   {
-    key: "academics_batches",
-    label: "Batch-wise Syllabus & Resources",
+    key: "academics_syllabus",
+    label: "Syllabus & Curriculum",
     fields: [
-      ...[2021, 2022, 2023, 2024, 2025, 2026].map(year => [
-        { key: `academics_batch_${year}_enabled`, label: `Enable Batch ${year}`, type: "checkbox" as const },
-        { key: `academics_batch_${year}_syllabus_pdf`, label: `Batch ${year} Syllabus PDF`, type: "file" as const },
-        { key: `academics_batch_${year}_resources_pdf`, label: `Batch ${year} Resource PDF`, type: "file" as const },
-        { key: `academics_batch_${year}_resources_media`, label: `Batch ${year} Resource Media`, type: "file" as const },
-      ]).flat(),
+      { key: "academics_syllabus_content", label: "Syllabus Details", type: "textarea" },
+      ...Array.from({ length: 4 }, (_, l) => 
+        Array.from({ length: 2 }, (_, t) => ({
+          key: `academics_syllabus_l${l + 1}t${t + 1}_pdf`,
+          label: `Level ${l + 1} Term ${t + 1} Syllabus PDF`,
+          type: "file" as const
+        }))
+      ).flat(),
+      ...Array.from({ length: 4 }, (_, l) => 
+        Array.from({ length: 2 }, (_, t) => ({
+          key: `academics_syllabus_l${l + 1}t${t + 1}_media`,
+          label: `Level ${l + 1} Term ${t + 1} Media`,
+          type: "file" as const
+        }))
+      ).flat(),
+    ],
+  },
+  {
+    key: "academics_resources",
+    label: "Academic Resources (PDFs/URLs)",
+    fields: [
+      { key: "academics_calendar_url", label: "Academic Calendar PDF/URL", type: "file" },
+      { key: "academics_routine_url", label: "Class Routine PDF/URL", type: "file" },
+      { key: "academics_exam_url", label: "Exam Schedule PDF/URL", type: "file" },
     ],
   },
   {
@@ -172,13 +190,6 @@ const AdminAcademics = () => {
                       className="min-h-[100px]"
                       value={settings[field.key] ?? ""}
                       onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                    />
-                  ) : field.type === "checkbox" ? (
-                    <input
-                      type="checkbox"
-                      checked={settings[field.key] === "true"}
-                      onChange={(e) => setSettings({ ...settings, [field.key]: e.target.checked ? "true" : "false" })}
-                      className="h-5 w-5"
                     />
                   ) : field.type === "file" ? (
                     <div className="flex gap-2">
