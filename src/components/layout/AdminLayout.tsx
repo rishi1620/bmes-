@@ -56,8 +56,8 @@ const linkGroups = [
   }
 ];
 
-const SidebarContent = ({ pathname, signOut, logoUrl }: { pathname: string, signOut: () => void, logoUrl: string }) => (
-  <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+const SidebarContent = ({ pathname, search, signOut, logoUrl }: { pathname: string, search: string, signOut: () => void, logoUrl: string }) => (
+  <div className="flex h-full flex-col bg-transparent text-sidebar-foreground">
     <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
       <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={logoUrl || defaultLogo} />
       <span className="text-lg font-bold tracking-tight">BMES Admin</span>
@@ -70,7 +70,7 @@ const SidebarContent = ({ pathname, signOut, logoUrl }: { pathname: string, sign
           </h4>
           <div className="space-y-1">
             {group.links.map((l) => {
-              const isActive = pathname === l.path || pathname + location.search === l.path;
+              const isActive = pathname === l.path || pathname + search === l.path;
               return (
                 <Link
                   key={l.path}
@@ -160,24 +160,24 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   );
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="flex min-h-screen bg-transparent">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar md:flex fixed inset-y-0 left-0 z-50">
-        <SidebarContent pathname={location.pathname} signOut={signOut} logoUrl={logoUrl} />
+      <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md md:flex fixed inset-y-0 left-0 z-50">
+        <SidebarContent pathname={location.pathname} search={location.search} signOut={signOut} logoUrl={logoUrl} />
       </aside>
 
       {/* Mobile Sidebar */}
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+        <SheetContent side="left" className="p-0 w-64 border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md text-sidebar-foreground">
           <div className="sr-only">
             <SheetTitle>Admin Navigation</SheetTitle>
           </div>
-          <SidebarContent pathname={location.pathname} signOut={signOut} logoUrl={logoUrl} />
+          <SidebarContent pathname={location.pathname} search={location.search} signOut={signOut} logoUrl={logoUrl} />
         </SheetContent>
       </Sheet>
 
       <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/80 px-6 backdrop-blur-sm">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/40 px-6 backdrop-blur-md">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSheetOpen(true)}>
               <Menu className="h-5 w-5" />
@@ -188,6 +188,12 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           </div>
           
           <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="hidden md:flex gap-2" asChild>
+              <Link to="/" target="_blank">
+                <ExternalLink className="h-4 w-4" />
+                View Site
+              </Link>
+            </Button>
             <AdminNotifications />
             <div className="flex items-center gap-2">
               <div className="hidden flex-col items-end text-sm md:flex">

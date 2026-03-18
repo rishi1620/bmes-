@@ -3,10 +3,166 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { BookOpen, FileText, Calendar, GraduationCap } from "lucide-react";
+import { BookOpen, FileText, Calendar, GraduationCap, Download, Image as ImageIcon, Link as LinkIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { useState, useMemo } from "react";
+import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+interface BatchResource {
+  id: string;
+  title: string;
+  category: "calendar" | "routine" | "exam";
+  batch: string;
+  semester?: string;
+  fileUrl: string;
+  fileType: "pdf" | "image" | "link";
+}
+
+const ResourceSection = ({ 
+  title, 
+  icon: Icon, 
+  category, 
+  resources,
+  defaultUrl
+}: { 
+  title: string; 
+  icon: React.ElementType; 
+  category: "calendar" | "routine" | "exam"; 
+  resources: BatchResource[];
+  defaultUrl?: string;
+}) => {
+  const categoryResources = resources.filter(r => r.category === category);
+  
+  // Get unique batches, sorted descending
+  const batches = useMemo(() => {
+    const uniqueBatches = Array.from(new Set(categoryResources.map(r => r.batch)));
+    return uniqueBatches.sort((a, b) => b.localeCompare(a));
+  }, [categoryResources]);
+
+  const [selectedBatch, setSelectedBatch] = useState<string>(batches[0] || "");
+  const [selectedSemesterState, setSelectedSemesterState] = useState<string>("all");
+
+  const availableSemesters = useMemo(() => {
+    const resourcesForBatch = categoryResources.filter(r => r.batch === selectedBatch);
+    const sems = new Set(resourcesForBatch.map(r => r.semester).filter(Boolean) as string[]);
+    return Array.from(sems).sort();
+  }, [categoryResources, selectedBatch]);
+
+  const selectedSemester = availableSemesters.includes(selectedSemesterState) ? selectedSemesterState : "all";
+
+  const filteredResources = categoryResources.filter(r => {
+    const matchBatch = r.batch === selectedBatch;
+    const matchSemester = selectedSemester === "all" ? true : (r.semester === selectedSemester || !r.semester);
+    return matchBatch && matchSemester;
+  });
+
+  const getFileIcon = (type: string) => {
+    switch (type) {
+      case 'image': return <ImageIcon className="h-4 w-4" />;
+      case 'link': return <LinkIcon className="h-4 w-4" />;
+      default: return <FileText className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <Card className="h-full flex flex-col">
+      <CardContent className="flex flex-col items-center p-6 text-center flex-1">
+        <Icon className="h-10 w-10 text-primary mb-4" />
+        <h3 className="font-semibold text-lg">{title}</h3>
+        
+        {batches.length > 0 ? (
+          <div className="w-full mt-6 flex flex-col flex-1">
+            <ScrollArea className="w-full whitespace-nowrap mb-4">
+              <div className="flex w-max space-x-2 p-1 mx-auto">
+                {batches.map(batch => (
+                  <Button
+                    key={batch}
+                    variant={selectedBatch === batch ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedBatch(batch)}
+                    className="rounded-full px-4"
+                  >
+                    {batch}
+                  </Button>
+                ))}
+              </div>
+              <ScrollBar orientation="horizontal" className="invisible" />
+            </ScrollArea>
+
+            {availableSemesters.length > 0 && (
+              <div className="mb-4">
+                <Select value={selectedSemester} onValueChange={setSelectedSemesterState}>
+                  <SelectTrigger className="w-full text-sm h-9">
+                    <SelectValue placeholder="Select Semester" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Semesters</SelectItem>
+                    {availableSemesters.map(sem => (
+                      <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="space-y-3 w-full mt-2 flex-1">
+              {filteredResources.length > 0 ? (
+                filteredResources.map(resource => (
+                  <div key={resource.id} className="flex flex-col gap-3 p-4 border border-border rounded-xl bg-card shadow-sm hover:shadow-md transition-all text-left">
+                    <div className="flex items-start gap-3">
+                      <div className="bg-primary/10 p-2.5 rounded-lg text-primary shrink-0 mt-0.5">
+                        {getFileIcon(resource.fileType)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight">{resource.title}</h4>
+                        {resource.semester && (
+                          <span className="inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                            {resource.semester}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button asChild variant="secondary" size="sm" className="w-full mt-1">
+                      <a href={resource.fileUrl} target="_blank" rel="noopener noreferrer">
+                        <Download className="mr-2 h-3.5 w-3.5" /> 
+                        {resource.fileType === 'link' ? 'Open Link' : 'Download'}
+                      </a>
+                    </Button>
+                  </div>
+                ))
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 px-4 text-center border border-dashed border-border rounded-xl bg-slate-50/50 dark:bg-slate-900/20">
+                  <FileText className="h-8 w-8 text-muted-foreground/50 mb-3" />
+                  <p className="text-sm font-medium text-foreground">No resources found</p>
+                  <p className="text-xs text-muted-foreground mt-1">There are no {title.toLowerCase()} available for this batch.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 flex-1 flex flex-col justify-center items-center w-full">
+            <div className="flex flex-col items-center justify-center py-8 px-4 text-center border border-dashed border-border rounded-xl bg-slate-50/50 dark:bg-slate-900/20 w-full">
+              <FileText className="h-8 w-8 text-muted-foreground/50 mb-3" />
+              <p className="text-sm font-medium text-foreground">No resources found</p>
+              <p className="text-xs text-muted-foreground mt-1 mb-4">There are no {title.toLowerCase()} available yet.</p>
+              
+              {defaultUrl && (
+                <Button asChild variant="outline" size="sm">
+                  <a href={defaultUrl} target="_blank" rel="noopener noreferrer">
+                    View General {title}
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
 
 const Academics = () => {
   const { data: settings = {}, isLoading } = useQuery({
@@ -18,6 +174,16 @@ const Academics = () => {
       return map;
     },
   });
+
+  const batchResources: BatchResource[] = useMemo(() => {
+    if (!settings.academics_batch_resources) return [];
+    try {
+      return JSON.parse(settings.academics_batch_resources);
+    } catch (e) {
+      console.error("Failed to parse batch resources", e);
+      return [];
+    }
+  }, [settings.academics_batch_resources]);
 
   if (isLoading) {
     return (
@@ -156,40 +322,28 @@ const Academics = () => {
               transition={{ duration: 0.4 }}
             >
               <SectionHeading title="Academic Resources" description="Downloadable academic calendar, class routine, and exam schedules." />
-              <div className="mt-10 grid gap-6 md:grid-cols-3">
-                <a href={settings.academics_calendar_url || "#"} target={settings.academics_calendar_url ? "_blank" : "_self"} rel="noopener noreferrer" className="block">
-                  <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                      <CardContent className="flex flex-col items-center p-6 text-center">
-                        <Calendar className="h-10 w-10 text-primary mb-4" />
-                        <h3 className="font-semibold">Academic Calendar</h3>
-                        <p className="text-sm text-muted-foreground mt-2">Current academic year schedule</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </a>
-                <a href={settings.academics_routine_url || "#"} target={settings.academics_routine_url ? "_blank" : "_self"} rel="noopener noreferrer" className="block">
-                  <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                      <CardContent className="flex flex-col items-center p-6 text-center">
-                        <FileText className="h-10 w-10 text-primary mb-4" />
-                        <h3 className="font-semibold">Class Routine</h3>
-                        <p className="text-sm text-muted-foreground mt-2">Current term schedule</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </a>
-                <a href={settings.academics_exam_url || "#"} target={settings.academics_exam_url ? "_blank" : "_self"} rel="noopener noreferrer" className="block">
-                  <motion.div whileHover={{ y: -5 }} transition={{ type: "spring", stiffness: 300 }}>
-                    <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                      <CardContent className="flex flex-col items-center p-6 text-center">
-                        <BookOpen className="h-10 w-10 text-primary mb-4" />
-                        <h3 className="font-semibold">Exam Schedule</h3>
-                        <p className="text-sm text-muted-foreground mt-2">Upcoming examinations</p>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </a>
+              <div className="mt-10 grid gap-6 md:grid-cols-3 items-start">
+                <ResourceSection 
+                  title="Academic Calendar" 
+                  icon={Calendar} 
+                  category="calendar" 
+                  resources={batchResources}
+                  defaultUrl={settings.academics_calendar_url}
+                />
+                <ResourceSection 
+                  title="Class Routine" 
+                  icon={FileText} 
+                  category="routine" 
+                  resources={batchResources}
+                  defaultUrl={settings.academics_routine_url}
+                />
+                <ResourceSection 
+                  title="Exam Schedule" 
+                  icon={BookOpen} 
+                  category="exam" 
+                  resources={batchResources}
+                  defaultUrl={settings.academics_exam_url}
+                />
               </div>
             </motion.div>
           </TabsContent>

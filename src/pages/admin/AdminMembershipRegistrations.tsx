@@ -1,13 +1,15 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Check, X, Trash2, Download } from "lucide-react";
+import { Check, X, Trash2, Download, Search, RefreshCw } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface Registration {
@@ -27,8 +29,10 @@ const AdminMembershipRegistrations = () => {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const fetchRegistrations = async () => {
+  const fetchRegistrations = useCallback(async () => {
     setLoading(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,11 +49,11 @@ const AdminMembershipRegistrations = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchRegistrations();
-  }, []);
+  }, [fetchRegistrations]);
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
     const registration = registrations.find(r => r.id === id);
@@ -94,14 +98,14 @@ const AdminMembershipRegistrations = () => {
     }
   };
 
-  const deleteRegistration = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this registration?")) return;
+  const executeDelete = async () => {
+    if (!deleteId) return;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase as any)
         .from("membership_registrations")
         .delete()
-        .eq("id", id);
+        .eq("id", deleteId);
 
       if (error) throw error;
       toast.success("Registration deleted");
@@ -109,6 +113,8 @@ const AdminMembershipRegistrations = () => {
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       toast.error("Failed to delete: " + (error as any).message);
+    } finally {
+      setDeleteId(null);
     }
   };
 
@@ -148,20 +154,44 @@ const AdminMembershipRegistrations = () => {
     }
   };
 
-  const filteredRegistrations = registrations.filter(reg => 
-    statusFilter === "all" ? true : reg.status === statusFilter
-  );
+  const filteredRegistrations = registrations.filter(reg => {
+    const matchesStatus = statusFilter === "all" ? true : reg.status === statusFilter;
+    const matchesSearch = 
+      reg.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.student_id.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   return (
     <AdminLayout>
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Membership Applications</h1>
           <p className="text-muted-foreground mt-1">Review and manage student membership requests.</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+          <div className="relative flex-1 sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, or ID..."
+              className="pl-9 pr-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute right-1 top-1 h-7 w-7 text-muted-foreground hover:text-foreground"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[140px] sm:w-[180px]">
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
@@ -171,8 +201,12 @@ const AdminMembershipRegistrations = () => {
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
-          <Button onClick={exportCSV} variant="outline" className="gap-2">
+          <Button onClick={exportCSV} variant="outline" className="gap-2 shrink-0">
             <Download className="h-4 w-4" /> Export CSV
+          </Button>
+          <Button variant="outline" onClick={fetchRegistrations} disabled={loading} className="gap-2 shrink-0">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -253,7 +287,7 @@ const AdminMembershipRegistrations = () => {
                         size="icon" 
                         variant="ghost" 
                         className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => deleteRegistration(reg.id)}
+                        onClick={() => setDeleteId(reg.id)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -265,6 +299,23 @@ const AdminMembershipRegistrations = () => {
           </TableBody>
         </Table>
       </motion.div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the membership registration.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

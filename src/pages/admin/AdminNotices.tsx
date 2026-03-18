@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Save, Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Setting {
   id: string;
@@ -27,15 +28,16 @@ const AdminNotices = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
-      const map: Record<string, string> = {};
-      (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
-      setSettings(map);
-    };
-    load();
+  const load = useCallback(async () => {
+    const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+    const map: Record<string, string> = {};
+    (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+    setSettings(map);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -104,14 +106,14 @@ const AdminNotices = () => {
       </div>
 
       <div className="space-y-8">
-        <div className="rounded-lg border border-border bg-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Notices & Announcements</h2>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">Notices & Announcements</CardTitle>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_notices_json", [{ id: Date.now().toString(), title: "New Notice", date: new Date().toISOString().split('T')[0], content: "", category: "departmental" }, ...notices])}>
               <Plus className="mr-1.5 h-4 w-4" /> Add Notice
             </Button>
-          </div>
-          <div className="space-y-4">
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-1.5">
                 <Label>Departmental Notices Title</Label>
@@ -175,8 +177,8 @@ const AdminNotices = () => {
               ))}
               {notices.length === 0 && <p className="text-sm text-muted-foreground">No notices added yet.</p>}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

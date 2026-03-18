@@ -53,7 +53,7 @@ const App = () => (
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
       <TooltipProvider>
         <AuthProvider>
-          <div className="flex min-h-screen w-full flex-col items-center justify-center bg-background text-foreground">
+          <div className="flex min-h-screen w-full flex-col items-center justify-center bg-transparent text-foreground">
             <div className="flex w-full max-w-screen-2xl flex-1 flex-col">
               <Toaster />
               <Sonner />

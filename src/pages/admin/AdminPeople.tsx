@@ -7,7 +7,7 @@ const advisorFields: FieldDef[] = [
   { key: "name", label: "Name", required: true },
   { key: "designation", label: "Designation" },
   { key: "department", label: "Department" },
-  { key: "role_type", label: "Role Type", type: "select", options: ["Advisor", "Moderator", "Faculty"] },
+  { key: "role_type", label: "Role Type", type: "select", options: ["Advisor", "Moderator", "Counselor", "Faculty"] },
   { key: "bio", label: "Bio", type: "textarea" },
   { key: "email", label: "Email" },
   { key: "linkedin", label: "LinkedIn URL" },
@@ -54,7 +54,7 @@ const AdminPeople = () => {
               Staff
             </TabsTrigger>
             <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
-              BMES EC & Members
+              BMES Executive Committee & Members
             </TabsTrigger>
             <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
               Advisory
@@ -93,23 +93,25 @@ const AdminPeople = () => {
         <TabsContent value="ec">
           <AdminCrudTable 
             tableName="members" 
-            title="Executive Committee & Members" 
+            title="BMES Executive Committee & Members" 
+            description="Manage the executive committee and other members."
             addLabel="Add New Member"
             fields={memberFields} 
             columns={["name", "role", "team", "is_active"]} 
             orderBy="display_order"
+            filter={(row) => row.team !== 'Staff'}
           />
         </TabsContent>
         
         <TabsContent value="advisory">
           <AdminCrudTable 
             tableName="advisors" 
-            title="Advisors & Moderators" 
-            addLabel="Add New Advisor"
+            title="Advisors, Moderators & Counselors" 
+            addLabel="Add New"
             fields={advisorFields} 
             columns={["name", "designation", "role_type", "is_active"]} 
             orderBy="display_order"
-            filter={(row) => row.role_type === 'Advisor' || row.role_type === 'Moderator'}
+            filter={(row) => row.role_type === 'Advisor' || row.role_type === 'Moderator' || row.role_type === 'Counselor'}
             defaultValues={{ role_type: 'Advisor' }}
           />
         </TabsContent>

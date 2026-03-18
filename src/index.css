@@ -83,6 +83,21 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    background-attachment: fixed;
+    background-image: 
+      radial-gradient(at 100% 0%, hsla(200, 100%, 27%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(190, 80%, 42%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(160, 80%, 42%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 0% 0%, hsla(220, 80%, 42%, 0.05) 0px, transparent 50%);
+  }
+
+  .dark body {
+    background-image: 
+      radial-gradient(at 100% 0%, hsla(200, 100%, 27%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(190, 80%, 42%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(160, 80%, 42%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 0% 0%, hsla(220, 80%, 42%, 0.12) 0px, transparent 50%);
   }
 
   h1, h2, h3, h4, h5, h6 {

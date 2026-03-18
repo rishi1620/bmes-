@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,16 +31,7 @@ export function MembershipRegistrationForm() {
     transaction_id: "",
   });
 
-  useEffect(() => {
-    if (user) {
-      setFormData(prev => ({ ...prev, email: user.email || "", full_name: user.user_metadata?.full_name || "" }));
-      checkExistingRegistration();
-    } else {
-      setCheckingStatus(false);
-    }
-  }, [user]);
-
-  const checkExistingRegistration = async () => {
+  const checkExistingRegistration = useCallback(async () => {
     if (!user) return;
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,7 +50,16 @@ export function MembershipRegistrationForm() {
     } finally {
       setCheckingStatus(false);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({ ...prev, email: user.email || "", full_name: user.user_metadata?.full_name || "" }));
+      checkExistingRegistration();
+    } else {
+      setCheckingStatus(false);
+    }
+  }, [user, checkExistingRegistration]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

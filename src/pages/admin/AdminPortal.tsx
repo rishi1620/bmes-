@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Save, Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Setting {
   id: string;
@@ -33,15 +34,16 @@ const AdminPortal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
-      const map: Record<string, string> = {};
-      (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
-      setSettings(map);
-    };
-    load();
+  const load = useCallback(async () => {
+    const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+    const map: Record<string, string> = {};
+    (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+    setSettings(map);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -107,13 +109,14 @@ const AdminPortal = () => {
   const resourceSemesters = JSON.parse(settings.portal_resource_semesters_json || "{}");
   const [mediaFiles, setMediaFiles] = useState<{ id: string; name: string }[]>([]);
 
-  useEffect(() => {
-    const fetchMedia = async () => {
-      const { data } = await supabase.storage.from("media").list();
-      if (data) setMediaFiles(data.filter(f => f.name !== ".emptyFolderPlaceholder"));
-    };
-    fetchMedia();
+  const fetchMedia = useCallback(async () => {
+    const { data } = await supabase.storage.from("media").list();
+    if (data) setMediaFiles(data.filter(f => f.name !== ".emptyFolderPlaceholder"));
   }, []);
+
+  useEffect(() => {
+    fetchMedia();
+  }, [fetchMedia]);
 
   const updateResourceSemester = (fileName: string, semester: string) => {
     console.log("Updating semester for", fileName, "to", semester);
@@ -132,9 +135,11 @@ const AdminPortal = () => {
       </div>
 
       <div className="space-y-8">
-        <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Hero Section</h2>
-          <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Hero Section</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label>Title</Label>
               <Input placeholder="Academic Hub" value={settings.portal_hero_title ?? ""} onChange={e => updateSetting("portal_hero_title", e.target.value)} />
@@ -143,17 +148,17 @@ const AdminPortal = () => {
               <Label>Subtitle</Label>
               <Textarea placeholder="Your central destination for lecture notes, software, and AI-powered study assistance." value={settings.portal_hero_subtitle ?? ""} onChange={e => updateSetting("portal_hero_subtitle", e.target.value)} />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-border bg-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Resource Library</h2>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">Resource Library</CardTitle>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_custom_tables_json", [...customTables, { id: Date.now().toString(), title: "New Table", headers: ["Column 1", "Column 2"], rows: [["", ""]] }])}>
               <Plus className="mr-1.5 h-4 w-4" /> Add Custom Table
             </Button>
-          </div>
-          <div className="space-y-6">
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="space-y-1.5">
               <Label>Resource Library Description</Label>
               <Textarea placeholder="Access lecture notes, reference books, and question banks." value={settings.portal_library_content ?? ""} onChange={e => updateSetting("portal_library_content", e.target.value)} />
@@ -163,7 +168,7 @@ const AdminPortal = () => {
               <div className="space-y-4 border-t pt-4">
                 <h3 className="font-medium text-sm text-muted-foreground">Custom Tables</h3>
                 {customTables.map((table: CustomTable, tableIndex: number) => (
-                  <div key={table.id} className="border rounded-md p-4 space-y-4 bg-slate-50 dark:bg-slate-900/50">
+                  <div key={table.id} className="border rounded-md p-4 space-y-4 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm">
                     <div className="flex items-center justify-between">
                       <Input 
                         className="max-w-xs font-semibold" 
@@ -242,19 +247,19 @@ const AdminPortal = () => {
                 ))}
               </div>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-border bg-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-foreground">Software Links</h2>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">Software Links</CardTitle>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_software_json", [...softwareLinks, { title: "New Software", description: "", url: "" }])}>
               <Plus className="mr-1.5 h-4 w-4" /> Add Software
             </Button>
-          </div>
-          <div className="space-y-4">
+          </CardHeader>
+          <CardContent className="space-y-4">
             {softwareLinks.map((item: { title: string; url: string; description: string }, i: number) => (
-              <div key={i} className="flex gap-4 items-start border p-4 rounded-md">
+              <div key={i} className="flex gap-4 items-start border p-4 rounded-md bg-slate-50/30 dark:bg-slate-900/30 backdrop-blur-sm">
                 <div className="grid gap-3 flex-1">
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -277,17 +282,19 @@ const AdminPortal = () => {
               </div>
             ))}
             {softwareLinks.length === 0 && <p className="text-sm text-muted-foreground">No software links added yet.</p>}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Resource Semesters</h2>
-          <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Resource Semesters</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             {mediaFiles.map((file) => (
-              <div key={file.id} className="flex items-center justify-between gap-4 p-3 border rounded-md">
+              <div key={file.id} className="flex items-center justify-between gap-4 p-3 border rounded-md bg-slate-50/30 dark:bg-slate-900/30 backdrop-blur-sm">
                 <span className="text-sm truncate flex-1">{file.name}</span>
                 <select 
-                  className="text-sm border rounded p-1"
+                  className="text-sm border rounded p-1 bg-background/50"
                   value={resourceSemesters[file.name] || "all"}
                   onChange={(e) => updateResourceSemester(file.name, e.target.value)}
                 >
@@ -298,12 +305,14 @@ const AdminPortal = () => {
                 </select>
               </div>
             ))}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Membership Portal</h2>
-          <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Membership Portal</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label>Membership Content</Label>
               <Textarea placeholder="### Why Join CUET BMES?..." className="min-h-[150px]" value={settings.portal_membership_content ?? ""} onChange={e => updateSetting("portal_membership_content", e.target.value)} />
@@ -312,8 +321,8 @@ const AdminPortal = () => {
               <Label>Registration/Renewal Form URL</Label>
               <Input value={settings.portal_membership_url ?? ""} onChange={e => updateSetting("portal_membership_url", e.target.value)} />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
       </div>
     </AdminLayout>

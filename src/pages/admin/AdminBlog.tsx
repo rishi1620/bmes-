@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -38,12 +38,12 @@ const AdminBlog = () => {
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     const { data } = await supabase.from("blog_posts").select("*").order("created_at", { ascending: false });
     setPosts((data as BlogPost[]) ?? []);
-  };
+  }, []);
 
-  useEffect(() => { fetchPosts(); }, []);
+  useEffect(() => { fetchPosts(); }, [fetchPosts]);
 
   const slugify = (text: string) =>
     text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");

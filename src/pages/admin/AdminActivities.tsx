@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Save } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Setting {
   id: string;
@@ -19,15 +20,16 @@ const AdminActivities = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "activities_page");
-      const map: Record<string, string> = {};
-      (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
-      setSettings(map);
-    };
-    load();
+  const load = useCallback(async () => {
+    const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "activities_page");
+    const map: Record<string, string> = {};
+    (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+    setSettings(map);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -72,9 +74,11 @@ const AdminActivities = () => {
       </div>
 
       <div className="space-y-8">
-        <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Hero Section</h2>
-          <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Hero Section</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label>Title</Label>
               <Input value={settings.activities_hero_title ?? ""} onChange={e => updateSetting("activities_hero_title", e.target.value)} />
@@ -83,12 +87,14 @@ const AdminActivities = () => {
               <Label>Subtitle</Label>
               <Textarea value={settings.activities_hero_subtitle ?? ""} onChange={e => updateSetting("activities_hero_subtitle", e.target.value)} />
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="rounded-lg border border-border bg-card p-5">
-          <h2 className="mb-4 text-lg font-semibold text-foreground">Gallery & Publications</h2>
-          <div className="space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Gallery & Publications</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-1.5">
               <Label>Gallery Content Text</Label>
               <Textarea value={settings.activities_gallery_content ?? ""} onChange={e => updateSetting("activities_gallery_content", e.target.value)} />
@@ -101,9 +107,8 @@ const AdminActivities = () => {
               <Label>Magazine/Newsletter PDF URL</Label>
               <Input value={settings.activities_publications_pdf_url ?? ""} onChange={e => updateSetting("activities_publications_pdf_url", e.target.value)} />
             </div>
-          </div>
-        </div>
-
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

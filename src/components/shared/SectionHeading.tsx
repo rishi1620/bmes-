@@ -20,9 +20,9 @@ const SectionHeading = ({ badge, title, description, className = "", align = "ce
           {badge}
         </span>
       )}
-      <h2 className="text-3xl font-bold text-foreground md:text-4xl">{title}</h2>
+      <h2 className="text-3xl font-extrabold tracking-tight text-foreground md:text-5xl">{title}</h2>
       {description && (
-        <p className="mt-4 text-base text-muted-foreground leading-relaxed">{description}</p>
+        <p className="mt-6 text-lg text-muted-foreground leading-relaxed max-w-2xl">{description}</p>
       )}
     </div>
   );

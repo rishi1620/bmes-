@@ -69,7 +69,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-500/10 bg-gradient-to-r from-emerald-50/80 via-background/80 to-teal-50/80 backdrop-blur-xl dark:from-emerald-950/30 dark:via-background/80 dark:to-teal-950/30 shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-emerald-500/10 bg-gradient-to-r from-emerald-50/40 via-background/40 to-teal-50/40 backdrop-blur-xl dark:from-emerald-950/20 dark:via-background/20 dark:to-teal-950/20 shadow-sm">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <img

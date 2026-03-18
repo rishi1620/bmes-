@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square } from "lucide-react";
+import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ const AdminMedia = () => {
   const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
 
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     setLoading(true);
     const { data, error } = await supabase.storage
       .from("media")
@@ -46,11 +46,11 @@ const AdminMedia = () => {
       setFiles((data as MediaFile[]) ?? []);
     }
     setLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     fetchFiles();
-  }, []);
+  }, [fetchFiles]);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setUploading(true);
@@ -69,9 +69,9 @@ const AdminMedia = () => {
     setUploading(false);
     toast({ title: `${successCount} file(s) uploaded` });
     fetchFiles();
-  }, []);
+  }, [fetchFiles]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop, accept: {'image/*': [], 'video/*': [], 'application/pdf': []} });
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ onDrop, accept: {'image/*': [], 'video/*': [], 'application/pdf': []} });
 
   const toggleSelect = (name: string) => {
     const next = new Set(selectedFiles);
@@ -163,12 +163,16 @@ const AdminMedia = () => {
       >
         <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchFiles} disabled={loading || uploading} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
           {selectedFiles.size > 0 && (
             <Button onClick={() => setIsDeleteAllOpen(true)} variant="destructive" size="sm" disabled={uploading}>
               <Trash2 className="mr-1.5 h-4 w-4" /> Delete Selected ({selectedFiles.size})
             </Button>
           )}
-          <Button onClick={() => {}} size="sm" disabled={uploading}>
+          <Button onClick={open} size="sm" disabled={uploading}>
             <Upload className="mr-1.5 h-4 w-4" /> {uploading ? "Uploading…" : "Upload"}
           </Button>
         </div>

@@ -1,44 +1,51 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
-import { Users, Calendar, FolderOpen, Trophy, FileText, Inbox, Image, GraduationCap, UserCheck, Bell, CalendarDays } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Users, Calendar, FolderOpen, Trophy, FileText, Inbox, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw } from "lucide-react";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0 });
+  const [loading, setLoading] = useState(false);
 
-  const load = async () => {
-    const [m, e, p, a, b, s, u, media, adv, alum, reg] = await Promise.all([
-      supabase.from("members").select("id", { count: "exact", head: true }),
-      supabase.from("events").select("id", { count: "exact", head: true }),
-      supabase.from("projects").select("id", { count: "exact", head: true }),
-      supabase.from("achievements").select("id", { count: "exact", head: true }),
-      supabase.from("blog_posts").select("id", { count: "exact", head: true }),
-      supabase.from("contact_submissions").select("id", { count: "exact", head: true }),
-      supabase.from("contact_submissions").select("id", { count: "exact", head: true }).eq("is_read", false),
-      supabase.storage.from("media").list("", { limit: 1000 }),
-      supabase.from("advisors").select("id", { count: "exact", head: true }),
-      supabase.from("alumni").select("id", { count: "exact", head: true }),
-      supabase.from("event_registrations").select("id", { count: "exact", head: true }),
-    ]);
-    setCounts({
-      members: m.count ?? 0,
-      events: e.count ?? 0,
-      projects: p.count ?? 0,
-      achievements: a.count ?? 0,
-      blog: b.count ?? 0,
-      submissions: s.count ?? 0,
-      unread: u.count ?? 0,
-      media: media.data?.filter((f) => f.name !== ".emptyFolderPlaceholder").length ?? 0,
-      advisors: adv.count ?? 0,
-      alumni: alum.count ?? 0,
-      registrations: reg.count ?? 0,
-    });
-  };
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [m, e, p, a, b, s, u, media, adv, alum, reg] = await Promise.all([
+        supabase.from("members").select("id", { count: "exact", head: true }),
+        supabase.from("events").select("id", { count: "exact", head: true }),
+        supabase.from("projects").select("id", { count: "exact", head: true }),
+        supabase.from("achievements").select("id", { count: "exact", head: true }),
+        supabase.from("blog_posts").select("id", { count: "exact", head: true }),
+        supabase.from("contact_submissions").select("id", { count: "exact", head: true }),
+        supabase.from("contact_submissions").select("id", { count: "exact", head: true }).eq("is_read", false),
+        supabase.storage.from("media").list("", { limit: 1000 }),
+        supabase.from("advisors").select("id", { count: "exact", head: true }),
+        supabase.from("alumni").select("id", { count: "exact", head: true }),
+        supabase.from("event_registrations").select("id", { count: "exact", head: true }),
+      ]);
+      setCounts({
+        members: m.count ?? 0,
+        events: e.count ?? 0,
+        projects: p.count ?? 0,
+        achievements: a.count ?? 0,
+        blog: b.count ?? 0,
+        submissions: s.count ?? 0,
+        unread: u.count ?? 0,
+        media: media.data?.filter((f) => f.name !== ".emptyFolderPlaceholder").length ?? 0,
+        advisors: adv.count ?? 0,
+        alumni: alum.count ?? 0,
+        registrations: reg.count ?? 0,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   return (
     <AdminLayout>
@@ -47,6 +54,10 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">Overview of your system statistics and activity.</p>
         </div>
+        <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2">
+          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

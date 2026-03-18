@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Save, RefreshCw, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import { seedData } from "@/utils/seedData";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
@@ -64,16 +65,24 @@ const AdminSettings = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
+  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
       const { data } = await supabase.from("site_settings").select("*");
       const map: Record<string, string> = {};
       (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
       setSettings(map);
-    };
-    load();
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -87,9 +96,8 @@ const AdminSettings = () => {
     setSaving(false);
   };
 
-  const handleSeedData = async () => {
-    if (!confirm("Are you sure you want to delete all existing data and re-seed? This action cannot be undone.")) return;
-    
+  const executeSeedData = async () => {
+    setShowSeedConfirm(false);
     setSeeding(true);
     try {
       const result = await seedData();
@@ -136,7 +144,11 @@ const AdminSettings = () => {
       >
         <h1 className="text-2xl font-bold text-foreground">Site Settings</h1>
         <div className="flex gap-2">
-          <Button onClick={handleSeedData} size="sm" variant="destructive" disabled={seeding}>
+          <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button onClick={() => setShowSeedConfirm(true)} size="sm" variant="destructive" disabled={seeding}>
             <RefreshCw className={`mr-1.5 h-4 w-4 ${seeding ? "animate-spin" : ""}`} /> 
             {seeding ? "Seeding..." : "Reset & Seed Data"}
           </Button>
@@ -184,6 +196,23 @@ const AdminSettings = () => {
           </motion.div>
         ))}
       </motion.div>
+
+      <AlertDialog open={showSeedConfirm} onOpenChange={setShowSeedConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete all existing data and re-seed the database with default values.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeSeedData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Reset & Seed Data
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

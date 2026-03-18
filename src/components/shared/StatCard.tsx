@@ -13,13 +13,13 @@ interface Props {
 
 const StatCard = ({ value, label, icon: Icon, className, to }: Props) => {
   const Content = (
-    <div className={cn("flex flex-col rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md h-full", className)}>
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-muted-foreground">{label}</span>
-        {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+    <div className={cn("flex flex-col rounded-2xl border border-border bg-card/50 backdrop-blur-sm p-6 shadow-sm transition-all hover:shadow-lg hover:border-primary/20 h-full", className)}>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{label}</span>
+        {Icon && <Icon className="h-5 w-5 text-primary" />}
       </div>
-      <div className="mt-2 flex items-baseline gap-2">
-        <span className="text-2xl font-bold text-foreground">{value}</span>
+      <div className="mt-auto">
+        <span className="text-4xl font-extrabold tracking-tight text-foreground">{value}</span>
       </div>
     </div>
   );

@@ -88,7 +88,8 @@ const People = () => {
 
   const faculty = advisors?.filter(p => p.role_type === "Faculty") || [];
   const staff = members?.filter(p => p.team === "Staff") || [];
-  const advisory = advisors?.filter(p => p.role_type === "Advisor" || p.role_type === "Moderator") || [];
+  const ecMembers = members?.filter(p => p.team !== "Staff") || [];
+  const advisory = advisors?.filter(p => p.role_type === "Advisor" || p.role_type === "Moderator" || p.role_type === "Counselor") || [];
 
   const isLoading = isLoadingMembers || isLoadingAdvisors;
 
@@ -117,7 +118,7 @@ const People = () => {
                 <Briefcase className="h-4 w-4" /> Staff
               </TabsTrigger>
               <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
-                <Users className="h-4 w-4" /> BMES EC & Members
+                <Users className="h-4 w-4" /> BMES Executive Committee & Members
               </TabsTrigger>
               <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <UserCheck className="h-4 w-4" /> Advisory
@@ -165,9 +166,9 @@ const People = () => {
               <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-80 rounded-xl" />)}
               </div>
-            ) : members.length > 0 ? (
+            ) : ecMembers.length > 0 ? (
               <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                {members.map((person) => <PersonCard key={person.id} person={person} />)}
+                {ecMembers.map((person) => <PersonCard key={person.id} person={person} />)}
               </div>
             ) : (
               <div className="mt-10 text-center p-12 border rounded-xl bg-muted/20">

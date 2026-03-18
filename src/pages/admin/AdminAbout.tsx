@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 // Force update to resolve Vercel build mismatch
 import { Save, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { motion } from "framer-motion";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Setting {
   id: string;
@@ -100,15 +101,16 @@ const AdminAbout = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    const load = async () => {
-      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "about_page");
-      const map: Record<string, string> = {};
-      (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
-      setSettings(map);
-    };
-    load();
+  const load = useCallback(async () => {
+    const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "about_page");
+    const map: Record<string, string> = {};
+    (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+    setSettings(map);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const handleSave = async () => {
     setSaving(true);
@@ -170,35 +172,39 @@ const AdminAbout = () => {
         className="space-y-8"
       >
         {groups.map((group) => (
-          <motion.div variants={itemVariants} key={group.key} className="rounded-lg border border-border bg-card p-5">
-            <h2 className="mb-4 text-lg font-semibold text-foreground">{group.label}</h2>
-            <div className="space-y-4">
-              {group.fields.map((field) => (
-                <div key={field.key} className="space-y-1.5">
-                  <Label>{field.label}</Label>
-                  <div className="flex gap-2">
-                    {field.type === "textarea" ? (
-                      <Textarea
-                        className="min-h-[100px]"
-                        value={settings[field.key] ?? ""}
-                        onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                      />
-                    ) : (
-                      <Input
-                        value={settings[field.key] ?? ""}
-                        onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
-                      />
-                    )}
-                    {field.key.includes("image") || field.key.includes("url") ? (
-                      <MediaSelectorDialog 
-                        onSelect={(url) => setSettings({ ...settings, [field.key]: url })}
-                        trigger={<Button variant="outline" size="icon" title="Open Media Library"><ImageIcon className="h-4 w-4" /></Button>}
-                      />
-                    ) : null}
+          <motion.div variants={itemVariants} key={group.key}>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{group.label}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {group.fields.map((field) => (
+                  <div key={field.key} className="space-y-1.5">
+                    <Label>{field.label}</Label>
+                    <div className="flex gap-2">
+                      {field.type === "textarea" ? (
+                        <Textarea
+                          className="min-h-[100px]"
+                          value={settings[field.key] ?? ""}
+                          onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
+                        />
+                      ) : (
+                        <Input
+                          value={settings[field.key] ?? ""}
+                          onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
+                        />
+                      )}
+                      {field.key.includes("image") || field.key.includes("url") ? (
+                        <MediaSelectorDialog 
+                          onSelect={(url) => setSettings({ ...settings, [field.key]: url })}
+                          trigger={<Button variant="outline" size="icon" title="Open Media Library"><ImageIcon className="h-4 w-4" /></Button>}
+                        />
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </CardContent>
+            </Card>
           </motion.div>
         ))}
       </motion.div>

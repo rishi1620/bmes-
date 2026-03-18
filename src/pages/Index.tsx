@@ -382,7 +382,7 @@ const Index = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="container py-8 bg-muted/30 rounded-3xl mb-8"
+        className="container py-8 bg-white/40 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/5 rounded-3xl mb-8"
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
@@ -523,7 +523,7 @@ const Index = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="container py-8 bg-muted/30 rounded-3xl mb-8"
+        className="container py-8 bg-white/40 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/5 rounded-3xl mb-8"
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 
@@ -688,7 +688,7 @@ const Index = () => {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="container py-8 bg-muted/30 rounded-3xl mb-8"
+        className="container py-8 bg-white/40 dark:bg-black/20 backdrop-blur-sm border border-white/20 dark:border-white/5 rounded-3xl mb-8"
       >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <SectionHeading 

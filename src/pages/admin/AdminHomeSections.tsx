@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useSearchParams, Link } from "react-router-dom";
-import { Save, Eye, EyeOff, Pencil, Plus, Trash, ArrowUp, ArrowDown, Image as ImageIcon } from "lucide-react";
+import { Save, Eye, EyeOff, Pencil, Plus, Trash, ArrowUp, ArrowDown, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 
@@ -52,14 +53,21 @@ const AdminHomeSections = () => {
   const [saving, setSaving] = useState(false);
   const [addingNew, setAddingNew] = useState(false);
   const [newKey, setNewKey] = useState("");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const load = async () => {
-    const { data } = await supabase.from("home_sections").select("*").order("display_order");
-    const loadedSections = (data as HomeSection[]) ?? [];
-    setSections(loadedSections);
-  };
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await supabase.from("home_sections").select("*").order("display_order");
+      const loadedSections = (data as HomeSection[]) ?? [];
+      setSections(loadedSections);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
     const sectionToOpen = searchParams.get("section");
@@ -111,11 +119,12 @@ const AdminHomeSections = () => {
     setSaving(false);
   };
 
-  const deleteSection = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this section?")) return;
-    const { error } = await supabase.from("home_sections").delete().eq("id", id);
+  const executeDelete = async () => {
+    if (!deleteId) return;
+    const { error } = await supabase.from("home_sections").delete().eq("id", deleteId);
     if (error) toast({ title: "Error", description: error.message, variant: "destructive" });
     else { toast({ title: "Section deleted" }); load(); }
+    setDeleteId(null);
   };
 
   const moveSection = async (index: number, direction: 'up' | 'down') => {
@@ -157,7 +166,13 @@ const AdminHomeSections = () => {
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Home Page Sections</h1>
-        <Button onClick={() => setAddingNew(true)} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add Section</Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
+          </Button>
+          <Button onClick={() => setAddingNew(true)} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add Section</Button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -178,7 +193,7 @@ const AdminHomeSections = () => {
               <Button variant="outline" size="sm" onClick={() => openEdit(s)} title="Edit Section">
                 <Pencil className="h-4 w-4" />
               </Button>
-              <Button variant="outline" size="sm" onClick={() => deleteSection(s.id)} title="Delete Section" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
+              <Button variant="outline" size="sm" onClick={() => setDeleteId(s.id)} title="Delete Section" className="text-destructive hover:bg-destructive hover:text-destructive-foreground">
                 <Trash className="h-4 w-4" />
               </Button>
             </div>
@@ -186,6 +201,23 @@ const AdminHomeSections = () => {
         ))}
         {sections.length === 0 && <p className="text-center text-muted-foreground py-8">No home sections found.</p>}
       </div>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the section from the database.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <Dialog open={addingNew} onOpenChange={setAddingNew}>
         <DialogContent className="sm:max-w-md">
