@@ -1,5 +1,5 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
@@ -18,39 +18,47 @@ const linkGroups = [
     ]
   },
   {
-    title: "Home Page",
+    title: "Site Structure",
     links: [
+      { label: "Pages & Navigation", path: "/admin/pages", icon: Navigation },
       { label: "Home Sections", path: "/admin/home", icon: Home },
-      { label: "Quick Links", path: "/admin/home?section=quick_links", icon: LinkIcon },
-      { label: "Upcoming Events", path: "/admin/home?section=upcoming_events", icon: CalendarDays },
+      { label: "Media Library", path: "/admin/media", icon: Image },
+      { label: "Site Settings", path: "/admin/settings", icon: Settings },
     ]
   },
   {
-    title: "Content",
+    title: "Core Content",
     links: [
-      { label: "Pages / Nav", path: "/admin/pages", icon: Navigation },
       { label: "About Page", path: "/admin/about", icon: FileText },
       { label: "Academics", path: "/admin/academics", icon: GraduationCap },
-      { label: "Activities", path: "/admin/activities", icon: CalendarDays },
       { label: "Portal Page", path: "/admin/portal", icon: FileText },
-      { label: "Notices", path: "/admin/notices", icon: Bell },
-      { label: "People", path: "/admin/people", icon: Users },
-      { label: "Events", path: "/admin/events", icon: Calendar },
-      { label: "Projects", path: "/admin/projects", icon: FolderOpen },
-      { label: "Achievements", path: "/admin/achievements", icon: Trophy },
-      { label: "Blog", path: "/admin/blog", icon: FileText },
-      { label: "Alumni", path: "/admin/alumni", icon: GraduationCap },
+      { label: "Notices & News", path: "/admin/notices", icon: Bell },
       { label: "FAQ", path: "/admin/faq", icon: HelpCircle },
     ]
   },
   {
-    title: "System",
+    title: "Community",
     links: [
-      { label: "Media", path: "/admin/media", icon: Image },
-      { label: "Contact Form", path: "/admin/submissions", icon: Inbox },
+      { label: "People", path: "/admin/people", icon: Users },
+      { label: "Alumni", path: "/admin/alumni", icon: GraduationCap },
+      { label: "Blog Posts", path: "/admin/blog", icon: FileText },
+    ]
+  },
+  {
+    title: "Engagement",
+    links: [
+      { label: "Events", path: "/admin/events", icon: Calendar },
+      { label: "Projects", path: "/admin/projects", icon: FolderOpen },
+      { label: "Achievements", path: "/admin/achievements", icon: Trophy },
+      { label: "Activities", path: "/admin/activities", icon: CalendarDays },
+    ]
+  },
+  {
+    title: "User Data",
+    links: [
+      { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox },
       { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays },
       { label: "Membership Apps", path: "/admin/membership", icon: UserCheck },
-      { label: "Settings", path: "/admin/settings", icon: Settings },
     ]
   }
 ];

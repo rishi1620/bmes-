@@ -1,3 +1,4 @@
+import * as React from "react";
 import { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -5,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
@@ -25,12 +27,14 @@ interface Registration {
   created_at: string;
 }
 
-const AdminMembershipRegistrations = () => {
+function AdminMembershipRegistrations() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [deleteBulk, setDeleteBulk] = useState(false);
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
@@ -163,6 +167,88 @@ const AdminMembershipRegistrations = () => {
     return matchesStatus && matchesSearch;
   });
 
+  const toggleSelectAll = () => {
+    if (selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(filteredRegistrations.map(r => r.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const bulkUpdateStatus = async (status: 'approved' | 'rejected') => {
+    if (selectedIds.length === 0) return;
+
+    setLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from("membership_registrations")
+        .update({ status })
+        .in("id", selectedIds);
+
+      if (error) throw error;
+
+      toast.success(`${selectedIds.length} registrations ${status} successfully`);
+
+      // Send email notifications for each
+      const selectedRegistrations = registrations.filter(r => selectedIds.includes(r.id));
+      
+      // We'll do this in parallel
+      Promise.all(selectedRegistrations.map(async (reg) => {
+        try {
+          await fetch("/api/send-membership-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: reg.email,
+              name: reg.full_name,
+              status: status
+            }),
+          });
+        } catch (e) {
+          console.error(`Failed to send email to ${reg.email}`, e);
+        }
+      }));
+
+      setSelectedIds([]);
+      fetchRegistrations();
+    } catch (error: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error("Failed to update status: " + (error as any).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const executeBulkDelete = async () => {
+    if (selectedIds.length === 0) return;
+    setLoading(true);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase as any)
+        .from("membership_registrations")
+        .delete()
+        .in("id", selectedIds);
+
+      if (error) throw error;
+      toast.success(`${selectedIds.length} registrations deleted`);
+      setSelectedIds([]);
+      fetchRegistrations();
+    } catch (error: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error("Failed to delete: " + (error as any).message);
+    } finally {
+      setLoading(false);
+      setDeleteBulk(false);
+    }
+  };
+
   return (
     <AdminLayout>
       <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:items-center sm:justify-between">
@@ -211,6 +297,50 @@ const AdminMembershipRegistrations = () => {
         </div>
       </div>
 
+      {selectedIds.length > 0 && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-primary/5 border border-primary/20 rounded-lg p-3 mb-4 flex flex-col sm:flex-row items-center justify-between gap-3"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium">{selectedIds.length} items selected</span>
+            <Button variant="ghost" size="sm" onClick={() => setSelectedIds([])} className="h-8 text-xs">
+              Clear selection
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50 gap-1"
+              onClick={() => bulkUpdateStatus('approved')}
+              disabled={loading}
+            >
+              <Check className="h-3.5 w-3.5" /> Approve Selected
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-8 text-red-600 border-red-200 hover:bg-red-50 gap-1"
+              onClick={() => bulkUpdateStatus('rejected')}
+              disabled={loading}
+            >
+              <X className="h-3.5 w-3.5" /> Reject Selected
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="h-8 text-destructive border-destructive/20 hover:bg-destructive/10 gap-1"
+              onClick={() => setDeleteBulk(true)}
+              disabled={loading}
+            >
+              <Trash2 className="h-3.5 w-3.5" /> Delete Selected
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -219,6 +349,12 @@ const AdminMembershipRegistrations = () => {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[40px]">
+                <Checkbox 
+                  checked={selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
               <TableHead>Student Info</TableHead>
               <TableHead>Academic Info</TableHead>
               <TableHead>Payment</TableHead>
@@ -228,17 +364,23 @@ const AdminMembershipRegistrations = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {loading ? (
+            {loading && registrations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center">Loading applications...</TableCell>
+                <TableCell colSpan={7} className="h-32 text-center">Loading applications...</TableCell>
               </TableRow>
             ) : filteredRegistrations.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="h-32 text-center text-muted-foreground">No applications found.</TableCell>
+                <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">No applications found.</TableCell>
               </TableRow>
             ) : (
               filteredRegistrations.map((reg) => (
-                <TableRow key={reg.id}>
+                <TableRow key={reg.id} className={selectedIds.includes(reg.id) ? "bg-primary/5" : ""}>
+                  <TableCell>
+                    <Checkbox 
+                      checked={selectedIds.includes(reg.id)}
+                      onCheckedChange={() => toggleSelect(reg.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex flex-col">
                       <span className="font-medium">{reg.full_name}</span>
@@ -312,6 +454,23 @@ const AdminMembershipRegistrations = () => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={executeDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={deleteBulk} onOpenChange={setDeleteBulk}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete {selectedIds.length} registrations?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete all selected membership registrations.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete All
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

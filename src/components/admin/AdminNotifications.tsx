@@ -23,6 +23,24 @@ interface NotificationItem {
   isRead: boolean;
 }
 
+interface EventRegistration {
+  id: string;
+  name?: string;
+  full_name?: string;
+  email: string;
+  created_at: string;
+  events?: {
+    title: string;
+  };
+}
+
+interface MembershipRegistration {
+  id: string;
+  full_name: string;
+  email: string;
+  created_at: string;
+}
+
 const AdminNotifications = () => {
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -30,9 +48,9 @@ const AdminNotifications = () => {
   const fetchNotifications = async () => {
     try {
       // Fetch unread contact submissions
-      const { data: submissions } = await supabase
+      const { data: submissions, count: subCount } = await supabase
         .from("contact_submissions")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("is_read", false)
         .order("created_at", { ascending: false })
         .limit(5);
@@ -41,18 +59,18 @@ const AdminNotifications = () => {
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      const { data: registrations } = await supabase
+      const { data: registrations, count: regCount } = await supabase
         .from("event_registrations")
-        .select("*, events(title)")
+        .select("*, events(title)", { count: 'exact' })
         .gte("created_at", sevenDaysAgo.toISOString())
         .order("created_at", { ascending: false })
         .limit(5);
 
       // Fetch recent membership registrations (last 7 days)
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: memberships } = await (supabase as any)
+      const { data: memberships, count: memCount } = await (supabase as any)
         .from("membership_registrations")
-        .select("*")
+        .select("*", { count: 'exact' })
         .eq("status", "pending")
         .gte("created_at", sevenDaysAgo.toISOString())
         .order("created_at", { ascending: false })
@@ -75,13 +93,13 @@ const AdminNotifications = () => {
       }
 
       if (registrations) {
-        registrations.forEach((reg: Record<string, unknown>) => {
+        (registrations as unknown as EventRegistration[]).forEach((reg) => {
           items.push({
-            id: `reg-${reg.id as string}`,
+            id: `reg-${reg.id}`,
             type: "registration",
             title: "New Event Registration",
-            description: `${reg.name as string} registered for ${(reg.events as Record<string, string>)?.title || "an event"}`,
-            date: reg.created_at as string,
+            description: `${reg.name || reg.full_name} registered for ${reg.events?.title || "an event"}`,
+            date: reg.created_at,
             link: "/admin/registrations",
             isRead: false,
           });
@@ -89,13 +107,13 @@ const AdminNotifications = () => {
       }
 
       if (memberships) {
-        memberships.forEach((mem: Record<string, unknown>) => {
+        (memberships as unknown as MembershipRegistration[]).forEach((mem) => {
           items.push({
-            id: `mem-${mem.id as string}`,
+            id: `mem-${mem.id}`,
             type: "membership",
             title: "New Membership Application",
-            description: `From ${mem.full_name as string} (${mem.email as string})`,
-            date: mem.created_at as string,
+            description: `From ${mem.full_name} (${mem.email})`,
+            date: mem.created_at,
             link: "/admin/membership",
             isRead: false,
           });
@@ -105,8 +123,8 @@ const AdminNotifications = () => {
       // Sort by date descending
       items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
       
-      setNotifications(items.slice(0, 10)); // Keep top 10
-      setUnreadCount(items.length);
+      setNotifications(items.slice(0, 10)); // Keep top 10 in dropdown
+      setUnreadCount((subCount || 0) + (regCount || 0) + (memCount || 0));
     } catch (error) {
       console.error("Error fetching notifications:", error);
     }
@@ -115,17 +133,17 @@ const AdminNotifications = () => {
   useEffect(() => {
     fetchNotifications();
     
-    // Optional: Set up real-time subscriptions if needed
+    // Set up real-time subscriptions for both INSERT and UPDATE
     const subChannel = supabase.channel('submissions-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'contact_submissions' }, fetchNotifications)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contact_submissions' }, fetchNotifications)
       .subscribe();
       
     const regChannel = supabase.channel('registrations-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_registrations' }, fetchNotifications)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'event_registrations' }, fetchNotifications)
       .subscribe();
 
     const memChannel = supabase.channel('membership-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'membership_registrations' }, fetchNotifications)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'membership_registrations' }, fetchNotifications)
       .subscribe();
 
     return () => {

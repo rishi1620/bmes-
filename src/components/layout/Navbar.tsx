@@ -45,7 +45,6 @@ const Navbar = () => {
     { label: "Research", path: "/research" },
     { label: "Activities", path: "/activities" },
     { label: "Portal", path: "/portal" },
-    { label: "Notices", path: "/notices" },
     { label: "Achievements", path: "/achievements" },
     { label: "Blog", path: "/blog" },
     { label: "Alumni", path: "/alumni" },
@@ -54,15 +53,6 @@ const Navbar = () => {
 
   const navLinks = pages?.length ? pages.map((p) => ({ label: p.page_name, path: p.slug })) : baseLinks;
   
-  // Ensure Notices is in the 8th position if it exists
-  const noticesIndex = navLinks.findIndex(link => link.label === "Notices");
-  if (noticesIndex !== -1) {
-    const noticesLink = navLinks.splice(noticesIndex, 1)[0];
-    navLinks.splice(7, 0, noticesLink);
-  } else {
-    navLinks.splice(7, 0, { label: "Notices", path: "/notices" });
-  }
-
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
