@@ -42,8 +42,6 @@ import AdminAbout from "./pages/admin/AdminAbout";
 import AdminAcademics from "./pages/admin/AdminAcademics";
 import AdminActivities from "./pages/admin/AdminActivities";
 import AdminPortal from "./pages/admin/AdminPortal";
-import Notices from "./pages/Notices";
-import AdminNotices from "./pages/admin/AdminNotices";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -69,7 +67,6 @@ const App = () => (
                   <Route path="/research" element={<Research />} />
                   <Route path="/activities" element={<Activities />} />
                   <Route path="/portal" element={<Portal />} />
-                  <Route path="/notices" element={<Notices />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/events" element={<Events />} />
                   <Route path="/blog" element={<Blog />} />
@@ -78,7 +75,6 @@ const App = () => (
                   <Route path="/alumni" element={<Alumni />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/auth" element={<Auth />} />
-                  <Route path="/news" element={<Navigate to="/notices" replace />} />
                   
                   {/* Protected Admin Routes */}
                   <Route path="/admin" element={<ProtectedRoute requireAdmin><AdminDashboard /></ProtectedRoute>} />
@@ -87,7 +83,6 @@ const App = () => (
                   <Route path="/admin/academics" element={<ProtectedRoute requireAdmin><AdminAcademics /></ProtectedRoute>} />
                   <Route path="/admin/activities" element={<ProtectedRoute requireAdmin><AdminActivities /></ProtectedRoute>} />
                   <Route path="/admin/portal" element={<ProtectedRoute requireAdmin><AdminPortal /></ProtectedRoute>} />
-                  <Route path="/admin/notices" element={<ProtectedRoute requireAdmin><AdminNotices /></ProtectedRoute>} />
                   <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminPages /></ProtectedRoute>} />
                   <Route path="/admin/people" element={<ProtectedRoute requireAdmin><AdminPeople /></ProtectedRoute>} />
                   <Route path="/admin/events" element={<ProtectedRoute requireAdmin><AdminEvents /></ProtectedRoute>} />
