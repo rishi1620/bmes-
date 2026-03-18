@@ -42,6 +42,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const handleAuthError = async (error: unknown) => {
+    console.error("Auth error:", error);
+    if (error instanceof Error && (
+        error.message?.includes("Refresh Token Not Found") || 
+        error.message?.includes("refresh_token_not_found") ||
+        error.message?.includes("invalid_refresh_token"))) {
+      await supabase.auth.signOut();
+      localStorage.clear();
+      window.location.reload();
+    }
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
@@ -56,11 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
-        console.error("Error getting session:", error);
-        // Handle invalid refresh token by clearing the session
-        if (error.message?.includes("Refresh Token Not Found") || error.message?.includes("refresh_token_not_found")) {
-          supabase.auth.signOut();
-        }
+        handleAuthError(error);
       }
       setSession(session);
       setUser(session?.user ?? null);
@@ -69,11 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       setLoading(false);
     }).catch((error) => {
-      console.error("Failed to fetch session:", error);
-      // If it's a refresh token error, try to sign out
-      if (error.message?.includes("Refresh Token Not Found") || error.message?.includes("refresh_token_not_found")) {
-        supabase.auth.signOut();
-      }
+      handleAuthError(error);
       setLoading(false);
     });
 

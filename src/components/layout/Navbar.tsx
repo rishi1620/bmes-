@@ -37,19 +37,26 @@ const Navbar = () => {
   const logoUrl = siteSettings?.logo_url || "";
   const siteName = siteSettings?.site_title || "CUET BMES";
 
-  const navLinks = pages?.length ? pages.map((p) => ({ label: p.page_name, path: p.slug })) : [
+  const baseLinks = [
     { label: "Home", path: "/" },
     { label: "About", path: "/about" },
     { label: "Academics", path: "/academics" },
     { label: "People", path: "/people" },
     { label: "Research", path: "/research" },
     { label: "Activities", path: "/activities" },
+    { label: "Notices", path: "/notices" },
     { label: "Achievements", path: "/achievements" },
     { label: "Blog", path: "/blog" },
     { label: "Portal", path: "/portal" },
     { label: "Alumni", path: "/alumni" },
     { label: "Contact", path: "/contact" }
   ];
+
+  const navLinks = pages?.length ? pages.map((p) => ({ label: p.page_name, path: p.slug })) : baseLinks;
+  
+  if (!navLinks.some(link => link.label === "Notices")) {
+    navLinks.push({ label: "Notices", path: "/notices" });
+  }
 
   const handleSignOut = async () => {
     await signOut();
@@ -67,20 +74,31 @@ const Navbar = () => {
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {navLinks.map((link) =>
-            <Link
-              key={link.path}
-              to={link.path}
-              className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-primary hover:bg-emerald-500/5 dark:hover:bg-emerald-400/5 ${
-                location.pathname === link.path ? "text-primary bg-emerald-500/5 dark:bg-emerald-400/5" : "text-muted-foreground"
-              }`}
-            >
-              {link.label}
-              <span className={`absolute inset-x-3 -bottom-1 h-0.5 rounded-full bg-primary transition-transform duration-300 ${
-                location.pathname === link.path ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
-              }`} />
-            </Link>
-          )}
+          {navLinks.map((link) => {
+            if (link.label === "Notices") {
+              return (
+                <Link key={link.path} to={link.path}>
+                  <Button variant="default" size="sm" className="ml-2 gap-2 bg-emerald-600 hover:bg-emerald-700">
+                    Notices
+                  </Button>
+                </Link>
+              );
+            }
+            return (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-primary hover:bg-emerald-500/5 dark:hover:bg-emerald-400/5 ${
+                  location.pathname === link.path ? "text-primary bg-emerald-500/5 dark:bg-emerald-400/5" : "text-muted-foreground"
+                }`}
+              >
+                {link.label}
+                <span className={`absolute inset-x-3 -bottom-1 h-0.5 rounded-full bg-primary transition-transform duration-300 ${
+                  location.pathname === link.path ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+                }`} />
+              </Link>
+            );
+          })}
           
           {user ? (
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">

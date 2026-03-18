@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
-  Bell, 
   BookOpen, 
   Download, 
   UserPlus, 
@@ -19,9 +18,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Filter,
-  Upload,
-  Calendar,
-  Users
+  Upload
 } from "lucide-react";
 import { toast } from "sonner";
 import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
@@ -40,14 +37,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-
 import { motion } from "framer-motion";
 
 interface Resource {
@@ -57,13 +46,6 @@ interface Resource {
   file_type: string;
   file_size: number;
   created_at: string;
-}
-
-interface Notice {
-  title: string;
-  content: string;
-  date: string;
-  category?: "departmental" | "club";
 }
 
 interface SoftwareLink {
@@ -218,14 +200,6 @@ const Portal = () => {
     }
   }, [settings.portal_custom_tables_json]);
 
-  const notices = (() => {
-    try {
-      return JSON.parse(settings.portal_notices_json || "[]");
-    } catch {
-      return [];
-    }
-  })();
-
   const resourceSemesters = useMemo(() => {
     try {
       console.log("Portal settings:", settings);
@@ -282,9 +256,6 @@ const Portal = () => {
               </TabsTrigger>
               <TabsTrigger value="generate" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <Sparkles className="mr-2 h-4 w-4" /> AI Assistant
-              </TabsTrigger>
-              <TabsTrigger value="notices" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
-                <Bell className="mr-2 h-4 w-4" /> Notices
               </TabsTrigger>
               <TabsTrigger value="software" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <Download className="mr-2 h-4 w-4" /> Software
@@ -495,104 +466,6 @@ const Portal = () => {
                     </CardContent>
                   </Card>
                 )}
-              </div>
-            </TabsContent>
-
-            <TabsContent value="notices">
-              <SectionHeading title="Latest Announcements" description={settings.portal_notices_content || "Stay updated with the latest departmental and club news."} />
-              
-              <div className="mt-10 grid gap-8 md:grid-cols-2">
-                {/* Departmental Notices */}
-                <Card className="overflow-hidden border-border bg-card shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-                    <div className="flex items-center gap-4">
-                      <div className="rounded-xl bg-slate-100 dark:bg-slate-800 p-3 text-slate-900 dark:text-slate-100">
-                        <BookOpen className="h-6 w-6" />
-                      </div>
-                      <CardTitle className="text-2xl font-bold">{settings.portal_dept_notices_title || "Departmental Notices"}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {notices.filter((n: Notice) => n.category === "departmental" || !n.category).length > 0 ? (
-                      notices
-                        .filter((n: Notice) => n.category === "departmental" || !n.category)
-                        .slice(0, 5)
-                        .map((notice: Notice, i: number) => (
-                          <Dialog key={i}>
-                            <DialogTrigger asChild>
-                              <div className="group cursor-pointer border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                                <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
-                                <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                                  <Calendar className="h-3.5 w-3.5" />
-                                  <span className="text-sm">{notice.date}</span>
-                                </div>
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold text-emerald-600">{notice.title}</DialogTitle>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                                  <Calendar className="h-4 w-4" />
-                                  {notice.date}
-                                </div>
-                              </DialogHeader>
-                              <div className="mt-6 prose dark:prose-invert max-w-none">
-                                <Markdown>{notice.content}</Markdown>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm italic">No departmental notices found.</p>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Club News */}
-                <Card className="overflow-hidden border-border bg-card shadow-sm">
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
-                    <div className="flex items-center gap-4">
-                      <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-emerald-600 dark:text-emerald-400">
-                        <Users className="h-6 w-6" />
-                      </div>
-                      <CardTitle className="text-2xl font-bold">{settings.portal_club_news_title || "Club News"}</CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {notices.filter((n: Notice) => n.category === "club").length > 0 ? (
-                      notices
-                        .filter((n: Notice) => n.category === "club")
-                        .slice(0, 5)
-                        .map((notice: Notice, i: number) => (
-                          <Dialog key={i}>
-                            <DialogTrigger asChild>
-                              <div className="group cursor-pointer border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                                <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
-                                <div className="flex items-center gap-2 mt-1 text-muted-foreground">
-                                  <Calendar className="h-3.5 w-3.5" />
-                                  <span className="text-sm">{notice.date}</span>
-                                </div>
-                              </div>
-                            </DialogTrigger>
-                            <DialogContent className="sm:max-w-xl">
-                              <DialogHeader>
-                                <DialogTitle className="text-2xl font-bold text-emerald-600">{notice.title}</DialogTitle>
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                                  <Calendar className="h-4 w-4" />
-                                  {notice.date}
-                                </div>
-                              </DialogHeader>
-                              <div className="mt-6 prose dark:prose-invert max-w-none">
-                                <Markdown>{notice.content}</Markdown>
-                              </div>
-                            </DialogContent>
-                          </Dialog>
-                        ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm italic">No club news found.</p>
-                    )}
-                  </CardContent>
-                </Card>
               </div>
             </TabsContent>
 
