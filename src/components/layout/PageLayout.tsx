@@ -6,7 +6,7 @@ const PageLayout = ({ children }: { children: React.ReactNode }) => (
   <div className="flex min-h-screen flex-col">
     <Navbar />
     <motion.main 
-      className="flex-1"
+      className="flex-1 page-gradient"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}

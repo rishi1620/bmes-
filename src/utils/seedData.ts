@@ -147,6 +147,18 @@ export const seedData = async () => {
       { setting_key: "about_constitution_desc", setting_value: "The constitution outlines the rules and regulations governing our society.", setting_group: "about_page" },
       { setting_key: "about_constitution_btn_text", setting_value: "Download Constitution", setting_group: "about_page" },
       { setting_key: "about_constitution_pdf_url", setting_value: media?.find(m => m.file_name === "sample-pdf.pdf")?.file_url, setting_group: "about_page" },
+      
+      // Portal Notices
+      { 
+        setting_key: "portal_notices_json", 
+        setting_value: JSON.stringify([
+          { id: "1", title: "Fall 2024 Semester Registration", date: "2024-08-15", category: "departmental", content: "Registration for the upcoming semester will begin on August 15th." },
+          { id: "2", title: "New Lab Equipment Arrival", date: "2024-08-10", category: "departmental", content: "We have received new equipment for the Biomedical Lab." },
+          { id: "3", title: "Executive Committee Selection", date: "2024-08-20", category: "club", content: "The selection process for the new executive committee is underway." },
+          { id: "4", title: "Annual Picnic Registration", date: "2024-08-18", category: "club", content: "Registration for the annual picnic is now open." }
+        ]), 
+        setting_group: "portal_page" 
+      },
     ];
     const { error: settingsError } = await supabase.from("site_settings").insert(siteSettingsData);
     if (settingsError) throw settingsError;

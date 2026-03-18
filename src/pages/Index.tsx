@@ -258,26 +258,26 @@ const Index = () => {
       )}
 
       {/* Latest Announcements */}
-      {announcements && (
+      {sections && (
         <motion.section 
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="container py-12"
+          className="container py-8"
         >
-          <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
               <h2 className="text-2xl font-bold tracking-tight">Latest Announcements</h2>
             </div>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2">
             {/* Departmental Notices */}
             <motion.div 
               whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-              className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 relative overflow-hidden"
+              className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
               
@@ -330,7 +330,7 @@ const Index = () => {
             {/* Club News */}
             <motion.div 
               whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
-              className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 relative overflow-hidden"
+              className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 relative overflow-hidden"
             >
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/10 transition-colors" />
 
