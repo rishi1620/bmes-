@@ -44,18 +44,23 @@ const Navbar = () => {
     { label: "People", path: "/people" },
     { label: "Research", path: "/research" },
     { label: "Activities", path: "/activities" },
+    { label: "Portal", path: "/portal" },
     { label: "Notices", path: "/notices" },
     { label: "Achievements", path: "/achievements" },
     { label: "Blog", path: "/blog" },
-    { label: "Portal", path: "/portal" },
     { label: "Alumni", path: "/alumni" },
     { label: "Contact", path: "/contact" }
   ];
 
   const navLinks = pages?.length ? pages.map((p) => ({ label: p.page_name, path: p.slug })) : baseLinks;
   
-  if (!navLinks.some(link => link.label === "Notices")) {
-    navLinks.push({ label: "Notices", path: "/notices" });
+  // Ensure Notices is in the 8th position if it exists
+  const noticesIndex = navLinks.findIndex(link => link.label === "Notices");
+  if (noticesIndex !== -1) {
+    const noticesLink = navLinks.splice(noticesIndex, 1)[0];
+    navLinks.splice(7, 0, noticesLink);
+  } else {
+    navLinks.splice(7, 0, { label: "Notices", path: "/notices" });
   }
 
   const handleSignOut = async () => {
@@ -74,17 +79,7 @@ const Navbar = () => {
         </Link>
 
         <nav className="hidden items-center gap-1 lg:flex">
-          {navLinks.map((link) => {
-            if (link.label === "Notices") {
-              return (
-                <Link key={link.path} to={link.path}>
-                  <Button variant="default" size="sm" className="ml-2 gap-2 bg-emerald-600 hover:bg-emerald-700">
-                    Notices
-                  </Button>
-                </Link>
-              );
-            }
-            return (
+          {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -97,8 +92,7 @@ const Navbar = () => {
                   location.pathname === link.path ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
                 }`} />
               </Link>
-            );
-          })}
+          ))}
           
           {user ? (
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
