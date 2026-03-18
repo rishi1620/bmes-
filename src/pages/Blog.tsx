@@ -103,7 +103,10 @@ const Blog = () => {
                       <span className="mb-3 inline-block rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{p.category}</span>
                     )}
                     <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{p.title}</h3>
-                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2">{p.excerpt}</p>
+                    <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2">
+                      {p.excerpt}
+                      <Link to={`/blog/${p.slug}`} className="text-primary font-semibold ml-1 hover:underline">Read More</Link>
+                    </p>
                   </div>
                   
                   <div className="mt-auto pt-4">

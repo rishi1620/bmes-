@@ -35,20 +35,15 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     ],
   },
   {
-    key: "academics_syllabus",
-    label: "Syllabus & Curriculum",
+    key: "academics_batches",
+    label: "Batch-wise Syllabus & Resources",
     fields: [
-      { key: "academics_syllabus_content", label: "Syllabus Details", type: "textarea" },
-      { key: "academics_syllabus_pdf_url", label: "Syllabus PDF URL", type: "file" },
-    ],
-  },
-  {
-    key: "academics_resources",
-    label: "Academic Resources (PDFs/URLs)",
-    fields: [
-      { key: "academics_calendar_url", label: "Academic Calendar PDF/URL", type: "file" },
-      { key: "academics_routine_url", label: "Class Routine PDF/URL", type: "file" },
-      { key: "academics_exam_url", label: "Exam Schedule PDF/URL", type: "file" },
+      ...[2021, 2022, 2023, 2024, 2025, 2026].map(year => [
+        { key: `academics_batch_${year}_enabled`, label: `Enable Batch ${year}`, type: "checkbox" as const },
+        { key: `academics_batch_${year}_syllabus_pdf`, label: `Batch ${year} Syllabus PDF`, type: "file" as const },
+        { key: `academics_batch_${year}_resources_pdf`, label: `Batch ${year} Resource PDF`, type: "file" as const },
+        { key: `academics_batch_${year}_resources_media`, label: `Batch ${year} Resource Media`, type: "file" as const },
+      ]).flat(),
     ],
   },
   {
@@ -178,6 +173,13 @@ const AdminAcademics = () => {
                       value={settings[field.key] ?? ""}
                       onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                     />
+                  ) : field.type === "checkbox" ? (
+                    <input
+                      type="checkbox"
+                      checked={settings[field.key] === "true"}
+                      onChange={(e) => setSettings({ ...settings, [field.key]: e.target.checked ? "true" : "false" })}
+                      className="h-5 w-5"
+                    />
                   ) : field.type === "file" ? (
                     <div className="flex gap-2">
                       <Input
@@ -188,7 +190,7 @@ const AdminAcademics = () => {
                       />
                       <input
                         type="file"
-                        accept="application/pdf"
+                        accept="application/pdf,image/*,video/*"
                         className="hidden"
                         ref={(el) => fileInputRefs.current[field.key] = el}
                         onChange={(e) => handleFileUpload(e, field.key)}
