@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Bell, Inbox, CalendarDays } from "lucide-react";
+import { Bell, Inbox, CalendarDays, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +15,7 @@ import { formatDistanceToNow } from "date-fns";
 
 interface NotificationItem {
   id: string;
-  type: "submission" | "registration";
+  type: "submission" | "registration" | "membership";
   title: string;
   description: string;
   date: string;
@@ -48,6 +48,16 @@ const AdminNotifications = () => {
         .order("created_at", { ascending: false })
         .limit(5);
 
+      // Fetch recent membership registrations (last 7 days)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: memberships } = await (supabase as any)
+        .from("membership_registrations")
+        .select("*")
+        .eq("status", "pending")
+        .gte("created_at", sevenDaysAgo.toISOString())
+        .order("created_at", { ascending: false })
+        .limit(5);
+
       const items: NotificationItem[] = [];
 
       if (submissions) {
@@ -73,7 +83,21 @@ const AdminNotifications = () => {
             description: `${reg.name as string} registered for ${(reg.events as Record<string, string>)?.title || "an event"}`,
             date: reg.created_at as string,
             link: "/admin/registrations",
-            isRead: false, // Registrations don't have an is_read flag, treat as unread if recent
+            isRead: false,
+          });
+        });
+      }
+
+      if (memberships) {
+        memberships.forEach((mem: Record<string, unknown>) => {
+          items.push({
+            id: `mem-${mem.id as string}`,
+            type: "membership",
+            title: "New Membership Application",
+            description: `From ${mem.full_name as string} (${mem.email as string})`,
+            date: mem.created_at as string,
+            link: "/admin/membership",
+            isRead: false,
           });
         });
       }
@@ -100,9 +124,14 @@ const AdminNotifications = () => {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'event_registrations' }, fetchNotifications)
       .subscribe();
 
+    const memChannel = supabase.channel('membership-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'membership_registrations' }, fetchNotifications)
+      .subscribe();
+
     return () => {
       supabase.removeChannel(subChannel);
       supabase.removeChannel(regChannel);
+      supabase.removeChannel(memChannel);
     };
   }, []);
 
@@ -139,8 +168,14 @@ const AdminNotifications = () => {
             notifications.map((item) => (
               <DropdownMenuItem key={item.id} asChild className="cursor-pointer p-3 focus:bg-muted">
                 <Link to={item.link} className="flex gap-3 items-start w-full">
-                  <div className={`mt-0.5 rounded-full p-1.5 ${item.type === 'submission' ? 'bg-blue-100 text-blue-600' : 'bg-green-100 text-green-600'}`}>
-                    {item.type === 'submission' ? <Inbox className="h-3.5 w-3.5" /> : <CalendarDays className="h-3.5 w-3.5" />}
+                  <div className={`mt-0.5 rounded-full p-1.5 ${
+                    item.type === 'submission' ? 'bg-blue-100 text-blue-600' : 
+                    item.type === 'registration' ? 'bg-green-100 text-green-600' : 
+                    'bg-purple-100 text-purple-600'
+                  }`}>
+                    {item.type === 'submission' ? <Inbox className="h-3.5 w-3.5" /> : 
+                     item.type === 'registration' ? <CalendarDays className="h-3.5 w-3.5" /> : 
+                     <Users className="h-3.5 w-3.5" />}
                   </div>
                   <div className="flex flex-col gap-1 overflow-hidden">
                     <span className="text-sm font-medium leading-none">{item.title}</span>

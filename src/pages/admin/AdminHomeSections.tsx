@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { Save, Eye, EyeOff, Pencil, Plus, Trash, ArrowUp, ArrowDown, Image as ImageIcon, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
@@ -23,7 +23,6 @@ interface HomeSection {
 const sectionLabels: Record<string, string> = {
   hero: "Hero Section",
   quick_links: "Quick Links",
-  announcements: "Latest Announcements",
   upcoming_events: "Upcoming Events",
   recent_achievements: "Recent Achievements",
   featured_projects: "Featured Projects",
@@ -340,30 +339,6 @@ const AdminHomeSections = () => {
                     }}><Trash className="h-4 w-4" /></Button>
                   </div>
                 ))}
-              </div>
-            );
-          })()}
-
-          {editing?.section_key === "announcements" && (() => {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            let data: any = { dept_title: "", club_title: "" };
-            try { data = JSON.parse(jsonText); } catch (e) { console.error(e); }
-
-            const update = (key: string, val: unknown) => {
-              const d = { ...data, [key]: val };
-              setJsonText(JSON.stringify(d, null, 2));
-            };
-
-            return (
-              <div className="space-y-6 py-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5"><Label>Department Notices Title</Label><Input value={data.dept_title ?? ""} onChange={e => update("dept_title", e.target.value)} /></div>
-                  <div className="space-y-1.5"><Label>Club News Title</Label><Input value={data.club_title ?? ""} onChange={e => update("club_title", e.target.value)} /></div>
-                </div>
-                
-                <div className="rounded-md bg-muted p-4 text-sm text-muted-foreground">
-                  <p><strong>Note:</strong> The notices for this section are now fetched dynamically from the <strong>Portal Notices</strong>. You can manage the actual notices in the <Link to="/admin/portal" className="text-primary hover:underline">Portal Admin</Link> page.</p>
-                </div>
               </div>
             );
           })()}

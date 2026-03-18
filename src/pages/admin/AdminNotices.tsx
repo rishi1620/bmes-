@@ -108,7 +108,7 @@ const AdminNotices = () => {
       <div className="space-y-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-lg">Notices & Announcements</CardTitle>
+            <CardTitle className="text-lg">Notices</CardTitle>
             <Button size="sm" variant="outline" onClick={() => updateJsonArray("portal_notices_json", [{ id: Date.now().toString(), title: "New Notice", date: new Date().toISOString().split('T')[0], content: "", category: "departmental" }, ...notices])}>
               <Plus className="mr-1.5 h-4 w-4" /> Add Notice
             </Button>

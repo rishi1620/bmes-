@@ -22,7 +22,6 @@ const linkGroups = [
     links: [
       { label: "Home Sections", path: "/admin/home", icon: Home },
       { label: "Quick Links", path: "/admin/home?section=quick_links", icon: LinkIcon },
-      { label: "Announcements", path: "/admin/home?section=announcements", icon: Bell },
       { label: "Upcoming Events", path: "/admin/home?section=upcoming_events", icon: CalendarDays },
     ]
   },

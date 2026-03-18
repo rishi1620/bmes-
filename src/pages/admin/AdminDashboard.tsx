@@ -3,16 +3,16 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, FolderOpen, Trophy, FileText, Inbox, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw } from "lucide-react";
 
 const AdminDashboard = () => {
-  const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0 });
+  const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0, membershipApps: 0 });
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [m, e, p, a, b, s, u, media, adv, alum, reg] = await Promise.all([
+      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem] = await Promise.all([
         supabase.from("members").select("id", { count: "exact", head: true }),
         supabase.from("events").select("id", { count: "exact", head: true }),
         supabase.from("projects").select("id", { count: "exact", head: true }),
@@ -24,6 +24,8 @@ const AdminDashboard = () => {
         supabase.from("advisors").select("id", { count: "exact", head: true }),
         supabase.from("alumni").select("id", { count: "exact", head: true }),
         supabase.from("event_registrations").select("id", { count: "exact", head: true }),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any).from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
       ]);
       setCounts({
         members: m.count ?? 0,
@@ -37,6 +39,7 @@ const AdminDashboard = () => {
         advisors: adv.count ?? 0,
         alumni: alum.count ?? 0,
         registrations: reg.count ?? 0,
+        membershipApps: mem.count ?? 0,
       });
     } finally {
       setLoading(false);
@@ -73,7 +76,7 @@ const AdminDashboard = () => {
         
         <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
         <StatCard value="Manage" label="Notices" icon={Bell} to="/admin/notices" />
-        <StatCard value={String(counts.submissions)} label="Submissions" icon={Inbox} to="/admin/submissions" />
+        <StatCard value={String(counts.membershipApps)} label="Pending Apps" icon={UserCheck} className="border-purple-500/20 bg-purple-500/5" to="/admin/membership" />
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>
     </AdminLayout>

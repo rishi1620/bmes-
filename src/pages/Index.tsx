@@ -821,7 +821,7 @@ const Index = () => {
             <p className="mt-3 text-primary-foreground/80">{cta.description}</p>
             {cta.button_text && (
               <Button asChild size="lg" className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                <Link to="/portal?tab=membership">{cta.button_text} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Link to="/contact">{cta.button_text} <ArrowRight className="ml-2 h-4 w-4" /></Link>
               </Button>
             )}
           </div>
