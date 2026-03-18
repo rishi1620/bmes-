@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -57,6 +57,34 @@ const Index = () => {
     },
   });
 
+  const { data: siteSettings } = useQuery({
+    queryKey: ["site-settings-portal"],
+    queryFn: async () => {
+      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+      const map: Record<string, string> = {};
+      data?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+      return map;
+    },
+  });
+
+  const portalNotices = useMemo(() => {
+    if (!siteSettings?.portal_notices_json) return [];
+    try {
+      return JSON.parse(siteSettings.portal_notices_json);
+    } catch (e) {
+      console.error("Error parsing portal notices:", e);
+      return [];
+    }
+  }, [siteSettings]);
+
+  const deptNotices = useMemo(() => 
+    portalNotices.filter((n: { category?: string }) => n.category === "departmental" || !n.category).slice(0, 3),
+  [portalNotices]);
+
+  const clubNews = useMemo(() => 
+    portalNotices.filter((n: { category?: string }) => n.category === "club").slice(0, 3),
+  [portalNotices]);
+
   const { data: recentEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ["home-recent-events"],
     queryFn: async () => {
@@ -112,6 +140,7 @@ const Index = () => {
 
   const hero = getSection("hero");
   const quickLinks = getSection("quick_links");
+  const announcements = getSection("announcements");
   const upcomingEvents = getSection("upcoming_events");
   const recentAchievementsSection = getSection("recent_achievements");
   const featuredProjectsSection = getSection("featured_projects");
@@ -226,6 +255,129 @@ const Index = () => {
             })}
           </motion.div>
         </section>
+      )}
+
+      {/* Latest Announcements */}
+      {announcements && (
+        <motion.section 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="container py-12"
+        >
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <h2 className="text-2xl font-bold tracking-tight">Latest Announcements</h2>
+            </div>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-2">
+            {/* Departmental Notices */}
+            <motion.div 
+              whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
+              
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-xl bg-primary/10 p-3 text-primary shadow-inner">
+                    <BookOpen className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight">{announcements.dept_title || "Departmental Notices"}</h3>
+                </div>
+                <Link to="/notices" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
+                  View All <ChevronRight className="h-3 w-3" />
+                </Link>
+              </div>
+
+              <div className="space-y-6 relative z-10">
+                {deptNotices.length > 0 ? (
+                  deptNotices.map((notice: { title: string; date: string }, i: number) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group/item"
+                    >
+                      <div className="block">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug line-clamp-2">
+                              {notice.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {notice.date}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Bell className="h-8 w-8 opacity-20 mb-2" />
+                    <p className="text-sm italic">No recent departmental notices.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+
+            {/* Club News */}
+            <motion.div 
+              whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              className="group rounded-2xl border border-border bg-card p-8 shadow-sm transition-all duration-300 relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/10 transition-colors" />
+
+              <div className="flex items-center justify-between mb-8 relative z-10">
+                <div className="flex items-center gap-4">
+                  <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-600 shadow-inner">
+                    <Users className="h-6 w-6" />
+                  </div>
+                  <h3 className="text-xl font-bold tracking-tight">{announcements.club_title || "Club News"}</h3>
+                </div>
+              </div>
+
+              <div className="space-y-6 relative z-10">
+                {clubNews.length > 0 ? (
+                  clubNews.map((news: { title: string; date: string }, i: number) => (
+                    <motion.div 
+                      key={i} 
+                      initial={{ opacity: 0, x: -10 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.1 }}
+                      className="group/item"
+                    >
+                      <div className="block">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug line-clamp-2">
+                              {news.title}
+                            </h4>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <Calendar className="h-3 w-3" />
+                              {news.date}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Bell className="h-8 w-8 opacity-20 mb-2" />
+                    <p className="text-sm italic">No recent club news.</p>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </div>
+        </motion.section>
       )}
 
       {/* Dynamic Upcoming Events */}

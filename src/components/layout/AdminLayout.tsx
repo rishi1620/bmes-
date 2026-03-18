@@ -1,5 +1,5 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Link as LinkIcon, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
@@ -33,6 +33,7 @@ const linkGroups = [
       { label: "Academics", path: "/admin/academics", icon: GraduationCap },
       { label: "Activities", path: "/admin/activities", icon: CalendarDays },
       { label: "Portal Page", path: "/admin/portal", icon: FileText },
+      { label: "Notices", path: "/admin/notices", icon: Bell },
       { label: "People", path: "/admin/people", icon: Users },
       { label: "Events", path: "/admin/events", icon: Calendar },
       { label: "Projects", path: "/admin/projects", icon: FolderOpen },

@@ -75,6 +75,7 @@ const AdminDashboard = () => {
         <StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} to="/admin/blog" />
         
         <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
+        <StatCard value="Manage" label="Notices" icon={Bell} to="/admin/notices" />
         <StatCard value={String(counts.membershipApps)} label="Pending Apps" icon={UserCheck} className="border-purple-500/20 bg-purple-500/5" to="/admin/membership" />
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>
