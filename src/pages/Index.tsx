@@ -401,7 +401,14 @@ const Index = () => {
 
         {isLoadingEvents ? (
           <div className="grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-2xl" />)}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-3xl border border-border bg-card shadow-sm p-4 space-y-4">
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         ) : recentEvents && recentEvents.length > 0 ? (
           <div className="grid gap-8 lg:grid-cols-12">
@@ -534,7 +541,14 @@ const Index = () => {
         </div>
         {isLoadingAchievements ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-64 rounded-3xl" />)}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-3xl border border-border bg-card shadow-sm p-4 space-y-4">
+                <Skeleton className="h-48 w-full rounded-2xl" />
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         ) : recentAchievements && recentAchievements.length > 0 ? (
           <motion.div 
@@ -610,7 +624,15 @@ const Index = () => {
         </div>
         {isLoadingProjects ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-2 w-full" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         ) : featuredProjects && featuredProjects.length > 0 ? (
           <motion.div 
@@ -684,7 +706,15 @@ const Index = () => {
         </div>
         {isLoadingBlog ? (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+                <Skeleton className="h-48 w-full rounded-xl" />
+                <Skeleton className="h-6 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-20 w-full" />
+                <Skeleton className="h-10 w-full rounded-xl" />
+              </div>
+            ))}
           </div>
         ) : recentBlogPosts && recentBlogPosts.length > 0 ? (
           <motion.div 
