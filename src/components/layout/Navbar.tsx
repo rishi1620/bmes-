@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, User as UserIcon } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -94,18 +94,11 @@ const Navbar = () => {
               </Link>
           ))}
           
-          {user ? (
+          {user && (
             <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
-          ) : (
-            <Link to="/auth">
-              <Button variant="ghost" size="sm" className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
-                <UserIcon className="h-4 w-4" />
-                Login
-              </Button>
-            </Link>
           )}
           <ThemeToggle />
         </nav>
@@ -134,7 +127,7 @@ const Navbar = () => {
               </Link>
             )}
           
-          {user ? (
+          {user && (
             <button
               onClick={() => {
                 handleSignOut();
@@ -145,15 +138,6 @@ const Navbar = () => {
               <LogOut className="h-4 w-4" />
               Sign Out
             </button>
-          ) : (
-            <Link
-              to="/auth"
-              onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <UserIcon className="h-4 w-4" />
-              Login
-            </Link>
           )}
           </nav>
         </div>
