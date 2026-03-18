@@ -44,13 +44,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleAuthError = async (error: unknown) => {
     console.error("Auth error:", error);
-    if (error instanceof Error && (
-        error.message?.includes("Refresh Token Not Found") || 
-        error.message?.includes("refresh_token_not_found") ||
-        error.message?.includes("invalid_refresh_token"))) {
-      await supabase.auth.signOut();
-      localStorage.clear();
-      window.location.reload();
+    const err = error as { message?: string } | string | null;
+    const message = (typeof err === 'object' ? err?.message : (typeof err === 'string' ? err : "")) || "";
+    
+    if (message.includes("Refresh Token Not Found") || 
+        message.includes("refresh_token_not_found") ||
+        message.includes("invalid_refresh_token") ||
+        message.includes("session_not_found")) {
+      console.warn("Invalid refresh token or session detected, signing out and clearing storage...");
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error("Error during signOut:", e);
+      }
+      
+      // Clear all auth related storage to be safe
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.includes('supabase') || key.includes('sb-'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      // Also clear session storage just in case
+      sessionStorage.clear();
+      
+      // Give it a small delay before reload to ensure storage is cleared
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
     }
   };
 
