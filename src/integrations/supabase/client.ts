@@ -36,7 +36,10 @@ export const supabase =
               headers: { "Content-Type": "application/json" },
             });
           }
-        : fetch,
+        : (input, init) => fetch(input, init).catch(err => {
+            console.error("Supabase network error:", err);
+            throw err;
+          }),
     },
   });
 

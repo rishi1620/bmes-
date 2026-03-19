@@ -31,9 +31,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const checkRoles = async (userId: string, email?: string) => {
     const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
     let userRoles: AppRole[] = [];
+    let isEnvAdmin = false;
     
     if (adminEmail && email === adminEmail) {
       userRoles.push("admin");
+      isEnvAdmin = true;
     }
 
     try {
@@ -43,9 +45,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .eq("user_id", userId);
         
       if (error) throw error;
-      if (data) {
-        userRoles = [...new Set([...userRoles, ...data.map(r => r.role)])];
+      
+      const dbRoles = data ? data.map(r => r.role) : [];
+      
+      // Auto-sync: If user is admin in ENV but not in DB, try to add them to DB
+      if (isEnvAdmin && !dbRoles.includes("admin")) {
+        console.log("Auto-syncing admin role to database for:", email);
+        const { error: insertError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: "admin" });
+        
+        if (!insertError) {
+          dbRoles.push("admin");
+        } else {
+          console.warn("Could not auto-sync admin role (likely RLS). User will still have admin access via ENV.");
+        }
       }
+
+      userRoles = [...new Set([...userRoles, ...dbRoles])];
     } catch (err) {
       console.error("Error fetching user roles:", err);
     }
@@ -99,7 +116,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => checkRoles(session.user.id, session.user.email), 0);
+        // Ensure profile exists on login
+        supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle().then(({ data }) => {
+          if (!data) {
+            console.log("Creating missing profile for user:", session.user.id);
+            supabase.from("profiles").insert({
+              id: session.user.id,
+              user_id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User"
+            }).then(() => {
+              checkRoles(session.user.id, session.user.email);
+            });
+          } else {
+            checkRoles(session.user.id, session.user.email);
+          }
+        });
       } else {
         setIsAdmin(false);
         setHasAdminAccess(false);

@@ -1,17 +1,34 @@
 import express from "express";
+import cors from "cors";
 import { createServer as createViteServer } from "vite";
 import { Resend } from "resend";
 import dotenv from "dotenv";
+import path from "path";
 
 dotenv.config();
 
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('Uncaught Exception thrown:', err);
+});
+
 const resend = new Resend(process.env.RESEND_API_KEY);
+const APP_URL = process.env.APP_URL || "http://localhost:3000";
 
 async function startServer() {
   const app = express();
   const PORT = 3000;
 
+  app.use(cors());
   app.use(express.json());
+
+  // Health check
+  app.get("/api/health", (req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
 
   // API routes
   app.post("/api/send-confirmation", async (req, res) => {
@@ -124,7 +141,7 @@ async function startServer() {
         ${isApproved ? `
           <p>Congratulations! You are now an official member. You can now access exclusive resources and features in the student portal.</p>
           <div style="margin: 30px 0;">
-            <a href="${process.env.APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+            <a href="${APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
           </div>
         ` : `
           <p>We regret to inform you that your application was not approved at this time.</p>
@@ -183,7 +200,7 @@ async function startServer() {
             <p>We're excited to have you as part of our community!</p>
             <p>You can now explore our events, projects, and research activities. If you haven't already, consider applying for official membership through the student portal.</p>
             <div style="margin: 30px 0;">
-              <a href="${process.env.APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+              <a href="${APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
             </div>
             <br/>
             <p>Best regards,</p>
@@ -248,9 +265,10 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    app.use(express.static("dist"));
+    const distPath = path.join(process.cwd(), "dist");
+    app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile("dist/index.html", { root: "." });
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 

@@ -7,24 +7,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
-import { Loader2, Search, Shield, UserPlus } from "lucide-react";
+import { Edit, Loader2, RefreshCw, Search, Shield, Trash2, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label as UILabel } from "@/components/ui/label";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
-
-const PROTECTED_USER_IDS = [
-  "3c1a678a-0b29-47db-ad9b-5af4792c7900",
-  "03b64b68-685b-4a3b-b90f-f2b0e8d5b818"
-];
-
-const PROTECTED_USER_NAMES: Record<string, string> = {
-  "3c1a678a-0b29-47db-ad9b-5af4792c7900": "u2111008",
-  "03b64b68-685b-4a3b-b90f-f2b0e8d5b818": "hrictik",
-  "2104501b-bb83-4deb-ab82-1a3b2514fefb": "hrictik"
-};
 
 interface UserProfile {
   id: string;
@@ -45,6 +34,8 @@ const AdminUsers = () => {
   const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
   const [editName, setEditName] = useState("");
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+  const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   // Only admins and super_admins can manage roles
   const canManageRoles = isAdmin || hasRole(["admin", "super_admin"]);
@@ -125,11 +116,41 @@ const AdminUsers = () => {
     }
   });
 
-  const handleAssignRole = (userId: string, role: AppRole) => {
-    if (PROTECTED_USER_IDS.includes(userId) && !isAdmin) {
-      toast({ title: "Cannot modify protected user", variant: "destructive" });
-      return;
+  const deleteProfileMutation = useMutation({
+    mutationFn: async (userId: string) => {
+      // First delete roles to avoid foreign key issues (though they might not exist)
+      await supabase
+        .from("user_roles")
+        .delete()
+        .eq("user_id", userId);
+        
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      toast({ title: "User profile deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Failed to delete profile", description: error.message, variant: "destructive" });
     }
+  });
+
+  const handleDeleteProfile = (userId: string) => {
+    setUserToDelete(userId);
+  };
+
+  const confirmDelete = () => {
+    if (userToDelete) {
+      deleteProfileMutation.mutate(userToDelete);
+      setUserToDelete(null);
+    }
+  };
+
+  const handleAssignRole = (userId: string, role: AppRole) => {
     assignRoleMutation.mutate({ userId, role });
   };
 
@@ -139,8 +160,8 @@ const AdminUsers = () => {
       return;
     }
     
-    // If trying to add a protected user, ensure they get super_admin
-    const roleToAssign = PROTECTED_USER_IDS.includes(newUserId.trim()) ? "super_admin" : newUserRole;
+    // Assign Role
+    const roleToAssign = newUserRole;
     
     try {
       // 1. Assign Role
@@ -148,7 +169,12 @@ const AdminUsers = () => {
         .from("user_roles")
         .insert({ user_id: newUserId.trim(), role: roleToAssign });
       
-      if (roleError) throw roleError;
+      if (roleError) {
+        if (roleError.message.includes("foreign key")) {
+          throw new Error("Invalid User ID. This user does not exist in the system. Make sure they have signed up first and confirmed their email if required.");
+        }
+        throw roleError;
+      }
 
       // 2. Create/Update Profile if name is provided
       if (newUserName.trim()) {
@@ -187,9 +213,10 @@ const AdminUsers = () => {
       const { error } = await supabase
         .from("profiles")
         .upsert({ 
+          id: editingUser.id,
           user_id: editingUser.id, 
           full_name: editName.trim()
-        }, { onConflict: 'user_id' });
+        });
       
       if (error) {
         console.error("Supabase error updating name:", error);
@@ -204,24 +231,28 @@ const AdminUsers = () => {
     } catch (error: unknown) {
       console.error("Catch block error updating name:", error);
       const message = error instanceof Error ? error.message : 
-                     (typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : "An unknown error occurred");
-      toast({ title: "Failed to update name", description: message, variant: "destructive" });
+                     (typeof error === 'object' && error !== null && 'message' in error ? (error as { message: string }).message : "An unknown error occurred");
+      
+      // Check for RLS error specifically to provide better guidance
+      if (message.includes("row-level security") || message.includes("policy")) {
+        toast({ 
+          title: "Permission Denied", 
+          description: "Your admin account might not have the required database permissions. Please ensure your user ID is added to the 'user_roles' table with the 'admin' role.",
+          variant: "destructive" 
+        });
+      } else {
+        toast({ title: "Failed to update name", description: message, variant: "destructive" });
+      }
     }
   };
 
   const handleRemoveRole = (userId: string, role: AppRole) => {
-    if (PROTECTED_USER_IDS.includes(userId)) {
-      toast({ title: "This user is protected and cannot be modified", variant: "destructive" });
-      return;
-    }
     removeRoleMutation.mutate({ userId, role });
   };
 
   const filteredUsers = users?.filter(user => 
-    !PROTECTED_USER_IDS.includes(user.id) && (
-      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.id.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.id.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   if (!canManageRoles) {
@@ -247,62 +278,73 @@ const AdminUsers = () => {
             <p className="text-muted-foreground mt-1">Manage user access and permissions across the admin panel.</p>
           </div>
           
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="gap-2">
-                <UserPlus className="h-4 w-4" />
-                Add User by ID
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Admin User</DialogTitle>
-                <DialogDescription>
-                  Enter the User ID (UID) from your Supabase Authentication dashboard to grant them access.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <UILabel htmlFor="uid">User ID (UID)</UILabel>
-                  <Input 
-                    id="uid" 
-                    placeholder="e.g. 03b64b68-685b-4a3b-b90f-f2b0e8d5b818" 
-                    value={newUserId}
-                    onChange={(e) => setNewUserId(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <UILabel htmlFor="name">User Name (Optional)</UILabel>
-                  <Input 
-                    id="name" 
-                    placeholder="e.g. John Doe" 
-                    value={newUserName}
-                    onChange={(e) => setNewUserName(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <UILabel htmlFor="role">Initial Role</UILabel>
-                  <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin (Full Access)</SelectItem>
-                      <SelectItem value="editor">Editor (Content Only)</SelectItem>
-                      <SelectItem value="content_manager">Content Manager</SelectItem>
-                      <SelectItem value="user">Regular User</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
-                <Button onClick={handleManualAdd} disabled={assignRoleMutation.isPending}>
-                  {assignRoleMutation.isPending ? "Adding..." : "Grant Access"}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => queryClient.invalidateQueries({ queryKey: ["admin-users"] })}
+              title="Refresh users"
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="gap-2">
+                  <UserPlus className="h-4 w-4" />
+                  Add User by ID
                 </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add Admin User</DialogTitle>
+                  <DialogDescription>
+                    Enter the User ID (UID) from your Supabase Authentication dashboard to grant them access. 
+                    Users can find their UID in their profile or you can find it in the Supabase Auth table.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <UILabel htmlFor="uid">User ID (UID)</UILabel>
+                    <Input 
+                      id="uid" 
+                      placeholder="e.g. 03b64b68-685b-4a3b-b90f-f2b0e8d5b818" 
+                      value={newUserId}
+                      onChange={(e) => setNewUserId(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <UILabel htmlFor="name">User Name (Optional)</UILabel>
+                    <Input 
+                      id="name" 
+                      placeholder="e.g. John Doe" 
+                      value={newUserName}
+                      onChange={(e) => setNewUserName(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <UILabel htmlFor="role">Initial Role</UILabel>
+                    <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin (Full Access)</SelectItem>
+                        <SelectItem value="editor">Editor (Content Only)</SelectItem>
+                        <SelectItem value="content_manager">Content Manager</SelectItem>
+                        <SelectItem value="user">Regular User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                  <Button onClick={handleManualAdd} disabled={assignRoleMutation.isPending}>
+                    {assignRoleMutation.isPending ? "Adding..." : "Grant Access"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
 
         <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">
@@ -326,7 +368,8 @@ const AdminUsers = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>User</TableHead>
+                  <TableHead>User Name</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>User ID</TableHead>
                   <TableHead>Current Roles</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
@@ -335,7 +378,7 @@ const AdminUsers = () => {
               <TableBody>
                 {filteredUsers?.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       No users found.
                     </TableCell>
                   </TableRow>
@@ -344,20 +387,23 @@ const AdminUsers = () => {
                     <TableRow key={user.id} className="group">
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
-                          {user.full_name || PROTECTED_USER_NAMES[user.id] || "Unknown User"}
+                          {user.full_name || "Unknown User"}
                           <Button 
                             variant="ghost" 
                             size="icon" 
                             className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={() => {
                               setEditingUser(user);
-                              setEditName(user.full_name || PROTECTED_USER_NAMES[user.id] || "");
+                              setEditName(user.full_name || "");
                               setIsEditDialogOpen(true);
                             }}
                           >
-                            <Search className="h-3 w-3" />
+                            <Edit className="h-3 w-3" />
                           </Button>
                         </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-xs font-mono">
+                        {user.email}
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs font-mono">
                         {user.id}
@@ -368,7 +414,6 @@ const AdminUsers = () => {
                             user.roles.map(role => (
                               <span key={role} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                 {role}
-                                {!PROTECTED_USER_IDS.includes(user.id) && (
                                   <button 
                                     onClick={() => handleRemoveRole(user.id, role)}
                                     className="ml-1 hover:text-destructive focus:outline-none"
@@ -376,7 +421,6 @@ const AdminUsers = () => {
                                   >
                                     &times;
                                   </button>
-                                )}
                               </span>
                             ))
                           ) : (
@@ -385,20 +429,32 @@ const AdminUsers = () => {
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
-                        <Select
-                          onValueChange={(value) => handleAssignRole(user.id, value as AppRole)}
-                          disabled={PROTECTED_USER_IDS.includes(user.id)}
-                        >
-                          <SelectTrigger className="w-[140px] ml-auto">
-                            <SelectValue placeholder={PROTECTED_USER_IDS.includes(user.id) ? "Protected" : "Assign Role"} />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="admin">Admin</SelectItem>
-                            <SelectItem value="editor">Editor</SelectItem>
-                            <SelectItem value="user">User</SelectItem>
-                            <SelectItem value="content_manager">Content Manager</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <div className="flex items-center justify-end gap-2">
+                          <Select
+                            key={user.id}
+                            onValueChange={(value) => handleAssignRole(user.id, value as AppRole)}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue placeholder="Assign Role" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="editor">Editor</SelectItem>
+                              <SelectItem value="user">User</SelectItem>
+                              <SelectItem value="content_manager">Content Manager</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteProfile(user.id)}
+                            title="Delete user profile"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -431,6 +487,23 @@ const AdminUsers = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
             <Button onClick={handleUpdateName}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!userToDelete} onOpenChange={(open) => !open && setUserToDelete(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action will permanently delete this user profile from the database. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setUserToDelete(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={confirmDelete} disabled={deleteProfileMutation.isPending}>
+              {deleteProfileMutation.isPending ? "Deleting..." : "Delete Profile"}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
