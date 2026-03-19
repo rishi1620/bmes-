@@ -7,8 +7,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
-import { Loader2, Search, Shield } from "lucide-react";
+import { Loader2, Search, Shield, UserPlus, Trash2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label as UILabel } from "@/components/ui/label";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -24,6 +27,9 @@ const AdminUsers = () => {
   const queryClient = useQueryClient();
   const { isAdmin, hasRole } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [newUserId, setNewUserId] = useState("");
+  const [newUserRole, setNewUserRole] = useState<AppRole>("editor");
 
   // Only admins and super_admins can manage roles
   const canManageRoles = isAdmin || hasRole(["admin", "super_admin"]);
@@ -31,6 +37,13 @@ const AdminUsers = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ["admin-users"],
     queryFn: async () => {
+      // Fetch roles first to ensure we see everyone with a permission
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("*");
+
+      if (rolesError) throw rolesError;
+
       // Fetch profiles
       const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
@@ -38,23 +51,23 @@ const AdminUsers = () => {
 
       if (profilesError) throw profilesError;
 
-      // Fetch roles
-      const { data: roles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("*");
-
-      if (rolesError) throw rolesError;
+      // Get unique user IDs from both sources
+      const allUserIds = Array.from(new Set([
+        ...roles.map(r => r.user_id),
+        ...profiles.map(p => p.user_id)
+      ]));
 
       // Combine data
-      const usersWithRoles: UserProfile[] = profiles.map(profile => {
+      const usersWithRoles: UserProfile[] = allUserIds.map(userId => {
+        const profile = profiles.find(p => p.user_id === userId);
         const userRoles = roles
-          .filter(r => r.user_id === profile.user_id)
+          .filter(r => r.user_id === userId)
           .map(r => r.role);
         
         return {
-          id: profile.user_id,
-          email: profile.full_name || "Unknown", // We don't have email in profiles by default, might need to fetch from auth if possible, or just use full_name
-          full_name: profile.full_name,
+          id: userId,
+          email: profile?.full_name || "New User (No Profile Yet)",
+          full_name: profile?.full_name || null,
           roles: userRoles
         };
       });
@@ -101,6 +114,19 @@ const AdminUsers = () => {
     assignRoleMutation.mutate({ userId, role });
   };
 
+  const handleManualAdd = () => {
+    if (!newUserId.trim()) {
+      toast({ title: "User ID is required", variant: "destructive" });
+      return;
+    }
+    assignRoleMutation.mutate({ userId: newUserId.trim(), role: newUserRole }, {
+      onSuccess: () => {
+        setIsAddDialogOpen(false);
+        setNewUserId("");
+      }
+    });
+  };
+
   const handleRemoveRole = (userId: string, role: AppRole) => {
     removeRoleMutation.mutate({ userId, role });
   };
@@ -132,6 +158,54 @@ const AdminUsers = () => {
             <h1 className="text-3xl font-bold tracking-tight">Users & Roles</h1>
             <p className="text-muted-foreground mt-1">Manage user access and permissions across the admin panel.</p>
           </div>
+          
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="gap-2">
+                <UserPlus className="h-4 w-4" />
+                Add User by ID
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Admin User</DialogTitle>
+                <DialogDescription>
+                  Enter the User ID (UID) from your Supabase Authentication dashboard to grant them access.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <UILabel htmlFor="uid">User ID (UID)</UILabel>
+                  <Input 
+                    id="uid" 
+                    placeholder="e.g. 03b64b68-685b-4a3b-b90f-f2b0e8d5b818" 
+                    value={newUserId}
+                    onChange={(e) => setNewUserId(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <UILabel htmlFor="role">Initial Role</UILabel>
+                  <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Admin (Full Access)</SelectItem>
+                      <SelectItem value="editor">Editor (Content Only)</SelectItem>
+                      <SelectItem value="content_manager">Content Manager</SelectItem>
+                      <SelectItem value="user">Regular User</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>Cancel</Button>
+                <Button onClick={handleManualAdd} disabled={assignRoleMutation.isPending}>
+                  {assignRoleMutation.isPending ? "Adding..." : "Grant Access"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="flex items-center gap-4 bg-card p-4 rounded-lg border shadow-sm">

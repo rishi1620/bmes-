@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "@/hooks/use-toast";
-import { seedData } from "@/utils/seedData";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,8 +65,6 @@ const AdminSettings = () => {
   const canManageSettings = isAdmin || hasRole(["admin", "super_admin"]);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
-  const [showSeedConfirm, setShowSeedConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
@@ -98,29 +94,6 @@ const AdminSettings = () => {
     if (hasError) toast({ title: "Some settings failed to save", variant: "destructive" });
     else toast({ title: "Settings saved" });
     setSaving(false);
-  };
-
-  const executeSeedData = async () => {
-    setShowSeedConfirm(false);
-    setSeeding(true);
-    try {
-      const result = await seedData();
-      if (result.success) {
-        toast({ title: "Data seeded successfully!" });
-        // Reload settings to reflect any changes
-        const { data } = await supabase.from("site_settings").select("*");
-        const map: Record<string, string> = {};
-        (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
-        setSettings(map);
-      } else {
-        toast({ title: "Failed to seed data", variant: "destructive" });
-      }
-    } catch (error) {
-      console.error(error);
-      toast({ title: "An error occurred during seeding", variant: "destructive" });
-    } finally {
-      setSeeding(false);
-    }
   };
 
   const containerVariants = {
@@ -166,10 +139,6 @@ const AdminSettings = () => {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button onClick={() => setShowSeedConfirm(true)} size="sm" variant="destructive" disabled={seeding}>
-            <RefreshCw className={`mr-1.5 h-4 w-4 ${seeding ? "animate-spin" : ""}`} /> 
-            {seeding ? "Seeding..." : "Reset & Seed Data"}
-          </Button>
           <Button onClick={handleSave} size="sm" disabled={saving}>
             <Save className="mr-1.5 h-4 w-4" /> {saving ? "Saving…" : "Save All"}
           </Button>
@@ -214,23 +183,6 @@ const AdminSettings = () => {
           </motion.div>
         ))}
       </motion.div>
-
-      <AlertDialog open={showSeedConfirm} onOpenChange={setShowSeedConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete all existing data and re-seed the database with default values.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={executeSeedData} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Reset & Seed Data
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </AdminLayout>
   );
 };
