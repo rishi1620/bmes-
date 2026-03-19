@@ -10,9 +10,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 
 interface RegistrationStatus {
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
-  full_name: string;
+  status: string | null;
+  created_at: string | null;
+  full_name: string | null;
 }
 
 export function MembershipRegistrationForm() {

@@ -30,7 +30,7 @@ const AdminSiteSettings = () => {
       footer_logo_url: map.footer_logo_url || ""
     });
     setLoading(false);
-  }, []);
+  }, [canManageSettings]);
 
   useEffect(() => { loadSettings(); }, [loadSettings]);
 

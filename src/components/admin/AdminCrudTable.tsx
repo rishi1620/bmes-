@@ -25,7 +25,7 @@ export interface FieldDef {
   required?: boolean;
 }
 
-type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "faqs" | "event_registrations";
+type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "contact_submissions" | "event_registrations" | "membership_registrations" | "home_sections" | "media_library" | "site_settings" | "user_roles" | "blog_posts" | "faqs";
 
 interface Props {
   tableName: TableName;
@@ -52,7 +52,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   const fetchRows = useCallback(async () => {
     setIsFetching(true);
-    const { data } = await supabase.from(tableName).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
     const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
     setIsFetching(false);
@@ -101,11 +102,13 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     }
 
     if (editing) {
-      const { error } = await supabase.from(tableName).update(payload).eq("id", editing.id as string);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing.id as string);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Updated successfully" }); }
     } else {
-      const { error } = await supabase.from(tableName).insert(payload as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await supabase.from(tableName as any).insert(payload as unknown as any);
       if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
       else { toast({ title: "Created successfully" }); }
     }
@@ -130,7 +133,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
       payload.slug = `${payload.slug}-copy-${Math.floor(Math.random() * 1000)}`;
     }
 
-    const { error } = await supabase.from(tableName).insert(payload as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from(tableName as any).insert(payload as unknown as any);
     if (error) { toast({ title: "Error duplicating", description: error.message, variant: "destructive" }); }
     else { toast({ title: "Duplicated successfully" }); fetchRows(); }
     setLoading(false);
@@ -142,7 +146,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   const executeDelete = async () => {
     if (!deleteId) return;
-    const { error } = await supabase.from(tableName).delete().eq("id", deleteId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from(tableName as any).delete().eq("id", deleteId);
     if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
     else { toast({ title: "Deleted successfully" }); fetchRows(); }
     setDeleteId(null);

@@ -82,7 +82,7 @@ const AdminSettings = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [canManageSettings]);
 
   useEffect(() => {
     load();

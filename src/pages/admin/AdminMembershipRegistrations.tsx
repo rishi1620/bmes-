@@ -23,7 +23,7 @@ interface Registration {
   year_semester: string;
   phone_number: string;
   transaction_id: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: string;
   created_at: string;
 }
 

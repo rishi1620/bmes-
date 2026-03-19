@@ -9,6 +9,7 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import StatCard from "@/components/shared/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FloatingNotice } from "@/components/shared/FloatingNotice";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -301,7 +302,8 @@ const Index = () => {
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="group/item"
+                      whileHover={{ y: -2, scale: 1.02 }}
+                      className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300"
                     >
                       <div className="block">
                         <div className="flex items-start justify-between gap-4">
@@ -341,6 +343,9 @@ const Index = () => {
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">{announcements.club_title || "Club News"}</h3>
                 </div>
+                <Link to="/notices" className="text-xs font-medium text-emerald-600 hover:underline flex items-center gap-1">
+                  View All <ChevronRight className="h-3 w-3" />
+                </Link>
               </div>
 
               <div className="space-y-6 relative z-10">
@@ -351,7 +356,8 @@ const Index = () => {
                       initial={{ opacity: 0, x: -10 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.1 }}
-                      className="group/item"
+                      whileHover={{ y: -2, scale: 1.02 }}
+                      className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-emerald-500/30 transition-all duration-300"
                     >
                       <div className="block">
                         <div className="flex items-start justify-between gap-4">
@@ -790,6 +796,8 @@ const Index = () => {
           </motion.div>
         </section>
       )}
+
+      {portalNotices.length > 0 && <FloatingNotice notice={portalNotices[0]} />}
 
       {/* Features */}
       {features && (
