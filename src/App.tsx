@@ -43,6 +43,7 @@ import AdminAbout from "./pages/admin/AdminAbout";
 import AdminAcademics from "./pages/admin/AdminAcademics";
 import AdminActivities from "./pages/admin/AdminActivities";
 import AdminPortal from "./pages/admin/AdminPortal";
+import AdminResearch from "./pages/admin/AdminResearch";
 import Notices from "./pages/Notices";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminUsers from "./pages/admin/AdminUsers";
@@ -89,6 +90,7 @@ const App = () => (
                   <Route path="/admin/academics" element={<ProtectedRoute requireAdmin><AdminAcademics /></ProtectedRoute>} />
                   <Route path="/admin/activities" element={<ProtectedRoute requireAdmin><AdminActivities /></ProtectedRoute>} />
                   <Route path="/admin/portal" element={<ProtectedRoute requireAdmin><AdminPortal /></ProtectedRoute>} />
+                  <Route path="/admin/research" element={<ProtectedRoute requireAdmin><AdminResearch /></ProtectedRoute>} />
                   <Route path="/admin/notices" element={<ProtectedRoute requireAdmin><AdminNotices /></ProtectedRoute>} />
                   <Route path="/admin/pages" element={<ProtectedRoute requireAdmin><AdminPages /></ProtectedRoute>} />
                   <Route path="/admin/people" element={<ProtectedRoute requireAdmin><AdminPeople /></ProtectedRoute>} />
