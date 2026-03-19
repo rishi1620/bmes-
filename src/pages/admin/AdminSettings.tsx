@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Save, RefreshCw, Image as ImageIcon } from "lucide-react";
+import { Save, RefreshCw, Image as ImageIcon, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { toast } from "@/hooks/use-toast";
 import { seedData } from "@/utils/seedData";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { motion } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 interface Setting {
   id: string;
@@ -62,6 +63,8 @@ const groups: { key: string; label: string; fields: { key: string; label: string
 ];
 
 const AdminSettings = () => {
+  const { isAdmin, hasRole } = useAuth();
+  const canManageSettings = isAdmin || hasRole(["admin", "super_admin"]);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
@@ -69,6 +72,7 @@ const AdminSettings = () => {
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
+    if (!canManageSettings) return;
     setLoading(true);
     try {
       const { data } = await supabase.from("site_settings").select("*");
@@ -133,6 +137,20 @@ const AdminSettings = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.4 } }
   };
+
+  if (!canManageSettings) {
+    return (
+      <AdminLayout>
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <Shield className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-semibold">Access Denied</h2>
+            <p className="text-muted-foreground mt-2">You don't have permission to manage site settings.</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

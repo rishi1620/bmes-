@@ -31,11 +31,9 @@ const AdminDashboard = () => {
         supabase.from("advisors").select("id", { count: "exact", head: true }),
         supabase.from("alumni").select("id", { count: "exact", head: true }),
         supabase.from("event_registrations").select("id", { count: "exact", head: true }),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (supabase as any).from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("event_registrations").select("id, name, email, created_at, events(title)").order("created_at", { ascending: false }).limit(5),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (supabase as any).from("membership_registrations").select("id, full_name, email, created_at").eq("status", "pending").order("created_at", { ascending: false }).limit(5),
+        supabase.from("membership_registrations").select("id, full_name, email, created_at").eq("status", "pending").order("created_at", { ascending: false }).limit(5),
       ]);
       setCounts({
         members: m.count ?? 0,

@@ -39,8 +39,7 @@ function AdminMembershipRegistrations() {
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("membership_registrations")
         .select("*")
         .order("created_at", { ascending: false });
@@ -64,8 +63,7 @@ function AdminMembershipRegistrations() {
     if (!registration) return;
 
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("membership_registrations")
         .update({ status })
         .eq("id", id);
@@ -105,8 +103,7 @@ function AdminMembershipRegistrations() {
   const executeDelete = async () => {
     if (!deleteId) return;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("membership_registrations")
         .delete()
         .eq("id", deleteId);
@@ -187,8 +184,7 @@ function AdminMembershipRegistrations() {
 
     setLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("membership_registrations")
         .update({ status })
         .in("id", selectedIds);
@@ -234,8 +230,7 @@ function AdminMembershipRegistrations() {
     if (selectedIds.length === 0) return;
     setLoading(true);
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("membership_registrations")
         .delete()
         .in("id", selectedIds);

@@ -439,6 +439,56 @@ export type Database = {
         }
         Relationships: []
       }
+      membership_registrations: {
+        Row: {
+          id: string
+          user_id: string | null
+          full_name: string
+          email: string
+          student_id: string
+          department: string
+          year_semester: string
+          phone_number: string | null
+          transaction_id: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id?: string | null
+          full_name: string
+          email: string
+          student_id: string
+          department: string
+          year_semester: string
+          phone_number?: string | null
+          transaction_id?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string | null
+          full_name?: string
+          email?: string
+          student_id?: string
+          department?: string
+          year_semester?: string
+          phone_number?: string | null
+          transaction_id?: string | null
+          status?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "membership_registrations_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       pages: {
         Row: {
           created_at: string

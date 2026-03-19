@@ -36,45 +36,45 @@ const linkGroups: LinkGroup[] = [
   {
     title: "Site Structure",
     links: [
-      { label: "Pages & Navigation", path: "/admin/pages", icon: Navigation, roles: ["admin", "super_admin", "editor"] },
-      { label: "Home Sections", path: "/admin/home", icon: Home, roles: ["admin", "super_admin", "editor"] },
-      { label: "Media Library", path: "/admin/media", icon: Image, roles: ["admin", "super_admin", "editor"] },
+      { label: "Pages & Navigation", path: "/admin/pages", icon: Navigation, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Home Sections", path: "/admin/home", icon: Home, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Media Library", path: "/admin/media", icon: Image, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Site Settings", path: "/admin/settings", icon: Settings, roles: ["admin", "super_admin"] },
     ]
   },
   {
     title: "Core Content",
     links: [
-      { label: "About Page", path: "/admin/about", icon: FileText, roles: ["admin", "super_admin", "editor"] },
-      { label: "Academics", path: "/admin/academics", icon: GraduationCap, roles: ["admin", "super_admin", "editor"] },
-      { label: "Portal Page", path: "/admin/portal", icon: FileText, roles: ["admin", "super_admin", "editor"] },
-      { label: "Notices & News", path: "/admin/notices", icon: Bell, roles: ["admin", "super_admin", "editor"] },
-      { label: "FAQ", path: "/admin/faq", icon: HelpCircle, roles: ["admin", "super_admin", "editor"] },
+      { label: "About Page", path: "/admin/about", icon: FileText, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Academics", path: "/admin/academics", icon: GraduationCap, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Portal Page", path: "/admin/portal", icon: FileText, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Notices & News", path: "/admin/notices", icon: Bell, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "FAQ", path: "/admin/faq", icon: HelpCircle, roles: ["admin", "super_admin", "editor", "content_manager"] },
     ]
   },
   {
     title: "Community",
     links: [
-      { label: "People", path: "/admin/people", icon: Users, roles: ["admin", "super_admin", "editor"] },
-      { label: "Alumni", path: "/admin/alumni", icon: GraduationCap, roles: ["admin", "super_admin", "editor"] },
-      { label: "Blog Posts", path: "/admin/blog", icon: FileText, roles: ["admin", "super_admin", "editor"] },
+      { label: "People", path: "/admin/people", icon: Users, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Alumni", path: "/admin/alumni", icon: GraduationCap, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Blog Posts", path: "/admin/blog", icon: FileText, roles: ["admin", "super_admin", "editor", "content_manager"] },
     ]
   },
   {
     title: "Engagement",
     links: [
-      { label: "Events", path: "/admin/events", icon: Calendar, roles: ["admin", "super_admin", "editor"] },
-      { label: "Projects", path: "/admin/projects", icon: FolderOpen, roles: ["admin", "super_admin", "editor"] },
-      { label: "Achievements", path: "/admin/achievements", icon: Trophy, roles: ["admin", "super_admin", "editor"] },
-      { label: "Activities", path: "/admin/activities", icon: CalendarDays, roles: ["admin", "super_admin", "editor"] },
+      { label: "Events", path: "/admin/events", icon: Calendar, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Projects", path: "/admin/projects", icon: FolderOpen, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Achievements", path: "/admin/achievements", icon: Trophy, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Activities", path: "/admin/activities", icon: CalendarDays, roles: ["admin", "super_admin", "editor", "content_manager"] },
     ]
   },
   {
     title: "User Data",
     links: [
-      { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox, roles: ["admin", "super_admin", "user"] },
-      { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays, roles: ["admin", "super_admin", "user"] },
-      { label: "Membership Apps", path: "/admin/membership", icon: UserCheck, roles: ["admin", "super_admin", "user"] },
+      { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
+      { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
+      { label: "Membership Apps", path: "/admin/membership", icon: UserCheck, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
     ]
   },
   {

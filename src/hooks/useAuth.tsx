@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     setRoles(userRoles);
     setIsAdmin(userRoles.includes("admin") || userRoles.includes("super_admin"));
-    setHasAdminAccess(userRoles.length > 0);
+    setHasAdminAccess(userRoles.some(r => ["admin", "super_admin", "editor", "content_manager"].includes(r)));
   };
 
   const hasRole = (allowedRoles: AppRole[]) => {

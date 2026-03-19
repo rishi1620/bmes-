@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -8,13 +8,17 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminSiteSettings = () => {
+  const { isAdmin, hasRole } = useAuth();
+  const canManageSettings = isAdmin || hasRole(["admin", "super_admin"]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({ logo_url: "", site_title: "", dashboard_logo_url: "", footer_logo_url: "" });
 
   const loadSettings = useCallback(async () => {
+    if (!canManageSettings) return;
     setLoading(true);
     const { data } = await supabase.from("site_settings").select("setting_key, setting_value");
     const map: Record<string, string> = {};
@@ -31,6 +35,7 @@ const AdminSiteSettings = () => {
   useEffect(() => { loadSettings(); }, [loadSettings]);
 
   const saveSettings = async () => {
+    if (!canManageSettings) return;
     setSaving(true);
     try {
       for (const [key, value] of Object.entries(settings)) {
@@ -45,6 +50,20 @@ const AdminSiteSettings = () => {
     }
     setSaving(false);
   };
+
+  if (!canManageSettings) {
+    return (
+      <AdminLayout>
+        <div className="flex h-[50vh] items-center justify-center">
+          <div className="text-center">
+            <Shield className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+            <h2 className="text-2xl font-semibold">Access Denied</h2>
+            <p className="text-muted-foreground mt-2">You don't have permission to manage site settings.</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <AdminLayout>

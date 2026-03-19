@@ -34,8 +34,7 @@ export function MembershipRegistrationForm() {
   const checkExistingRegistration = useCallback(async () => {
     if (!user) return;
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from("membership_registrations")
         .select("status, created_at, full_name")
         .eq("email", user.email)
@@ -78,8 +77,7 @@ export function MembershipRegistrationForm() {
         user_id: user?.id || null
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase as any).from("membership_registrations").insert([payload]);
+      const { error } = await supabase.from("membership_registrations").insert([payload]);
 
       if (error) throw error;
 

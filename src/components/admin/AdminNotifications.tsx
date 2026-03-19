@@ -67,8 +67,7 @@ const AdminNotifications = () => {
         .limit(5);
 
       // Fetch recent membership registrations (last 7 days)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data: memberships, count: memCount } = await (supabase as any)
+      const { data: memberships, count: memCount } = await supabase
         .from("membership_registrations")
         .select("*", { count: 'exact' })
         .eq("status", "pending")
