@@ -83,7 +83,28 @@ export function MembershipRegistrationForm() {
 
       if (error) throw error;
 
-      toast.success("Registration submitted successfully!");
+      // Send confirmation email
+      try {
+        const emailResponse = await fetch("/api/send-membership-confirmation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: formData.email,
+            name: formData.full_name,
+          }),
+        });
+        
+        if (!emailResponse.ok) {
+          console.warn("Failed to send confirmation email. Server responded with:", emailResponse.status);
+          toast.success("Registration submitted successfully, but we couldn't send a confirmation email at this time.");
+        } else {
+          toast.success("Registration submitted successfully! A confirmation email has been sent.");
+        }
+      } catch (emailErr) {
+        console.error("Failed to send confirmation email:", emailErr);
+        toast.success("Registration submitted successfully, but we couldn't send a confirmation email at this time.");
+      }
+
       setSubmitted(true);
       checkExistingRegistration();
     } catch (err: unknown) {

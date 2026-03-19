@@ -3,16 +3,23 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
-import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { format } from "date-fns";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0, membershipApps: 0 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [recentRegistrations, setRecentRegistrations] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [pendingApps, setPendingApps] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem] = await Promise.all([
+      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem, recentRegsData, pendingAppsData] = await Promise.all([
         supabase.from("members").select("id", { count: "exact", head: true }),
         supabase.from("events").select("id", { count: "exact", head: true }),
         supabase.from("projects").select("id", { count: "exact", head: true }),
@@ -26,6 +33,9 @@ const AdminDashboard = () => {
         supabase.from("event_registrations").select("id", { count: "exact", head: true }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (supabase as any).from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        supabase.from("event_registrations").select("id, name, email, created_at, events(title)").order("created_at", { ascending: false }).limit(5),
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (supabase as any).from("membership_registrations").select("id, full_name, email, created_at").eq("status", "pending").order("created_at", { ascending: false }).limit(5),
       ]);
       setCounts({
         members: m.count ?? 0,
@@ -41,6 +51,8 @@ const AdminDashboard = () => {
         registrations: reg.count ?? 0,
         membershipApps: mem.count ?? 0,
       });
+      setRecentRegistrations(recentRegsData.data || []);
+      setPendingApps(pendingAppsData.data || []);
     } finally {
       setLoading(false);
     }
@@ -77,6 +89,89 @@ const AdminDashboard = () => {
         <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
         <StatCard value={String(counts.membershipApps)} label="Pending Apps" icon={UserCheck} className="border-purple-500/20 bg-purple-500/5" to="/admin/membership" />
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 mt-8">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-medium">Recent Event Registrations</CardTitle>
+              <CardDescription>Latest users who registered for events</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+              <Link to="/admin/registrations">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {recentRegistrations.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No recent registrations.</p>
+            ) : (
+              <div className="space-y-2">
+                {recentRegistrations.map((reg) => (
+                  <Link key={reg.id} to="/admin/registrations" className="flex items-center justify-between border-b last:border-0 pb-3 last:pb-0 hover:bg-muted/50 p-2 rounded-md transition-colors">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none">{reg.name}</p>
+                      <p className="text-sm text-muted-foreground">{reg.email}</p>
+                      <p className="text-xs text-primary">{reg.events?.title || 'Unknown Event'}</p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(reg.created_at), "MMM d, yyyy")}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <Button variant="ghost" size="sm" asChild className="w-full mt-4 sm:hidden">
+              <Link to="/admin/registrations">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-medium">Pending Membership Apps</CardTitle>
+              <CardDescription>Applications waiting for approval</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+              <Link to="/admin/membership">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {pendingApps.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No pending applications.</p>
+            ) : (
+              <div className="space-y-2">
+                {pendingApps.map((app) => (
+                  <Link key={app.id} to="/admin/membership" className="flex items-center justify-between border-b last:border-0 pb-3 last:pb-0 hover:bg-muted/50 p-2 rounded-md transition-colors">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none">{app.full_name}</p>
+                      <p className="text-sm text-muted-foreground">{app.email}</p>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {format(new Date(app.created_at), "MMM d, yyyy")}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <Button variant="ghost" size="sm" asChild className="w-full mt-4 sm:hidden">
+              <Link to="/admin/membership">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     </AdminLayout>
   );

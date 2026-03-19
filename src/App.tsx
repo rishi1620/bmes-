@@ -45,6 +45,7 @@ import AdminActivities from "./pages/admin/AdminActivities";
 import AdminPortal from "./pages/admin/AdminPortal";
 import Notices from "./pages/Notices";
 import AdminNotices from "./pages/admin/AdminNotices";
+import AdminUsers from "./pages/admin/AdminUsers";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -102,6 +103,7 @@ const App = () => (
                   <Route path="/admin/submissions" element={<ProtectedRoute requireAdmin><AdminSubmissions /></ProtectedRoute>} />
                   <Route path="/admin/registrations" element={<ProtectedRoute requireAdmin><AdminRegistrations /></ProtectedRoute>} />
                   <Route path="/admin/membership" element={<ProtectedRoute requireAdmin><ErrorBoundary><AdminMembershipRegistrations /></ErrorBoundary></ProtectedRoute>} />
+                  <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>

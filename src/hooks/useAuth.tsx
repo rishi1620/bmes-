@@ -1,11 +1,17 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isAdmin: boolean;
+  hasAdminAccess: boolean;
+  roles: AppRole[];
+  hasRole: (role: AppRole[]) => boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
@@ -18,28 +24,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [hasAdminAccess, setHasAdminAccess] = useState(false);
+  const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const checkAdmin = async (userId: string, email?: string) => {
-    // Check if the user's email matches the admin email from env
+  const checkRoles = async (userId: string, email?: string) => {
     const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+    let userRoles: AppRole[] = [];
+    
     if (adminEmail && email === adminEmail) {
-      setIsAdmin(true);
-      return;
+      userRoles.push("admin");
     }
 
     try {
-      const { data, error } = await supabase.rpc("has_role", { _user_id: userId, _role: "admin" });
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+        
       if (error) throw error;
-      setIsAdmin(!!data);
-    } catch (err) {
-      console.error("Error checking admin role:", err);
-      // Fallback: if RPC fails but email matches, still allow (already handled above)
-      // Otherwise, default to false
-      if (!(adminEmail && email === adminEmail)) {
-        setIsAdmin(false);
+      if (data) {
+        userRoles = [...new Set([...userRoles, ...data.map(r => r.role)])];
       }
+    } catch (err) {
+      console.error("Error fetching user roles:", err);
     }
+    
+    setRoles(userRoles);
+    setIsAdmin(userRoles.includes("admin") || userRoles.includes("super_admin"));
+    setHasAdminAccess(userRoles.length > 0);
+  };
+
+  const hasRole = (allowedRoles: AppRole[]) => {
+    if (isAdmin) return true; // Admins have all permissions
+    return roles.some(role => allowedRoles.includes(role));
   };
 
   const handleAuthError = async (error: unknown) => {
@@ -58,7 +76,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("Error during signOut:", e);
       }
       
-      // Clear all auth related storage to be safe
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -67,11 +84,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      // Also clear session storage just in case
       sessionStorage.clear();
       
-      // Give it a small delay before reload to ensure storage is cleared
       setTimeout(() => {
         window.location.reload();
       }, 100);
@@ -83,9 +97,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        setTimeout(() => checkAdmin(session.user.id, session.user.email), 0);
+        setTimeout(() => checkRoles(session.user.id, session.user.email), 0);
       } else {
         setIsAdmin(false);
+        setHasAdminAccess(false);
+        setRoles([]);
       }
       setLoading(false);
     });
@@ -97,7 +113,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
-        checkAdmin(session.user.id, session.user.email);
+        checkRoles(session.user.id, session.user.email);
       }
       setLoading(false);
     }).catch((error) => {
@@ -121,13 +137,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     if (!error && data.user) {
-      // Send welcome email via Resend
       try {
-        await fetch("/api/send-welcome", {
+        const emailResponse = await fetch("/api/send-welcome", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, name: fullName }),
         });
+        if (!emailResponse.ok) {
+          console.error("Failed to send welcome email. Server responded with:", emailResponse.status);
+        }
       } catch (err) {
         console.error("Error sending welcome email:", err);
       }
@@ -141,7 +159,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, isAdmin, hasAdminAccess, roles, hasRole, loading, signIn, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );

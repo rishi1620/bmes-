@@ -15,6 +15,11 @@ async function startServer() {
 
   // API routes
   app.post("/api/send-confirmation", async (req, res) => {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not set");
+      return res.status(500).json({ error: "Email service is not configured on the server." });
+    }
+
     const { email, name, eventTitle } = req.body;
 
     if (!email || !name || !eventTitle) {
@@ -51,7 +56,54 @@ async function startServer() {
     }
   });
 
+  app.post("/api/send-membership-confirmation", async (req, res) => {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not set");
+      return res.status(500).json({ error: "Email service is not configured on the server." });
+    }
+
+    const { email, name } = req.body;
+
+    if (!email || !name) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    try {
+      const { data, error } = await resend.emails.send({
+        from: "CUET BMES <onboarding@resend.dev>",
+        to: [email],
+        subject: "Membership Application Received",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h1 style="color: #3b82f6;">Application Received!</h1>
+            <p>Hi ${name},</p>
+            <p>We have successfully received your membership application for the <strong>CUET Biomedical Engineering Society</strong>.</p>
+            <p>Your application is currently under review by the executive committee. We will notify you via email once your status is updated.</p>
+            <br/>
+            <p>Best regards,</p>
+            <p><strong>CUET BMES Executive Committee</strong></p>
+          </div>
+        `,
+      });
+
+      if (error) {
+        console.error("Resend error:", error);
+        return res.status(500).json({ error: error.message });
+      }
+
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error("Server error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/send-membership-status", async (req, res) => {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not set");
+      return res.status(500).json({ error: "Email service is not configured on the server." });
+    }
+
     const { email, name, status, reason } = req.body;
 
     if (!email || !name || !status) {
@@ -107,6 +159,11 @@ async function startServer() {
   });
 
   app.post("/api/send-welcome", async (req, res) => {
+    if (!process.env.RESEND_API_KEY) {
+      console.error("RESEND_API_KEY is not set");
+      return res.status(500).json({ error: "Email service is not configured on the server." });
+    }
+
     const { email, name } = req.body;
 
     if (!email || !name) {

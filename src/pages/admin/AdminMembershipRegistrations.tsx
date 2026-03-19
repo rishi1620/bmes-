@@ -122,11 +122,21 @@ function AdminMembershipRegistrations() {
     }
   };
 
+  const filteredRegistrations = registrations.filter(reg => {
+    const matchesStatus = statusFilter === "all" || reg.status === statusFilter;
+    const matchesSearch = 
+      reg.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reg.student_id.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    return matchesStatus && matchesSearch;
+  });
+
   const exportCSV = () => {
     const headers = ["Full Name", "Email", "Student ID", "Department", "Year/Semester", "Phone", "Transaction ID", "Status", "Date"];
     const csvContent = [
       headers.join(","),
-      ...registrations.map(r => [
+      ...filteredRegistrations.map(r => [
         `"${r.full_name}"`,
         `"${r.email}"`,
         `"${r.student_id}"`,
@@ -157,15 +167,6 @@ function AdminMembershipRegistrations() {
       default: return <Badge variant="secondary">Pending</Badge>;
     }
   };
-
-  const filteredRegistrations = registrations.filter(reg => {
-    const matchesStatus = statusFilter === "all" ? true : reg.status === statusFilter;
-    const matchesSearch = 
-      reg.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reg.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reg.student_id.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
 
   const toggleSelectAll = () => {
     if (selectedIds.length === filteredRegistrations.length && filteredRegistrations.length > 0) {
@@ -202,7 +203,7 @@ function AdminMembershipRegistrations() {
       // We'll do this in parallel
       Promise.all(selectedRegistrations.map(async (reg) => {
         try {
-          await fetch("/api/send-membership-status", {
+          const emailResponse = await fetch("/api/send-membership-status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -211,6 +212,9 @@ function AdminMembershipRegistrations() {
               status: status
             }),
           });
+          if (!emailResponse.ok) {
+            console.error(`Failed to send email to ${reg.email}. Server responded with:`, emailResponse.status);
+          }
         } catch (e) {
           console.error(`Failed to send email to ${reg.email}`, e);
         }

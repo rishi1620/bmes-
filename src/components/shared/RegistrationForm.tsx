@@ -39,7 +39,7 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
 
       // 2. Send confirmation email via our backend
       try {
-        await fetch("/api/send-confirmation", {
+        const emailResponse = await fetch("/api/send-confirmation", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -48,15 +48,28 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
             eventTitle: eventTitle,
           }),
         });
+        
+        if (!emailResponse.ok) {
+          console.warn("Failed to send confirmation email. Server responded with:", emailResponse.status);
+          toast({
+            title: "Registration Successful",
+            description: `You have successfully registered for ${eventTitle}, but we couldn't send a confirmation email at this time.`,
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Registration Successful!",
+            description: `You have successfully registered for ${eventTitle}. A confirmation email has been sent.`,
+          });
+        }
       } catch (emailErr) {
         console.error("Failed to send confirmation email:", emailErr);
-        // We don't throw here because the registration itself succeeded
+        toast({
+          title: "Registration Successful",
+          description: `You have successfully registered for ${eventTitle}, but we couldn't send a confirmation email at this time.`,
+          variant: "default",
+        });
       }
-
-      toast({
-        title: "Registration Successful!",
-        description: `You have successfully registered for ${eventTitle}.`,
-      });
 
       setSubmitted(true);
       if (onSuccess) {

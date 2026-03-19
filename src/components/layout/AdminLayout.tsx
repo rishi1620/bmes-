@@ -10,7 +10,23 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
-const linkGroups = [
+import { Database } from "@/integrations/supabase/types";
+
+type AppRole = Database["public"]["Enums"]["app_role"];
+
+interface NavLink {
+  label: string;
+  path: string;
+  icon: React.ElementType;
+  roles?: AppRole[];
+}
+
+interface LinkGroup {
+  title: string;
+  links: NavLink[];
+}
+
+const linkGroups: LinkGroup[] = [
   {
     title: "Overview",
     links: [
@@ -20,111 +36,133 @@ const linkGroups = [
   {
     title: "Site Structure",
     links: [
-      { label: "Pages & Navigation", path: "/admin/pages", icon: Navigation },
-      { label: "Home Sections", path: "/admin/home", icon: Home },
-      { label: "Media Library", path: "/admin/media", icon: Image },
-      { label: "Site Settings", path: "/admin/settings", icon: Settings },
+      { label: "Pages & Navigation", path: "/admin/pages", icon: Navigation, roles: ["admin", "super_admin", "editor"] },
+      { label: "Home Sections", path: "/admin/home", icon: Home, roles: ["admin", "super_admin", "editor"] },
+      { label: "Media Library", path: "/admin/media", icon: Image, roles: ["admin", "super_admin", "editor"] },
+      { label: "Site Settings", path: "/admin/settings", icon: Settings, roles: ["admin", "super_admin"] },
     ]
   },
   {
     title: "Core Content",
     links: [
-      { label: "About Page", path: "/admin/about", icon: FileText },
-      { label: "Academics", path: "/admin/academics", icon: GraduationCap },
-      { label: "Portal Page", path: "/admin/portal", icon: FileText },
-      { label: "Notices & News", path: "/admin/notices", icon: Bell },
-      { label: "FAQ", path: "/admin/faq", icon: HelpCircle },
+      { label: "About Page", path: "/admin/about", icon: FileText, roles: ["admin", "super_admin", "editor"] },
+      { label: "Academics", path: "/admin/academics", icon: GraduationCap, roles: ["admin", "super_admin", "editor"] },
+      { label: "Portal Page", path: "/admin/portal", icon: FileText, roles: ["admin", "super_admin", "editor"] },
+      { label: "Notices & News", path: "/admin/notices", icon: Bell, roles: ["admin", "super_admin", "editor"] },
+      { label: "FAQ", path: "/admin/faq", icon: HelpCircle, roles: ["admin", "super_admin", "editor"] },
     ]
   },
   {
     title: "Community",
     links: [
-      { label: "People", path: "/admin/people", icon: Users },
-      { label: "Alumni", path: "/admin/alumni", icon: GraduationCap },
-      { label: "Blog Posts", path: "/admin/blog", icon: FileText },
+      { label: "People", path: "/admin/people", icon: Users, roles: ["admin", "super_admin", "editor"] },
+      { label: "Alumni", path: "/admin/alumni", icon: GraduationCap, roles: ["admin", "super_admin", "editor"] },
+      { label: "Blog Posts", path: "/admin/blog", icon: FileText, roles: ["admin", "super_admin", "editor"] },
     ]
   },
   {
     title: "Engagement",
     links: [
-      { label: "Events", path: "/admin/events", icon: Calendar },
-      { label: "Projects", path: "/admin/projects", icon: FolderOpen },
-      { label: "Achievements", path: "/admin/achievements", icon: Trophy },
-      { label: "Activities", path: "/admin/activities", icon: CalendarDays },
+      { label: "Events", path: "/admin/events", icon: Calendar, roles: ["admin", "super_admin", "editor"] },
+      { label: "Projects", path: "/admin/projects", icon: FolderOpen, roles: ["admin", "super_admin", "editor"] },
+      { label: "Achievements", path: "/admin/achievements", icon: Trophy, roles: ["admin", "super_admin", "editor"] },
+      { label: "Activities", path: "/admin/activities", icon: CalendarDays, roles: ["admin", "super_admin", "editor"] },
     ]
   },
   {
     title: "User Data",
     links: [
-      { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox },
-      { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays },
-      { label: "Membership Apps", path: "/admin/membership", icon: UserCheck },
+      { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox, roles: ["admin", "super_admin", "user"] },
+      { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays, roles: ["admin", "super_admin", "user"] },
+      { label: "Membership Apps", path: "/admin/membership", icon: UserCheck, roles: ["admin", "super_admin", "user"] },
+    ]
+  },
+  {
+    title: "System",
+    links: [
+      { label: "Users & Roles", path: "/admin/users", icon: Users, roles: ["admin", "super_admin"] },
     ]
   }
 ];
 
-const SidebarContent = ({ pathname, search, signOut, logoUrl }: { pathname: string, search: string, signOut: () => void, logoUrl: string }) => (
-  <div className="flex h-full flex-col bg-transparent text-sidebar-foreground">
-    <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
-      <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={logoUrl || defaultLogo} />
-      <span className="text-lg font-bold tracking-tight">BMES Admin</span>
+const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { pathname: string, search: string, signOut: () => void, logoUrl: string, onLinkClick?: () => void }) => {
+  const { hasRole } = useAuth();
+  
+  return (
+    <div className="flex h-full flex-col bg-transparent text-sidebar-foreground">
+      <div className="flex h-16 items-center gap-3 border-b border-sidebar-border px-6">
+        <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={logoUrl || defaultLogo} />
+        <span className="text-lg font-bold tracking-tight">BMES Admin</span>
+      </div>
+      <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
+        {linkGroups.map((group) => {
+          // Filter links based on user roles
+          const visibleLinks = group.links.filter(link => {
+            if (!link.roles) return true; // If no roles specified, visible to all with admin access
+            return hasRole(link.roles);
+          });
+
+          if (visibleLinks.length === 0) return null;
+
+          return (
+            <div key={group.title}>
+              <h4 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+                {group.title}
+              </h4>
+              <div className="space-y-1">
+                {visibleLinks.map((l) => {
+                  const isActive = pathname === l.path || pathname + search === l.path;
+                  return (
+                    <Link
+                      key={l.path}
+                      to={l.path}
+                      onClick={onLinkClick}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                      )}
+                    >
+                      <l.icon className="h-4 w-4" />
+                      {l.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </nav>
+      <div className="border-t border-sidebar-border p-4 space-y-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="w-full justify-start gap-2 border-sidebar-border bg-sidebar-accent/10 text-sidebar-foreground hover:bg-sidebar-accent/50" 
+          asChild
+          onClick={onLinkClick}
+        >
+          <Link to="/">
+            <ExternalLink className="h-4 w-4" /> 
+            Main Page
+          </Link>
+        </Button>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground" 
+          onClick={signOut}
+        >
+          <LogOut className="h-4 w-4" /> 
+          Sign Out
+        </Button>
+      </div>
     </div>
-    <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
-      {linkGroups.map((group) => (
-        <div key={group.title}>
-          <h4 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
-            {group.title}
-          </h4>
-          <div className="space-y-1">
-            {group.links.map((l) => {
-              const isActive = pathname === l.path || pathname + search === l.path;
-              return (
-                <Link
-                  key={l.path}
-                  to={l.path}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                  )}
-                >
-                  <l.icon className="h-4 w-4" />
-                  {l.label}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))}
-    </nav>
-    <div className="border-t border-sidebar-border p-4 space-y-2">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        className="w-full justify-start gap-2 border-sidebar-border bg-sidebar-accent/10 text-sidebar-foreground hover:bg-sidebar-accent/50" 
-        asChild
-      >
-        <Link to="/">
-          <ExternalLink className="h-4 w-4" /> 
-          Main Page
-        </Link>
-      </Button>
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground" 
-        onClick={signOut}
-      >
-        <LogOut className="h-4 w-4" /> 
-        Sign Out
-      </Button>
-    </div>
-  </div>
-);
+  );
+};
 
 const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
-  const { user, isAdmin, loading, signOut } = useAuth();
+  const { user, hasAdminAccess, loading, signOut } = useAuth();
   const location = useLocation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
@@ -156,7 +194,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
 
   if (loading) return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading dashboard...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-  if (!isAdmin) return (
+  if (!hasAdminAccess) return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-6 text-center bg-muted/30">
       <div className="rounded-xl border bg-card p-8 shadow-sm">
         <h1 className="text-2xl font-bold text-foreground">Access Denied</h1>
@@ -179,7 +217,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           <div className="sr-only">
             <SheetTitle>Admin Navigation</SheetTitle>
           </div>
-          <SidebarContent pathname={location.pathname} search={location.search} signOut={signOut} logoUrl={logoUrl} />
+          <SidebarContent pathname={location.pathname} search={location.search} signOut={signOut} logoUrl={logoUrl} onLinkClick={() => setSheetOpen(false)} />
         </SheetContent>
       </Sheet>
 

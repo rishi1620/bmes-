@@ -65,7 +65,7 @@ const AdminSubmissions = () => {
 
   const exportCsv = () => {
     const headers = ["Name", "Email", "Subject", "Message", "Date", "Read"];
-    const csvRows = rows.map((r) => [
+    const csvRows = filteredRows.map((r) => [
       `"${r.name}"`, `"${r.email}"`, `"${r.subject}"`, `"${r.message.replace(/"/g, '""')}"`,
       format(new Date(r.created_at), "yyyy-MM-dd HH:mm"), r.is_read ? "Yes" : "No",
     ].join(","));
