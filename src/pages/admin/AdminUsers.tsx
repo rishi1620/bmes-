@@ -15,6 +15,11 @@ import { Label as UILabel } from "@/components/ui/label";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
+const PROTECTED_USER_IDS = [
+  "3c1a678a-0b29-47db-ad9b-5af4792c7900",
+  "03b64b68-685b-4a3b-b90f-f2b0e8d5b818"
+];
+
 interface UserProfile {
   id: string;
   email: string;
@@ -111,6 +116,10 @@ const AdminUsers = () => {
   });
 
   const handleAssignRole = (userId: string, role: AppRole) => {
+    if (PROTECTED_USER_IDS.includes(userId) && !isAdmin) {
+      toast({ title: "Cannot modify protected user", variant: "destructive" });
+      return;
+    }
     assignRoleMutation.mutate({ userId, role });
   };
 
@@ -119,7 +128,11 @@ const AdminUsers = () => {
       toast({ title: "User ID is required", variant: "destructive" });
       return;
     }
-    assignRoleMutation.mutate({ userId: newUserId.trim(), role: newUserRole }, {
+    
+    // If trying to add a protected user, ensure they get super_admin
+    const roleToAssign = PROTECTED_USER_IDS.includes(newUserId.trim()) ? "super_admin" : newUserRole;
+    
+    assignRoleMutation.mutate({ userId: newUserId.trim(), role: roleToAssign }, {
       onSuccess: () => {
         setIsAddDialogOpen(false);
         setNewUserId("");
@@ -128,6 +141,10 @@ const AdminUsers = () => {
   };
 
   const handleRemoveRole = (userId: string, role: AppRole) => {
+    if (PROTECTED_USER_IDS.includes(userId)) {
+      toast({ title: "This user is protected and cannot be modified", variant: "destructive" });
+      return;
+    }
     removeRoleMutation.mutate({ userId, role });
   };
 
@@ -190,6 +207,7 @@ const AdminUsers = () => {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="super_admin">Super Admin (Protected)</SelectItem>
                       <SelectItem value="admin">Admin (Full Access)</SelectItem>
                       <SelectItem value="editor">Editor (Content Only)</SelectItem>
                       <SelectItem value="content_manager">Content Manager</SelectItem>
@@ -257,13 +275,15 @@ const AdminUsers = () => {
                             user.roles.map(role => (
                               <span key={role} className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
                                 {role}
-                                <button 
-                                  onClick={() => handleRemoveRole(user.id, role)}
-                                  className="ml-1 hover:text-destructive focus:outline-none"
-                                  title={`Remove ${role} role`}
-                                >
-                                  &times;
-                                </button>
+                                {!PROTECTED_USER_IDS.includes(user.id) && (
+                                  <button 
+                                    onClick={() => handleRemoveRole(user.id, role)}
+                                    className="ml-1 hover:text-destructive focus:outline-none"
+                                    title={`Remove ${role} role`}
+                                  >
+                                    &times;
+                                  </button>
+                                )}
                               </span>
                             ))
                           ) : (
@@ -274,11 +294,13 @@ const AdminUsers = () => {
                       <TableCell className="text-right">
                         <Select
                           onValueChange={(value) => handleAssignRole(user.id, value as AppRole)}
+                          disabled={PROTECTED_USER_IDS.includes(user.id)}
                         >
                           <SelectTrigger className="w-[140px] ml-auto">
-                            <SelectValue placeholder="Assign Role" />
+                            <SelectValue placeholder={PROTECTED_USER_IDS.includes(user.id) ? "Protected" : "Assign Role"} />
                           </SelectTrigger>
                           <SelectContent>
+                            <SelectItem value="super_admin">Super Admin</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="editor">Editor</SelectItem>
                             <SelectItem value="user">User</SelectItem>
