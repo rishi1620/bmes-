@@ -14,12 +14,14 @@ interface Lab {
   id: string;
   title: string;
   description: string;
+  imageUrl?: string;
 }
 
 interface ResearchArea {
   id: string;
   title: string;
   description: string;
+  imageUrl?: string;
 }
 
 interface Publication {
@@ -126,7 +128,17 @@ const Research = () => {
                 </>
               ) : (
                 labs.map((lab) => (
-                  <Card key={lab.id}>
+                  <Card key={lab.id} className="overflow-hidden">
+                    {lab.imageUrl && (
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img 
+                          src={lab.imageUrl} 
+                          alt={lab.title} 
+                          className="h-full w-full object-cover transition-transform hover:scale-105"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    )}
                     <CardHeader><CardTitle>{lab.title}</CardTitle></CardHeader>
                     <CardContent><p className="text-muted-foreground">{lab.description}</p></CardContent>
                   </Card>
@@ -155,7 +167,17 @@ const Research = () => {
                 </>
               ) : (
                 areas.map((area) => (
-                  <Card key={area.id}>
+                  <Card key={area.id} className="overflow-hidden">
+                    {area.imageUrl && (
+                      <div className="aspect-video w-full overflow-hidden">
+                        <img 
+                          src={area.imageUrl} 
+                          alt={area.title} 
+                          className="h-full w-full object-cover transition-transform hover:scale-105"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                    )}
                     <CardHeader><CardTitle>{area.title}</CardTitle></CardHeader>
                     <CardContent><p className="text-muted-foreground">{area.description}</p></CardContent>
                   </Card>

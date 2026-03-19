@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Save, Plus, Trash2, Microscope, FlaskConical, BookOpen, Layout } from "lucide-react";
+import { Save, Plus, Trash2, Microscope, FlaskConical, BookOpen, Layout, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 
 interface Setting {
   id: string;
@@ -20,12 +21,14 @@ interface Lab {
   id: string;
   title: string;
   description: string;
+  imageUrl?: string;
 }
 
 interface ResearchArea {
   id: string;
   title: string;
   description: string;
+  imageUrl?: string;
 }
 
 interface Publication {
@@ -202,6 +205,24 @@ const AdminResearch = () => {
                       onChange={(e) => updateItem('lab', lab.id, 'description', e.target.value)}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Image (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={lab.imageUrl || ""} 
+                        onChange={(e) => updateItem('lab', lab.id, 'imageUrl', e.target.value)}
+                        placeholder="Image URL"
+                      />
+                      <MediaSelectorDialog 
+                        onSelect={(url) => updateItem('lab', lab.id, 'imageUrl', url)}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            <FileText className="h-4 w-4 mr-2" /> Select
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
@@ -243,6 +264,24 @@ const AdminResearch = () => {
                       value={area.description} 
                       onChange={(e) => updateItem('area', area.id, 'description', e.target.value)}
                     />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Image (Optional)</Label>
+                    <div className="flex gap-2">
+                      <Input 
+                        value={area.imageUrl || ""} 
+                        onChange={(e) => updateItem('area', area.id, 'imageUrl', e.target.value)}
+                        placeholder="Image URL"
+                      />
+                      <MediaSelectorDialog 
+                        onSelect={(url) => updateItem('area', area.id, 'imageUrl', url)}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            <FileText className="h-4 w-4 mr-2" /> Select
+                          </Button>
+                        }
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
