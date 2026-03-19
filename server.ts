@@ -106,6 +106,47 @@ async function startServer() {
     }
   });
 
+  app.post("/api/send-welcome", async (req, res) => {
+    const { email, name } = req.body;
+
+    if (!email || !name) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    try {
+      const { data, error } = await resend.emails.send({
+        from: "CUET BMES <onboarding@resend.dev>",
+        to: [email],
+        subject: "Welcome to CUET BMES Society!",
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+            <h1 style="color: #10b981;">Welcome to the Society!</h1>
+            <p>Hi ${name},</p>
+            <p>Thank you for creating an account with the <strong>CUET Biomedical Engineering Society</strong>.</p>
+            <p>We're excited to have you as part of our community!</p>
+            <p>You can now explore our events, projects, and research activities. If you haven't already, consider applying for official membership through the student portal.</p>
+            <div style="margin: 30px 0;">
+              <a href="${process.env.APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+            </div>
+            <br/>
+            <p>Best regards,</p>
+            <p><strong>CUET BMES Team</strong></p>
+          </div>
+        `,
+      });
+
+      if (error) {
+        console.error("Resend error:", error);
+        return res.status(500).json({ error: error.message });
+      }
+
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error("Server error:", err);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   app.post("/api/generate-study-material", async (req, res) => {
     const { prompt, fileContent } = req.body;
     
