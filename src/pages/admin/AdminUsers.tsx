@@ -182,15 +182,19 @@ const AdminUsers = () => {
     if (!editingUser || !editName.trim()) return;
 
     try {
+      console.log("Updating name for user:", editingUser.id, "to:", editName.trim());
+      
       const { error } = await supabase
         .from("profiles")
         .upsert({ 
-          id: editingUser.id,
           user_id: editingUser.id, 
           full_name: editName.trim()
-        });
+        }, { onConflict: 'user_id' });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error updating name:", error);
+        throw error;
+      }
 
       toast({ title: "Name updated successfully" });
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
@@ -198,7 +202,9 @@ const AdminUsers = () => {
       setEditingUser(null);
       setEditName("");
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "An unknown error occurred";
+      console.error("Catch block error updating name:", error);
+      const message = error instanceof Error ? error.message : 
+                     (typeof error === 'object' && error !== null && 'message' in error ? (error as any).message : "An unknown error occurred");
       toast({ title: "Failed to update name", description: message, variant: "destructive" });
     }
   };

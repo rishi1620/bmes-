@@ -65,10 +65,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const err = error as { message?: string } | string | null;
     const message = (typeof err === 'object' ? err?.message : (typeof err === 'string' ? err : "")) || "";
     
-    if (message.includes("Refresh Token Not Found") || 
-        message.includes("refresh_token_not_found") ||
-        message.includes("invalid_refresh_token") ||
-        message.includes("session_not_found")) {
+    // Log the full error to help debug
+    console.log("Auth error message:", message);
+    
+    if (message.toLowerCase().includes("refresh token") || 
+        message.toLowerCase().includes("session_not_found") ||
+        message.toLowerCase().includes("invalid_refresh_token")) {
       console.warn("Invalid refresh token or session detected, signing out and clearing storage...");
       try {
         await supabase.auth.signOut();
