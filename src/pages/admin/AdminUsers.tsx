@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Database } from "@/integrations/supabase/types";
-import { Loader2, Search, Shield, UserPlus, Trash2 } from "lucide-react";
+import { Loader2, Search, Shield, UserPlus } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -19,6 +19,12 @@ const PROTECTED_USER_IDS = [
   "3c1a678a-0b29-47db-ad9b-5af4792c7900",
   "03b64b68-685b-4a3b-b90f-f2b0e8d5b818"
 ];
+
+const PROTECTED_USER_NAMES: Record<string, string> = {
+  "3c1a678a-0b29-47db-ad9b-5af4792c7900": "u2111008",
+  "03b64b68-685b-4a3b-b90f-f2b0e8d5b818": "hrictik",
+  "2104501b-bb83-4deb-ab82-1a3b2514fefb": "hrictik"
+};
 
 interface UserProfile {
   id: string;
@@ -34,7 +40,11 @@ const AdminUsers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newUserId, setNewUserId] = useState("");
+  const [newUserName, setNewUserName] = useState("");
   const [newUserRole, setNewUserRole] = useState<AppRole>("editor");
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [editName, setEditName] = useState("");
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
   // Only admins and super_admins can manage roles
   const canManageRoles = isAdmin || hasRole(["admin", "super_admin"]);
@@ -71,7 +81,7 @@ const AdminUsers = () => {
         
         return {
           id: userId,
-          email: profile?.full_name || "New User (No Profile Yet)",
+          email: "N/A", // Email is not stored in public profiles for security
           full_name: profile?.full_name || null,
           roles: userRoles
         };
@@ -123,7 +133,7 @@ const AdminUsers = () => {
     assignRoleMutation.mutate({ userId, role });
   };
 
-  const handleManualAdd = () => {
+  const handleManualAdd = async () => {
     if (!newUserId.trim()) {
       toast({ title: "User ID is required", variant: "destructive" });
       return;
@@ -132,12 +142,65 @@ const AdminUsers = () => {
     // If trying to add a protected user, ensure they get super_admin
     const roleToAssign = PROTECTED_USER_IDS.includes(newUserId.trim()) ? "super_admin" : newUserRole;
     
-    assignRoleMutation.mutate({ userId: newUserId.trim(), role: roleToAssign }, {
-      onSuccess: () => {
-        setIsAddDialogOpen(false);
-        setNewUserId("");
+    try {
+      // 1. Assign Role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({ user_id: newUserId.trim(), role: roleToAssign });
+      
+      if (roleError) throw roleError;
+
+      // 2. Create/Update Profile if name is provided
+      if (newUserName.trim()) {
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .upsert({ 
+            id: newUserId.trim(),
+            user_id: newUserId.trim(), 
+            full_name: newUserName.trim()
+          });
+        
+        if (profileError) {
+          console.error("Error creating profile:", profileError);
+          // We don't throw here because the role was already assigned successfully
+          toast({ title: "Role assigned, but failed to set name", description: profileError.message });
+        }
       }
-    });
+
+      toast({ title: "User access granted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setIsAddDialogOpen(false);
+      setNewUserId("");
+      setNewUserName("");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred";
+      toast({ title: "Failed to add user", description: message, variant: "destructive" });
+    }
+  };
+
+  const handleUpdateName = async () => {
+    if (!editingUser || !editName.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .upsert({ 
+          id: editingUser.id,
+          user_id: editingUser.id, 
+          full_name: editName.trim()
+        });
+      
+      if (error) throw error;
+
+      toast({ title: "Name updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["admin-users"] });
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      setEditName("");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "An unknown error occurred";
+      toast({ title: "Failed to update name", description: message, variant: "destructive" });
+    }
   };
 
   const handleRemoveRole = (userId: string, role: AppRole) => {
@@ -149,8 +212,10 @@ const AdminUsers = () => {
   };
 
   const filteredUsers = users?.filter(user => 
-    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.id.toLowerCase().includes(searchTerm.toLowerCase())
+    !PROTECTED_USER_IDS.includes(user.id) && (
+      user.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.id.toLowerCase().includes(searchTerm.toLowerCase())
+    )
   );
 
   if (!canManageRoles) {
@@ -201,13 +266,21 @@ const AdminUsers = () => {
                   />
                 </div>
                 <div className="space-y-2">
+                  <UILabel htmlFor="name">User Name (Optional)</UILabel>
+                  <Input 
+                    id="name" 
+                    placeholder="e.g. John Doe" 
+                    value={newUserName}
+                    onChange={(e) => setNewUserName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
                   <UILabel htmlFor="role">Initial Role</UILabel>
                   <Select value={newUserRole} onValueChange={(v) => setNewUserRole(v as AppRole)}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="super_admin">Super Admin (Protected)</SelectItem>
                       <SelectItem value="admin">Admin (Full Access)</SelectItem>
                       <SelectItem value="editor">Editor (Content Only)</SelectItem>
                       <SelectItem value="content_manager">Content Manager</SelectItem>
@@ -262,9 +335,23 @@ const AdminUsers = () => {
                   </TableRow>
                 ) : (
                   filteredUsers?.map((user) => (
-                    <TableRow key={user.id}>
+                    <TableRow key={user.id} className="group">
                       <TableCell className="font-medium">
-                        {user.full_name || "Unknown User"}
+                        <div className="flex items-center gap-2">
+                          {user.full_name || PROTECTED_USER_NAMES[user.id] || "Unknown User"}
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={() => {
+                              setEditingUser(user);
+                              setEditName(user.full_name || PROTECTED_USER_NAMES[user.id] || "");
+                              setIsEditDialogOpen(true);
+                            }}
+                          >
+                            <Search className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-xs font-mono">
                         {user.id}
@@ -300,7 +387,6 @@ const AdminUsers = () => {
                             <SelectValue placeholder={PROTECTED_USER_IDS.includes(user.id) ? "Protected" : "Assign Role"} />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="super_admin">Super Admin</SelectItem>
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="editor">Editor</SelectItem>
                             <SelectItem value="user">User</SelectItem>
@@ -316,6 +402,32 @@ const AdminUsers = () => {
           )}
         </div>
       </div>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User Name</DialogTitle>
+            <DialogDescription>
+              Update the display name for this user.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <UILabel htmlFor="edit-name">Display Name</UILabel>
+              <Input 
+                id="edit-name" 
+                placeholder="Enter user's name" 
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleUpdateName}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
