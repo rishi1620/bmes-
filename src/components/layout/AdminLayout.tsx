@@ -1,5 +1,5 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
@@ -24,6 +24,7 @@ interface NavLink {
 interface LinkGroup {
   title: string;
   links: NavLink[];
+  defaultOpen?: boolean;
 }
 
 const linkGroups: LinkGroup[] = [
@@ -31,7 +32,8 @@ const linkGroups: LinkGroup[] = [
     title: "Overview",
     links: [
       { label: "Dashboard", path: "/admin", icon: LayoutDashboard },
-    ]
+    ],
+    defaultOpen: true
   },
   {
     title: "Site Structure",
@@ -40,13 +42,15 @@ const linkGroups: LinkGroup[] = [
       { label: "Home Sections", path: "/admin/home", icon: Home, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Media Library", path: "/admin/media", icon: Image, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Site Settings", path: "/admin/settings", icon: Settings, roles: ["admin", "super_admin"] },
-    ]
+    ],
+    defaultOpen: true
   },
   {
     title: "Core Content",
     links: [
       { label: "About Page", path: "/admin/about", icon: FileText, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Academics", path: "/admin/academics", icon: GraduationCap, roles: ["admin", "super_admin", "editor", "content_manager"] },
+      { label: "Research", path: "/admin/research", icon: Microscope, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Portal Page", path: "/admin/portal", icon: FileText, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Notices & News", path: "/admin/notices", icon: Bell, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "FAQ", path: "/admin/faq", icon: HelpCircle, roles: ["admin", "super_admin", "editor", "content_manager"] },
@@ -87,6 +91,15 @@ const linkGroups: LinkGroup[] = [
 
 const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { pathname: string, search: string, signOut: () => void, logoUrl: string, onLinkClick?: () => void }) => {
   const { hasRole } = useAuth();
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
+    const defaults: Record<string, boolean> = {};
+    linkGroups.forEach(g => defaults[g.title] = g.defaultOpen || false);
+    return defaults;
+  });
+
+  const toggleGroup = (title: string) => {
+    setOpenGroups(prev => ({ ...prev, [title]: !prev[title] }));
+  };
   
   return (
     <div className="flex h-full flex-col bg-transparent text-sidebar-foreground">
@@ -94,7 +107,7 @@ const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { p
         <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={logoUrl || defaultLogo} />
         <span className="text-lg font-bold tracking-tight">BMES Admin</span>
       </div>
-      <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-6">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
         {linkGroups.map((group) => {
           // Filter links based on user roles
           const visibleLinks = group.links.filter(link => {
@@ -104,12 +117,18 @@ const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { p
 
           if (visibleLinks.length === 0) return null;
 
+          const isOpen = openGroups[group.title];
+
           return (
             <div key={group.title}>
-              <h4 className="mb-2 px-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50">
+              <button
+                onClick={() => toggleGroup(group.title)}
+                className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+              >
                 {group.title}
-              </h4>
-              <div className="space-y-1">
+                {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+              </button>
+              <div className={cn("space-y-1 overflow-hidden transition-all duration-200", isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0")}>
                 {visibleLinks.map((l) => {
                   const isActive = pathname === l.path || pathname + search === l.path;
                   return (
