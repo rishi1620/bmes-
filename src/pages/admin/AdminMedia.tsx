@@ -16,13 +16,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 
 interface MediaFile {
-  name: string;
   id: string;
+  file_name: string;
+  file_url: string;
+  file_size: number | null;
+  file_type: string | null;
   created_at: string;
-  metadata: { size?: number; mimetype?: string } | null;
+  alt_text: string | null;
 }
 
 const AdminMedia = () => {
@@ -30,15 +41,17 @@ const AdminMedia = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
-  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
-  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set()); // IDs now
+  const [fileToDelete, setFileToDelete] = useState<MediaFile | null>(null);
   const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
+  const [editingAlt, setEditingAlt] = useState<{ id: string, text: string } | null>(null);
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase.storage
-      .from("media")
-      .list("", { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+    const { data, error } = await supabase
+      .from("media_library")
+      .select("*")
+      .order("created_at", { ascending: false });
     
     if (error) {
       toast({ title: "Error fetching files", description: error.message, variant: "destructive" });
@@ -57,71 +70,119 @@ const AdminMedia = () => {
     let successCount = 0;
     
     for (const file of acceptedFiles) {
-      const name = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-      const { error } = await supabase.storage.from("media").upload(name, file);
-      if (error) {
-        toast({ title: `Failed to upload ${file.name}`, description: error.message, variant: "destructive" });
+      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+      
+      // 1. Upload to Storage
+      const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
+      
+      if (uploadError) {
+        toast({ title: `Failed to upload ${file.name}`, description: uploadError.message, variant: "destructive" });
+        continue;
+      }
+
+      // 2. Get Public URL
+      const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
+      
+      // 3. Create Database Record
+      const { data: userData } = await supabase.auth.getUser();
+      const { error: dbError } = await supabase.from("media_library").insert({
+        file_name: fileName,
+        file_url: urlData.publicUrl,
+        file_size: file.size,
+        file_type: file.type,
+        uploaded_by: userData.user?.id,
+      });
+
+      if (dbError) {
+        toast({ title: `Failed to register ${file.name} in database`, description: dbError.message, variant: "destructive" });
+        // Cleanup storage if DB fails? Maybe not strictly necessary but good practice
+        await supabase.storage.from("media").remove([fileName]);
       } else {
         successCount++;
       }
     }
     
     setUploading(false);
-    toast({ title: `${successCount} file(s) uploaded` });
-    fetchFiles();
+    if (successCount > 0) {
+      toast({ title: `${successCount} file(s) uploaded` });
+      fetchFiles();
+    }
   }, [fetchFiles]);
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ onDrop, accept: {'image/*': [], 'video/*': [], 'application/pdf': []} });
 
-  const toggleSelect = (name: string) => {
+  const toggleSelect = (id: string) => {
     const next = new Set(selectedFiles);
-    if (next.has(name)) next.delete(name);
-    else next.add(name);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
     setSelectedFiles(next);
   };
 
   const deleteSelected = async () => {
     setUploading(true);
-    const filesToDelete = Array.from(selectedFiles);
-    const { error } = await supabase.storage.from("media").remove(filesToDelete);
+    const idsToDelete = Array.from(selectedFiles);
+    const filesToDelete = files.filter(f => idsToDelete.includes(f.id));
+    const storageNames = filesToDelete.map(f => f.file_name);
+
+    // 1. Delete from Storage
+    const { error: storageError } = await supabase.storage.from("media").remove(storageNames);
     
-    if (error) {
-      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    if (storageError) {
+      toast({ title: "Storage delete failed", description: storageError.message, variant: "destructive" });
     } else {
-      toast({ title: "Files deleted successfully" });
-      setSelectedFiles(new Set());
-      fetchFiles();
+      // 2. Delete from Database
+      const { error: dbError } = await supabase.from("media_library").delete().in("id", idsToDelete);
+      
+      if (dbError) {
+        toast({ title: "Database delete failed", description: dbError.message, variant: "destructive" });
+      } else {
+        toast({ title: "Files deleted successfully" });
+        setSelectedFiles(new Set());
+        fetchFiles();
+      }
     }
     setUploading(false);
     setIsDeleteAllOpen(false);
   };
 
-  const remove = async (name: string) => {
-    console.log("Attempting to delete file:", name);
-    const { data, error } = await supabase.storage.from("media").remove([name]);
+  const remove = async (file: MediaFile) => {
+    // 1. Delete from Storage
+    const { error: storageError } = await supabase.storage.from("media").remove([file.file_name]);
     
-    if (error) {
-      console.error("Full Supabase Error Object:", error);
-      toast({ 
-        title: "Delete failed", 
-        description: `Error: ${error.message} (Code: ${error.name})`, 
-        variant: "destructive" 
-      });
+    if (storageError) {
+      toast({ title: "Storage delete failed", description: storageError.message, variant: "destructive" });
     } else {
-      console.log("Delete successful:", data);
-      toast({ title: "File deleted successfully" });
-      fetchFiles();
+      // 2. Delete from Database
+      const { error: dbError } = await supabase.from("media_library").delete().eq("id", file.id);
+      
+      if (dbError) {
+        toast({ title: "Database delete failed", description: dbError.message, variant: "destructive" });
+      } else {
+        toast({ title: "File deleted successfully" });
+        fetchFiles();
+      }
     }
     setFileToDelete(null);
   };
 
-  const getUrl = (name: string) => {
-    const { data } = supabase.storage.from("media").getPublicUrl(name);
-    return data.publicUrl;
+  const updateAltText = async () => {
+    if (!editingAlt) return;
+    const { error } = await supabase
+      .from("media_library")
+      .update({ alt_text: editingAlt.text })
+      .eq("id", editingAlt.id);
+    
+    if (error) {
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Alt text updated" });
+      fetchFiles();
+    }
+    setEditingAlt(null);
   };
 
-  const copyUrl = (name: string) => {
-    navigator.clipboard.writeText(getUrl(name));
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
     toast({ title: "URL copied to clipboard" });
   };
 
@@ -129,8 +190,7 @@ const AdminMedia = () => {
   const isVideo = (name: string) => /\.(mp4|webm|mov|avi)$/i.test(name);
 
   const filtered = files.filter((f) => 
-    f.name !== ".emptyFolderPlaceholder" && 
-    f.name.toLowerCase().includes(search.toLowerCase())
+    f.file_name.toLowerCase().includes(search.toLowerCase())
   );
 
   const formatSize = (bytes?: number) => {
@@ -221,28 +281,29 @@ const AdminMedia = () => {
           className="grid gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
         >
           {filtered.map((file) => (
-            <motion.div variants={itemVariants} key={file.id ?? file.name} className={`group relative rounded-lg border border-border bg-card overflow-hidden ${selectedFiles.has(file.name) ? 'ring-2 ring-primary' : ''}`}>
+            <motion.div variants={itemVariants} key={file.id} className={`group relative rounded-lg border border-border bg-card overflow-hidden ${selectedFiles.has(file.id) ? 'ring-2 ring-primary' : ''}`}>
               <div className="absolute top-2 left-2 z-10">
-                <Button variant="ghost" size="icon" className="h-6 w-6 bg-background/50" onClick={() => toggleSelect(file.name)}>
-                  {selectedFiles.has(file.name) ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
+                <Button variant="ghost" size="icon" className="h-6 w-6 bg-background/50" onClick={() => toggleSelect(file.id)}>
+                  {selectedFiles.has(file.id) ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
                 </Button>
               </div>
               <div className="aspect-square flex items-center justify-center bg-muted/50">
-                {isImage(file.name) ? (
-                  <img src={getUrl(file.name)} alt={file.name} className="h-full w-full object-cover" loading="lazy" />
-                ) : isVideo(file.name) ? (
+                {isImage(file.file_name) ? (
+                  <img src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" loading="lazy" />
+                ) : isVideo(file.file_name) ? (
                   <Film className="h-10 w-10 text-muted-foreground" />
                 ) : (
                   <FileText className="h-10 w-10 text-muted-foreground" />
                 )}
               </div>
               <div className="p-2">
-                <p className="truncate text-xs font-medium text-foreground">{file.name}</p>
-                <p className="text-[10px] text-muted-foreground">{formatSize(file.metadata?.size)}</p>
+                <p className="truncate text-xs font-medium text-foreground">{file.file_name}</p>
+                <p className="text-[10px] text-muted-foreground">{formatSize(file.file_size || 0)}</p>
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 opacity-0 transition-opacity group-hover:opacity-100">
-                <Button variant="outline" size="sm" onClick={() => copyUrl(file.name)} title="Copy URL"><Copy className="h-4 w-4" /></Button>
-                <Button variant="outline" size="sm" onClick={() => setFileToDelete(file.name)} title="Delete" className="text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="h-4 w-4" /></Button>
+                <Button variant="outline" size="sm" onClick={() => copyUrl(file.file_url)} title="Copy URL"><Copy className="h-4 w-4" /></Button>
+                <Button variant="outline" size="sm" onClick={() => setEditingAlt({ id: file.id, text: file.alt_text || "" })} title="Edit Alt Text"><FileText className="h-4 w-4" /></Button>
+                <Button variant="outline" size="sm" onClick={() => setFileToDelete(file)} title="Delete" className="text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </motion.div>
           ))}
@@ -254,13 +315,13 @@ const AdminMedia = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete {fileToDelete}.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => fileToDelete && remove(fileToDelete)}>Delete</AlertDialogAction>
-          </AlertDialogFooter>
+            This will permanently delete {fileToDelete?.file_name}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogAction onClick={() => fileToDelete && remove(fileToDelete)}>Delete</AlertDialogAction>
+        </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
@@ -278,6 +339,29 @@ const AdminMedia = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!editingAlt} onOpenChange={() => setEditingAlt(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Alt Text</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Alt Text</Label>
+              <Input 
+                value={editingAlt?.text || ""} 
+                onChange={(e) => setEditingAlt(prev => prev ? { ...prev, text: e.target.value } : null)} 
+                placeholder="Describe the image..."
+              />
+              <p className="text-xs text-muted-foreground">Alt text improves accessibility and SEO.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingAlt(null)}>Cancel</Button>
+            <Button onClick={updateAltText}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 };
