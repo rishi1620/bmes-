@@ -45,7 +45,15 @@ const Auth = () => {
     setSubmitting(false);
 
     if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      if (error.message.includes("already registered") || error.message.includes("409")) {
+        toast({ 
+          title: "Account exists", 
+          description: "This email is already registered. Please sign in instead.", 
+          variant: "destructive" 
+        });
+      } else {
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+      }
     } else if (!isLogin) {
       toast({ title: "Check your email", description: "We sent you a confirmation link." });
     }
