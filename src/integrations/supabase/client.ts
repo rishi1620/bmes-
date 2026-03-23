@@ -5,8 +5,15 @@ import type { Database } from './types';
 const envUrl = import.meta.env.VITE_SUPABASE_URL;
 const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+console.log("Supabase URL loaded:", !!envUrl);
+console.log("Supabase Key loaded:", !!envKey);
+
 const SUPABASE_URL = (envUrl && envUrl.startsWith('http')) ? envUrl : "https://placeholder-project.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = envKey || "placeholder-key";
+
+if (SUPABASE_URL === "https://placeholder-project.supabase.co") {
+  console.warn("Supabase is using a placeholder URL. Please set VITE_SUPABASE_URL in your environment variables.");
+}
 
 const isPlaceholder = SUPABASE_URL === "https://placeholder-project.supabase.co";
 
@@ -37,7 +44,8 @@ export const supabase =
             });
           }
         : (input, init) => fetch(input, init).catch(err => {
-            console.error("Supabase network error:", err);
+            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+            console.error("Supabase network error for URL:", url, "Error:", err);
             throw err;
           }),
     },
