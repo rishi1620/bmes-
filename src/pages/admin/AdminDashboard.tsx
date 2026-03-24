@@ -14,6 +14,8 @@ const AdminDashboard = () => {
   const [recentRegistrations, setRecentRegistrations] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [pendingApps, setPendingApps] = useState<any[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [recentNotices, setRecentNotices] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
@@ -38,15 +40,21 @@ const AdminDashboard = () => {
       ]);
 
       let noticesCount = 0;
+      let parsedNotices: any[] = [];
       try {
         if (noticesData.data?.setting_value) {
           const parsed = JSON.parse(noticesData.data.setting_value);
-          noticesCount = Array.isArray(parsed) ? parsed.length : 0;
+          if (Array.isArray(parsed)) {
+            noticesCount = parsed.length;
+            parsed.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+            parsedNotices = parsed.slice(0, 5);
+          }
         }
       } catch (err) {
         console.error("Error parsing notices:", err);
       }
 
+      setRecentNotices(parsedNotices);
       setCounts({
         members: m.count ?? 0,
         events: e.count ?? 0,
@@ -103,7 +111,7 @@ const AdminDashboard = () => {
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 mt-8">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">
@@ -178,6 +186,46 @@ const AdminDashboard = () => {
             )}
             <Button variant="ghost" size="sm" asChild className="w-full mt-4 sm:hidden">
               <Link to="/admin/membership">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <div className="space-y-1">
+              <CardTitle className="text-base font-medium">Recent Notices</CardTitle>
+              <CardDescription>Latest announcements</CardDescription>
+            </div>
+            <Button variant="ghost" size="sm" asChild className="hidden sm:flex">
+              <Link to="/admin/notices">
+                View All
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {recentNotices.length === 0 ? (
+              <p className="text-sm text-muted-foreground py-4 text-center">No recent notices.</p>
+            ) : (
+              <div className="space-y-2">
+                {recentNotices.map((notice, idx) => (
+                  <Link key={notice.id || idx} to="/admin/notices" className="flex items-center justify-between border-b last:border-0 pb-3 last:pb-0 hover:bg-muted/50 p-2 rounded-md transition-colors">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium leading-none line-clamp-1">{notice.title}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{notice.category || 'Departmental'}</p>
+                    </div>
+                    <div className="text-sm text-muted-foreground whitespace-nowrap ml-4">
+                      {notice.date ? format(new Date(notice.date), "MMM d, yyyy") : ''}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+            <Button variant="ghost" size="sm" asChild className="w-full mt-4 sm:hidden">
+              <Link to="/admin/notices">
                 View All
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>

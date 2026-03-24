@@ -134,26 +134,28 @@ const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { p
                   isOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"
                 )}
               >
-                <div className="overflow-hidden flex flex-col gap-1">
-                  {visibleLinks.map((l) => {
-                    const isActive = pathname === l.path || pathname + search === l.path;
-                    return (
-                      <Link
-                        key={l.path}
-                        to={l.path}
-                        onClick={onLinkClick}
-                        className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
-                          isActive
-                            ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                            : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                        )}
-                      >
-                        <l.icon className="h-4 w-4" />
-                        {l.label}
-                      </Link>
-                    );
-                  })}
+                <div className="overflow-hidden">
+                  <div className="flex flex-col gap-1">
+                    {visibleLinks.map((l) => {
+                      const isActive = pathname === l.path || pathname + search === l.path;
+                      return (
+                        <Link
+                          key={l.path}
+                          to={l.path}
+                          onClick={onLinkClick}
+                          className={cn(
+                            "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                            isActive
+                              ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                              : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                          )}
+                        >
+                          <l.icon className="h-4 w-4" />
+                          {l.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
