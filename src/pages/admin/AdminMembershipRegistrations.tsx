@@ -85,12 +85,15 @@ function AdminMembershipRegistrations() {
         });
         
         if (!response.ok) {
-          console.error("Failed to send email notification");
+          const errData = await response.json().catch(() => ({}));
+          console.error("Failed to send email notification:", errData);
+          toast.error(`Status updated, but email failed: ${errData.error || 'Check server logs'}`);
         } else {
           toast.info(`Notification email sent to ${registration.email}`);
         }
       } catch (emailError) {
         console.error("Email notification error:", emailError);
+        toast.error("Status updated, but failed to send email notification.");
       }
 
       fetchRegistrations();

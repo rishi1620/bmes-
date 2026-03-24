@@ -46,12 +46,18 @@ const Auth = () => {
 
     if (error) {
       console.error("Full error object:", error);
-      if (error.message.includes("already registered") || error.message.includes("409") || error.message.includes("already exists")) {
+      // Supabase often returns 400 or 422 for existing users during signup, but we'll catch 409 just in case
+      if (error.message.toLowerCase().includes("already registered") || 
+          error.message.includes("409") || 
+          error.message.toLowerCase().includes("already exists") ||
+          error.message.toLowerCase().includes("user already registered")) {
         toast({ 
           title: "Account exists", 
           description: "This email is already registered. Please sign in instead.", 
           variant: "destructive" 
         });
+        // Automatically switch to login view to help the user
+        setIsLogin(true);
       } else {
         toast({ title: "Error", description: error.message, variant: "destructive" });
       }

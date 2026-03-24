@@ -93,14 +93,15 @@ export function MembershipRegistrationForm() {
         });
         
         if (!emailResponse.ok) {
-          console.warn("Failed to send confirmation email. Server responded with:", emailResponse.status);
-          toast.success("Registration submitted successfully, but we couldn't send a confirmation email at this time.");
+          const errData = await emailResponse.json().catch(() => ({}));
+          console.warn("Failed to send confirmation email. Server responded with:", emailResponse.status, errData);
+          toast.error(`Registration submitted, but email failed: ${errData.error || 'Check server logs'}`);
         } else {
           toast.success("Registration submitted successfully! A confirmation email has been sent.");
         }
       } catch (emailErr) {
         console.error("Failed to send confirmation email:", emailErr);
-        toast.success("Registration submitted successfully, but we couldn't send a confirmation email at this time.");
+        toast.error("Registration submitted, but we couldn't send a confirmation email at this time.");
       }
 
       setSubmitted(true);
