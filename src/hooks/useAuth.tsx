@@ -88,7 +88,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     
     if (message.toLowerCase().includes("refresh token") || 
         message.toLowerCase().includes("session_not_found") ||
-        message.toLowerCase().includes("invalid_refresh_token")) {
+        message.toLowerCase().includes("invalid_refresh_token") ||
+        message.toLowerCase().includes("refresh token not found")) {
       console.warn("Invalid refresh token or session detected, signing out and clearing storage...");
       try {
         await supabase.auth.signOut();

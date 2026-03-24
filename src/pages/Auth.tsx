@@ -45,7 +45,8 @@ const Auth = () => {
     setSubmitting(false);
 
     if (error) {
-      if (error.message.includes("already registered") || error.message.includes("409")) {
+      console.error("Full error object:", error);
+      if (error.message.includes("already registered") || error.message.includes("409") || error.message.includes("already exists")) {
         toast({ 
           title: "Account exists", 
           description: "This email is already registered. Please sign in instead.", 
