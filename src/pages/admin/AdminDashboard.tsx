@@ -9,7 +9,7 @@ import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
 const AdminDashboard = () => {
-  const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0, membershipApps: 0 });
+  const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0, membershipApps: 0, notices: 0 });
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [recentRegistrations, setRecentRegistrations] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,7 +19,7 @@ const AdminDashboard = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem, recentRegsData, pendingAppsData] = await Promise.all([
+      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem, recentRegsData, pendingAppsData, noticesData] = await Promise.all([
         supabase.from("members").select("id", { count: "exact", head: true }),
         supabase.from("events").select("id", { count: "exact", head: true }),
         supabase.from("projects").select("id", { count: "exact", head: true }),
@@ -34,7 +34,19 @@ const AdminDashboard = () => {
         supabase.from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
         supabase.from("event_registrations").select("id, name, email, created_at, events(title)").order("created_at", { ascending: false }).limit(5),
         supabase.from("membership_registrations").select("id, full_name, email, created_at").eq("status", "pending").order("created_at", { ascending: false }).limit(5),
+        supabase.from("site_settings").select("setting_value").eq("setting_key", "portal_notices_json").maybeSingle(),
       ]);
+
+      let noticesCount = 0;
+      try {
+        if (noticesData.data?.setting_value) {
+          const parsed = JSON.parse(noticesData.data.setting_value);
+          noticesCount = Array.isArray(parsed) ? parsed.length : 0;
+        }
+      } catch (err) {
+        console.error("Error parsing notices:", err);
+      }
+
       setCounts({
         members: m.count ?? 0,
         events: e.count ?? 0,
@@ -48,6 +60,7 @@ const AdminDashboard = () => {
         alumni: alum.count ?? 0,
         registrations: reg.count ?? 0,
         membershipApps: mem.count ?? 0,
+        notices: noticesCount,
       });
       setRecentRegistrations(recentRegsData.data || []);
       setPendingApps(pendingAppsData.data || []);
@@ -85,6 +98,7 @@ const AdminDashboard = () => {
         <StatCard value={String(counts.blog)} label="Blog Posts" icon={FileText} to="/admin/blog" />
         
         <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
+        <StatCard value={String(counts.notices)} label="Notices & News" icon={Bell} to="/admin/notices" />
         <StatCard value={String(counts.membershipApps)} label="Pending Apps" icon={UserCheck} className="border-purple-500/20 bg-purple-500/5" to="/admin/membership" />
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>
