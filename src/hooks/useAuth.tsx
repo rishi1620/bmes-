@@ -119,14 +119,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         // Ensure profile exists on login
-        supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle().then(({ data }) => {
+        supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle().then(({ data, error }) => {
+          if (error) {
+            console.error("Error checking profile:", error);
+          }
           if (!data) {
             console.log("Creating missing profile for user:", session.user.id);
-            supabase.from("profiles").upsert({
+            // Try to insert, but catch and ignore 409 (already exists) errors
+            // This can happen if multiple tabs/reloads trigger this simultaneously
+            supabase.from("profiles").insert({
               id: session.user.id,
               user_id: session.user.id,
               full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User"
-            }).then(() => {
+            }).then(({ error: insertError }) => {
+              if (insertError && insertError.code !== '23505') {
+                console.error("Error creating profile:", insertError);
+              }
               checkRoles(session.user.id, session.user.email);
             });
           } else {
