@@ -122,7 +122,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle().then(({ data }) => {
           if (!data) {
             console.log("Creating missing profile for user:", session.user.id);
-            supabase.from("profiles").insert({
+            supabase.from("profiles").upsert({
               id: session.user.id,
               user_id: session.user.id,
               full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User"
