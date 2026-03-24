@@ -274,7 +274,7 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-6 md:grid-cols-2 items-start">
             {/* Departmental Notices */}
             <motion.div 
               whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}

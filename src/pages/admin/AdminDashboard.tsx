@@ -40,7 +40,7 @@ const AdminDashboard = () => {
       ]);
 
       let noticesCount = 0;
-      let parsedNotices: any[] = [];
+      let parsedNotices: Record<string, unknown>[] = [];
       try {
         if (noticesData.data?.setting_value) {
           const parsed = JSON.parse(noticesData.data.setting_value);
@@ -111,7 +111,7 @@ const AdminDashboard = () => {
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8 items-start">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-1">

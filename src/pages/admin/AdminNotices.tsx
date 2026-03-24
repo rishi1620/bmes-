@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface Setting {
   id: string;
@@ -141,40 +142,73 @@ const AdminNotices = () => {
                   </span>
                 </div>
               </div>
-              {notices.map((item: Notice, i: number) => (
-                <div key={item.id || i} className={`flex gap-4 items-start border p-4 rounded-md transition-colors ${item.category === 'club' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-card'}`}>
-                  <div className="grid gap-3 flex-1">
-                    <div className="grid grid-cols-3 gap-3">
-                      <div>
-                        <Label className="text-xs">Title</Label>
-                        <Input value={item.title} onChange={e => { const arr = [...notices]; arr[i].title = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Date</Label>
-                        <Input type="date" value={item.date} onChange={e => { const arr = [...notices]; arr[i].date = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
-                      </div>
-                      <div>
-                        <Label className="text-xs">Category</Label>
-                        <select 
-                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                          value={item.category || "departmental"}
-                          onChange={e => { const arr = [...notices]; arr[i].category = e.target.value as "departmental" | "club"; updateJsonArray("portal_notices_json", arr); }}
-                        >
-                          <option value="departmental">Departmental</option>
-                          <option value="club">Club News</option>
-                        </select>
-                      </div>
+              <Accordion type="single" collapsible className="w-full space-y-4">
+                {notices.map((item: Notice, i: number) => (
+                  <AccordionItem 
+                    key={item.id || i} 
+                    value={item.id || String(i)} 
+                    className={`border rounded-md px-4 transition-colors ${item.category === 'club' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-card'}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <AccordionTrigger className="flex-1 hover:no-underline py-4">
+                        <div className="flex items-center gap-4 text-left">
+                          <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${item.category === 'club' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
+                            {item.category === 'club' ? 'Club' : 'Dept'}
+                          </span>
+                          <span className="font-medium">{item.title || "Untitled Notice"}</span>
+                          <span className="text-xs text-muted-foreground font-normal">{item.date}</span>
+                        </div>
+                      </AccordionTrigger>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 ml-2"
+                        onClick={(e) => { 
+                          e.stopPropagation();
+                          const arr = notices.filter((_: unknown, idx: number) => idx !== i); 
+                          updateJsonArray("portal_notices_json", arr); 
+                        }}
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
                     </div>
-                    <div>
-                      <Label className="text-xs">Content</Label>
-                      <Textarea value={item.content} onChange={e => { const arr = [...notices]; arr[i].content = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
-                    </div>
-                  </div>
-                  <Button variant="destructive" size="icon" onClick={() => { const arr = notices.filter((_: unknown, idx: number) => idx !== i); updateJsonArray("portal_notices_json", arr); }}>
-                    <Trash className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                    
+                    <AccordionContent className="pt-2 pb-4">
+                      <div className="grid gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Title</Label>
+                            <Input value={item.title} onChange={e => { const arr = [...notices]; arr[i].title = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Date</Label>
+                            <Input type="date" value={item.date} onChange={e => { const arr = [...notices]; arr[i].date = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Category</Label>
+                            <select 
+                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              value={item.category || "departmental"}
+                              onChange={e => { const arr = [...notices]; arr[i].category = e.target.value as "departmental" | "club"; updateJsonArray("portal_notices_json", arr); }}
+                            >
+                              <option value="departmental">Departmental</option>
+                              <option value="club">Club News</option>
+                            </select>
+                          </div>
+                        </div>
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-medium">Content</Label>
+                          <Textarea 
+                            className="min-h-[100px]"
+                            value={item.content} 
+                            onChange={e => { const arr = [...notices]; arr[i].content = e.target.value; updateJsonArray("portal_notices_json", arr); }} 
+                          />
+                        </div>
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
               {notices.length === 0 && <p className="text-sm text-muted-foreground">No notices added yet.</p>}
             </div>
           </CardContent>

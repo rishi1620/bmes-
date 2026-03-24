@@ -43,11 +43,45 @@ export const supabase =
               headers: { "Content-Type": "application/json" },
             });
           }
-        : (input, init) => fetch(input, init).catch(err => {
-            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-            console.error("Supabase network error for URL:", url, "Error:", err);
-            throw err;
-          }),
+        : async (input, init) => {
+            try {
+              const response = await fetch(input, init);
+              if (!response.ok) {
+                try {
+                  const clone = response.clone();
+                  const data = await clone.json();
+                  const errorDesc = data?.error_description || data?.msg || data?.message || "";
+                  if (
+                    errorDesc.toLowerCase().includes("refresh token") ||
+                    errorDesc.toLowerCase().includes("invalid_grant") ||
+                    errorDesc.toLowerCase().includes("session_not_found")
+                  ) {
+                    console.warn("Intercepted invalid refresh token error, clearing session...");
+                    const keysToRemove: string[] = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                      const key = localStorage.key(i);
+                      if (key && (key.includes('supabase') || key.includes('sb-'))) {
+                        keysToRemove.push(key);
+                      }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+                    sessionStorage.clear();
+                    // Only redirect if we are not already on the auth page
+                    if (!window.location.pathname.includes('/auth')) {
+                      window.location.href = '/auth';
+                    }
+                  }
+                } catch {
+                  // ignore JSON parse errors
+                }
+              }
+              return response;
+            } catch (err) {
+              const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+              console.error("Supabase network error for URL:", url, "Error:", err);
+              throw err;
+            }
+          },
     },
   });
 

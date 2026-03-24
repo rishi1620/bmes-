@@ -218,15 +218,11 @@ app.post("/api/generate-study-material", async (req, res) => {
     const { GoogleGenAI } = await import("@google/genai");
     const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-    const systemInstruction = \`You are an expert academic assistant for Biomedical Engineering students (CUET BMES). 
-    Your goal is to provide accurate, detailed, and easy-to-understand explanations, summaries, and study plans.
-    Always maintain a professional, encouraging, and academic tone suitable for university-level students.
-    If the user provides file content, base your response primarily on that content while incorporating your broader domain knowledge.
-    Format the output in clean, well-structured Markdown.\`;
+    const systemInstruction = "You are an expert academic assistant for Biomedical Engineering students (CUET BMES). Your goal is to provide accurate, detailed, and easy-to-understand explanations, summaries, and study plans. Always maintain a professional, encouraging, and academic tone suitable for university-level students. If the user provides file content, base your response primarily on that content while incorporating your broader domain knowledge. Format the output in clean, well-structured Markdown.";
 
     const contentText = fileContent 
-      ? \`File Content:\\n\${fileContent}\\n\\nUser Request: \${prompt}\`
-      : \`User Request: \${prompt}\`;
+      ? "File Content:\n" + fileContent + "\n\nUser Request: " + prompt
+      : "User Request: " + prompt;
 
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
