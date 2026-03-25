@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
-const APP_URL = process.env.APP_URL || "http://localhost:3000";
+const APP_URL = process.env.APP_URL || "https://bmes.vercel.app";
 
 const app = express();
 app.use(cors());
