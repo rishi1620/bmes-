@@ -19,7 +19,6 @@ import {
   Image as ImageIcon,
   Loader2,
   Upload,
-  Settings,
   Search,
   ChevronRight,
   Film
@@ -27,11 +26,10 @@ import {
 import { AcademicStructure } from "@/types/academic";
 import { toast } from "sonner";
 import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
+import { MemberDirectory } from "@/components/shared/MemberDirectory";
 import Markdown from "react-markdown";
 import { generateStudyMaterial } from "@/services/geminiService";
 import * as pdfjsLib from 'pdfjs-dist';
-import { useAuth } from "@/hooks/useAuth";
-import { ResourceManagement } from "@/components/admin/ResourceManagement";
 
 // Set up PDF worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
@@ -149,19 +147,13 @@ const Portal = () => {
     }
   };
 
-  const softwareLinks = (() => {
+  const softwareLinks = useMemo(() => {
     try {
-      return JSON.parse(settings.portal_software_json || "[]");
+      return JSON.parse(settings.portal_software_json || "[]") as SoftwareLink[];
     } catch {
       return [];
     }
-  })();
-
-  const { isAdmin } = useAuth();
-  
-  const updateSetting = (key: string, value: string) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
+  }, [settings.portal_software_json]);
 
   const academicStructure: AcademicStructure = useMemo(() => {
     try {
@@ -509,7 +501,7 @@ const Portal = () => {
               <SectionHeading title="Engineering Software" description="Licensed software and tools for BMES students." />
               <div className="mt-10 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {softwareLinks.length > 0 ? (
-                  softwareLinks.map((item: SoftwareLink, i: number) => (
+                  softwareLinks.map((item, i: number) => (
                     <Card key={i} className="hover:shadow-lg transition-all">
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
@@ -525,11 +517,22 @@ const Portal = () => {
                     </Card>
                   ))
                 ) : (
-                  ["MATLAB", "SolidWorks", "LabVIEW"].map((name) => (
-                    <Card key={name}>
-                      <CardHeader><CardTitle>{name}</CardTitle></CardHeader>
+                  [
+                    { title: "MATLAB", url: "https://www.mathworks.com/products/matlab.html", description: "Numerical computing environment and programming language." },
+                    { title: "SolidWorks", url: "https://www.solidworks.com/", description: "Solid modeling computer-aided design and engineering program." },
+                    { title: "LabVIEW", url: "https://www.ni.com/en-us/shop/labview.html", description: "Systems engineering software for applications that require test, measurement, and control." }
+                  ].map((item, i) => (
+                    <Card key={i} className="hover:shadow-lg transition-all">
+                      <CardHeader>
+                        <CardTitle className="flex items-center justify-between">
+                          {item.title}
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:scale-110 transition-transform">
+                            <ExternalLink className="h-5 w-5" />
+                          </a>
+                        </CardTitle>
+                      </CardHeader>
                       <CardContent>
-                        <p className="text-muted-foreground text-sm">Standard engineering software for CUET BMES students.</p>
+                        <p className="text-muted-foreground text-sm">{item.description}</p>
                       </CardContent>
                     </Card>
                   ))
@@ -571,6 +574,8 @@ const Portal = () => {
                     <MembershipRegistrationForm />
                   </CardContent>
                 </Card>
+
+                <MemberDirectory />
               </div>
             </TabsContent>
           </div>

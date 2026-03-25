@@ -4,7 +4,7 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw, ArrowRight } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw, ArrowRight, Layout } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
 
@@ -107,6 +107,7 @@ const AdminDashboard = () => {
         
         <StatCard value={String(counts.media)} label="Media Files" icon={Image} to="/admin/media" />
         <StatCard value={String(counts.notices)} label="Notices & News" icon={Bell} to="/admin/notices" />
+        <StatCard value="Manage" label="Portal Page" icon={Layout} to="/admin/portal" />
         <StatCard value={String(counts.membershipApps)} label="Pending Apps" icon={UserCheck} className="border-purple-500/20 bg-purple-500/5" to="/admin/membership" />
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
       </div>

@@ -11,8 +11,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { AcademicStructure, Semester, Course, AcademicResource } from "@/types/academic";
-import { Plus, Trash2, FileText, Image as ImageIcon, Film, ExternalLink, Tag } from "lucide-react";
+import { Plus, Trash2, FileText, Image as ImageIcon, Film, ExternalLink } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import { MembershipManagement } from "@/components/admin/MembershipManagement";
+
+interface SoftwareLink {
+  title: string;
+  url: string;
+  description: string;
+}
 import {
   Dialog,
   DialogContent,
@@ -59,6 +66,9 @@ const AdminPortal = () => {
 
   const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
   const [deleteConfig, setDeleteConfig] = useState<{title: string, desc: string, onConfirm: () => void} | null>(null);
+
+  const [isAddSoftwareOpen, setIsAddSoftwareOpen] = useState(false);
+  const [newSoftware, setNewSoftware] = useState({ title: "", url: "", description: "" });
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("site_settings").select("*");
@@ -138,8 +148,43 @@ const AdminPortal = () => {
     }
   }, [settings.portal_academic_structure_json]);
 
+  const softwareLinks = useMemo(() => {
+    try {
+      const links = JSON.parse(settings.portal_software_json || "[]") as SoftwareLink[];
+      // If empty, return the defaults as a hint or just empty
+      return links;
+    } catch {
+      return [];
+    }
+  }, [settings.portal_software_json]);
+
   const updateAcademicStructure = (newStructure: AcademicStructure) => {
     updateSetting("portal_academic_structure_json", JSON.stringify(newStructure));
+  };
+
+  const updateSoftwareLinks = (newLinks: SoftwareLink[]) => {
+    updateSetting("portal_software_json", JSON.stringify(newLinks));
+  };
+
+  const addSoftware = () => {
+    if (!newSoftware.title || !newSoftware.url) {
+      toast({ title: "Title and URL are required", variant: "destructive" });
+      return;
+    }
+    const newLinks = [...softwareLinks, newSoftware];
+    updateSoftwareLinks(newLinks);
+    setNewSoftware({ title: "", url: "", description: "" });
+    setIsAddSoftwareOpen(false);
+  };
+
+  const resetSoftwareToDefaults = () => {
+    const defaults = [
+      { title: "MATLAB", url: "https://www.mathworks.com/products/matlab.html", description: "Numerical computing environment and programming language." },
+      { title: "SolidWorks", url: "https://www.solidworks.com/", description: "Solid modeling computer-aided design and engineering program." },
+      { title: "LabVIEW", url: "https://www.ni.com/en-us/shop/labview.html", description: "Systems engineering software for applications that require test, measurement, and control." }
+    ];
+    updateSoftwareLinks(defaults);
+    toast({ title: "Software links reset to defaults" });
   };
 
   // Academic Management Helpers
@@ -365,6 +410,49 @@ const AdminPortal = () => {
             )}
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-lg">Software Management</CardTitle>
+            <div className="flex gap-2">
+              <Button onClick={resetSoftwareToDefaults} size="sm" variant="ghost" className="text-xs">
+                Reset to Defaults
+              </Button>
+              <Button onClick={() => setIsAddSoftwareOpen(true)} size="sm" variant="outline" className="gap-2">
+                <Plus className="h-4 w-4" /> Add Software
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {softwareLinks.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">No software links added.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {softwareLinks.map((sw, idx: number) => (
+                  <div key={idx} className="flex items-center justify-between p-3 border rounded-lg bg-card group">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-sm truncate">{sw.title}</h4>
+                      <p className="text-[10px] text-muted-foreground truncate">{sw.url}</p>
+                      {sw.description && <p className="text-[10px] text-muted-foreground mt-1 line-clamp-1">{sw.description}</p>}
+                    </div>
+                    <Button 
+                      size="icon" 
+                      variant="ghost" 
+                      className="h-8 w-8 text-destructive opacity-0 group-hover:opacity-100 transition-opacity" 
+                      onClick={() => {
+                        const newLinks = [...softwareLinks];
+                        newLinks.splice(idx, 1);
+                        updateSoftwareLinks(newLinks);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
         
         {/* ... (Membership section) ... */}
 
@@ -380,6 +468,9 @@ const AdminPortal = () => {
             <div className="space-y-1.5">
               <Label>Registration/Renewal Form URL</Label>
               <Input value={settings.portal_membership_url ?? ""} onChange={e => updateSetting("portal_membership_url", e.target.value)} />
+            </div>
+            <div className="pt-6 border-t">
+              <MembershipManagement />
             </div>
           </CardContent>
         </Card>
@@ -460,6 +551,44 @@ const AdminPortal = () => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddTagOpen(false)}>Cancel</Button>
             <Button onClick={addTag}>Add Tag</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddSoftwareOpen} onOpenChange={setIsAddSoftwareOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Software</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Software Title</Label>
+              <Input 
+                placeholder="e.g., MATLAB" 
+                value={newSoftware.title} 
+                onChange={e => setNewSoftware(prev => ({ ...prev, title: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Download/Info URL</Label>
+              <Input 
+                placeholder="https://..." 
+                value={newSoftware.url} 
+                onChange={e => setNewSoftware(prev => ({ ...prev, url: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Description (Optional)</Label>
+              <Textarea 
+                placeholder="Brief description of the software..." 
+                value={newSoftware.description} 
+                onChange={e => setNewSoftware(prev => ({ ...prev, description: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddSoftwareOpen(false)}>Cancel</Button>
+            <Button onClick={addSoftware}>Add Software</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
