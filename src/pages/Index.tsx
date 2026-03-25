@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -59,9 +59,9 @@ const Index = () => {
   });
 
   const { data: siteSettings } = useQuery({
-    queryKey: ["site-settings-portal"],
+    queryKey: ["site-settings-all"],
     queryFn: async () => {
-      const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+      const { data } = await supabase.from("site_settings").select("*");
       const map: Record<string, string> = {};
       data?.forEach((s) => { map[s.setting_key] = s.setting_value; });
       return map;
@@ -137,9 +137,19 @@ const Index = () => {
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const getSection = (key: string) => (sections?.find((s) => s.section_key === key)?.section_data || {}) as Record<string, any>;
+  const getSection = useCallback((key: string) => (sections?.find((s) => s.section_key === key)?.section_data || {}) as Record<string, any>, [sections]);
 
-  const hero = getSection("hero");
+  const hero = useMemo(() => {
+    const sectionHero = getSection("hero");
+    return {
+      title: siteSettings?.home_hero_title || sectionHero.title || "Biomedical Engineering Society",
+      subtitle: siteSettings?.home_hero_subtitle || sectionHero.subtitle || "CUET BMES",
+      description: siteSettings?.home_hero_description || sectionHero.description || "Advancing healthcare through engineering innovation and research excellence.",
+      background_image: siteSettings?.home_hero_bg_image || sectionHero.background_image || heroBg,
+      button_text: siteSettings?.home_hero_button_text || sectionHero.button_text || "Join Society",
+      button_link: siteSettings?.home_hero_button_link || sectionHero.button_link || "/portal?tab=membership",
+    };
+  }, [getSection, siteSettings]);
   const quickLinks = getSection("quick_links");
   const announcements = getSection("announcements");
   const upcomingEvents = getSection("upcoming_events");
@@ -212,7 +222,7 @@ const Index = () => {
             >
               {hero.button_text && (
                 <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                  <Link to="/portal?tab=membership">{hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                  <Link to={hero.button_link as string}>{hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" /></Link>
                 </Button>
               )}
             </motion.div>

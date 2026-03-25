@@ -9,10 +9,27 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import MediaSelector from "@/components/admin/MediaSelector";
+import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { AcademicStructure, Semester, Course, AcademicResource } from "@/types/academic";
-import { Plus, Trash2, FileText, Image as ImageIcon, Film, ExternalLink } from "lucide-react";
+import { Plus, Trash2, FileText, Image as ImageIcon, Film, ExternalLink, Tag } from "lucide-react";
 import { v4 as uuidv4 } from 'uuid';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // ... (rest of the file)
 
@@ -26,6 +43,22 @@ interface Setting {
 const AdminPortal = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
+
+  // Dialog States
+  const [isAddSemesterOpen, setIsAddSemesterOpen] = useState(false);
+  const [newSemesterName, setNewSemesterName] = useState("");
+
+  const [isAddCourseOpen, setIsAddCourseOpen] = useState(false);
+  const [targetSemesterId, setTargetSemesterId] = useState("");
+  const [newCourseName, setNewCourseName] = useState("");
+  const [newCourseCode, setNewCourseCode] = useState("");
+
+  const [isAddTagOpen, setIsAddTagOpen] = useState(false);
+  const [tagContext, setTagContext] = useState<{sId: string, cId: string, rId: string} | null>(null);
+  const [newTagName, setNewTagName] = useState("");
+
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+  const [deleteConfig, setDeleteConfig] = useState<{title: string, desc: string, onConfirm: () => void} | null>(null);
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
@@ -42,9 +75,6 @@ const AdminPortal = () => {
     setSaving(true);
     
     const keysToSave = [
-      "portal_hero_title",
-      "portal_hero_subtitle",
-      "portal_hero_bg_image",
       "portal_academic_structure_json",
       "portal_library_content",
       "portal_custom_tables_json",
@@ -101,41 +131,59 @@ const AdminPortal = () => {
 
   // Academic Management Helpers
   const addSemester = () => {
-    const name = prompt("Enter Semester Name (e.g., Level-1 Term-1)");
-    if (!name) return;
-    const newSemester: Semester = { id: uuidv4(), name, courses: [] };
+    if (!newSemesterName.trim()) return;
+    const newSemester: Semester = { id: uuidv4(), name: newSemesterName.trim(), courses: [] };
     updateAcademicStructure({ semesters: [...academicStructure.semesters, newSemester] });
+    setNewSemesterName("");
+    setIsAddSemesterOpen(false);
   };
 
-  const removeSemester = (id: string) => {
-    if (!confirm("Are you sure you want to remove this semester and all its courses?")) return;
-    updateAcademicStructure({ semesters: academicStructure.semesters.filter(s => s.id !== id) });
+  const confirmRemoveSemester = (id: string) => {
+    setDeleteConfig({
+      title: "Remove Semester?",
+      desc: "Are you sure you want to remove this semester and all its courses? This action cannot be undone.",
+      onConfirm: () => {
+        updateAcademicStructure({ semesters: academicStructure.semesters.filter(s => s.id !== id) });
+        setIsConfirmDeleteOpen(false);
+      }
+    });
+    setIsConfirmDeleteOpen(true);
   };
 
-  const addCourse = (semesterId: string) => {
-    const name = prompt("Enter Course Name");
-    const code = prompt("Enter Course Code (optional)");
-    if (!name) return;
-    const newCourse: Course = { id: uuidv4(), name, code: code || "", resources: [] };
+  const addCourse = () => {
+    if (!newCourseName.trim() || !targetSemesterId) return;
+    const newCourse: Course = { id: uuidv4(), name: newCourseName.trim(), code: newCourseCode.trim() || "", resources: [] };
     const newSemesters = academicStructure.semesters.map(s => 
-      s.id === semesterId ? { ...s, courses: [...s.courses, newCourse] } : s
+      s.id === targetSemesterId ? { ...s, courses: [...s.courses, newCourse] } : s
     );
     updateAcademicStructure({ semesters: newSemesters });
+    setNewCourseName("");
+    setNewCourseCode("");
+    setIsAddCourseOpen(false);
   };
 
-  const removeCourse = (semesterId: string, courseId: string) => {
-    if (!confirm("Are you sure you want to remove this course?")) return;
-    const newSemesters = academicStructure.semesters.map(s => 
-      s.id === semesterId ? { ...s, courses: s.courses.filter(c => c.id !== courseId) } : s
-    );
-    updateAcademicStructure({ semesters: newSemesters });
+  const confirmRemoveCourse = (semesterId: string, courseId: string) => {
+    setDeleteConfig({
+      title: "Remove Course?",
+      desc: "Are you sure you want to remove this course and all its resources?",
+      onConfirm: () => {
+        const newSemesters = academicStructure.semesters.map(s => 
+          s.id === semesterId ? { ...s, courses: s.courses.filter(c => c.id !== courseId) } : s
+        );
+        updateAcademicStructure({ semesters: newSemesters });
+        setIsConfirmDeleteOpen(false);
+      }
+    });
+    setIsConfirmDeleteOpen(true);
   };
 
   const addResource = (semesterId: string, courseId: string, url: string) => {
     const fileName = url.split('/').pop() || "Resource";
-    const type: AcademicResource["type"] = fileName.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i) ? "image" : 
-                                           fileName.match(/\.(mp4|webm|mov|avi)$/i) ? "video" : 
-                                           fileName.match(/\.(pdf)$/i) ? "pdf" : "other";
+    const isImage = fileName.match(/\.(jpg|jpeg|png|gif|svg|webp)$/i);
+    const isVideo = fileName.match(/\.(mp4|webm|mov|avi)$/i);
+    const isPdf = fileName.match(/\.(pdf)$/i);
+    
+    const type: AcademicResource["type"] = isImage ? "image" : isVideo ? "video" : isPdf ? "pdf" : "other";
     
     const newResource: AcademicResource = {
       id: uuidv4(),
@@ -184,6 +232,14 @@ const AdminPortal = () => {
     updateAcademicStructure({ semesters: newSemesters });
   };
 
+  const addTag = () => {
+    if (!newTagName.trim() || !tagContext) return;
+    const { sId, cId, rId } = tagContext;
+    updateResourceTags(sId, cId, rId, [...academicStructure.semesters.find(s => s.id === sId)?.courses.find(c => c.id === cId)?.resources.find(r => r.id === rId)?.tags || [], newTagName.trim()]);
+    setNewTagName("");
+    setIsAddTagOpen(false);
+  };
+
   return (
     <AdminLayout>
       <div className="mb-6 flex items-center justify-between">
@@ -195,30 +251,9 @@ const AdminPortal = () => {
 
       <div className="space-y-8">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Hero Section</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label>Hero Title</Label>
-              <Input value={settings.portal_hero_title ?? ""} onChange={e => updateSetting("portal_hero_title", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Hero Subtitle</Label>
-              <Textarea value={settings.portal_hero_subtitle ?? ""} onChange={e => updateSetting("portal_hero_subtitle", e.target.value)} />
-            </div>
-            <div className="space-y-1.5">
-              <Label>Background Image</Label>
-              <Input value={settings.portal_hero_bg_image ?? ""} onChange={e => updateSetting("portal_hero_bg_image", e.target.value)} />
-              <MediaSelector onSelect={(url) => updateSetting("portal_hero_bg_image", url)} />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg">Academic Resource Library</CardTitle>
-            <Button onClick={addSemester} size="sm" variant="outline" className="gap-2">
+            <Button onClick={() => setIsAddSemesterOpen(true)} size="sm" variant="outline" className="gap-2">
               <Plus className="h-4 w-4" /> Add Semester
             </Button>
           </CardHeader>
@@ -230,20 +265,23 @@ const AdminPortal = () => {
             ) : (
               academicStructure.semesters.map(semester => (
                 <Collapsible key={semester.id} className="border rounded-lg overflow-hidden">
-                  <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-3">
-                    <CollapsibleTrigger className="flex items-center gap-2 font-bold flex-1 text-left">
-                      <ChevronDown className="h-4 w-4" />
-                      {semester.name}
-                    </CollapsibleTrigger>
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="ghost" onClick={() => addCourse(semester.id)} className="h-8 gap-1">
-                        <Plus className="h-3 w-3" /> Add Course
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => removeSemester(semester.id)} className="h-8 text-destructive hover:text-destructive">
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
+                    <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-800 p-3">
+                      <CollapsibleTrigger className="flex items-center gap-2 font-bold flex-1 text-left">
+                        <ChevronDown className="h-4 w-4" />
+                        {semester.name}
+                      </CollapsibleTrigger>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="ghost" onClick={() => {
+                          setTargetSemesterId(semester.id);
+                          setIsAddCourseOpen(true);
+                        }} className="h-8 gap-1">
+                          <Plus className="h-3 w-3" /> Add Course
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => confirmRemoveSemester(semester.id)} className="h-8 text-destructive hover:text-destructive">
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
                     </div>
-                  </div>
                   <CollapsibleContent className="p-4 space-y-4">
                     {semester.courses.length === 0 ? (
                       <p className="text-sm text-muted-foreground text-center py-4">No courses in this semester.</p>
@@ -255,7 +293,7 @@ const AdminPortal = () => {
                               <h4 className="font-semibold">{course.name}</h4>
                               {course.code && <p className="text-xs text-muted-foreground">{course.code}</p>}
                             </div>
-                            <Button size="sm" variant="ghost" onClick={() => removeCourse(semester.id, course.id)} className="h-8 text-destructive">
+                            <Button size="sm" variant="ghost" onClick={() => confirmRemoveCourse(semester.id, course.id)} className="h-8 text-destructive">
                               <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
@@ -268,7 +306,9 @@ const AdminPortal = () => {
                                   <div className="text-emerald-500">
                                     {res.type === "pdf" ? <FileText className="h-4 w-4" /> : 
                                      res.type === "image" ? <ImageIcon className="h-4 w-4" /> : 
-                                     res.type === "video" ? <Film className="h-4 w-4" /> : <ExternalLink className="h-4 w-4" />}
+                                     res.type === "video" ? <Film className="h-4 w-4" /> : 
+                                     res.name.match(/\.(doc|docx)$/i) ? <FileText className="h-4 w-4 text-blue-500" /> :
+                                     <ExternalLink className="h-4 w-4" />}
                                   </div>
                                   <div className="flex-1 min-w-0">
                                     <p className="text-sm font-medium truncate">{res.name}</p>
@@ -283,8 +323,8 @@ const AdminPortal = () => {
                                       ))}
                                       <button 
                                         onClick={() => {
-                                          const tag = prompt("Enter tag name");
-                                          if (tag) updateResourceTags(semester.id, course.id, res.id, [...res.tags, tag]);
+                                          setTagContext({ sId: semester.id, cId: course.id, rId: res.id });
+                                          setIsAddTagOpen(true);
                                         }}
                                         className="text-[10px] border border-dashed px-1.5 py-0.5 rounded hover:bg-muted"
                                       >
@@ -300,7 +340,7 @@ const AdminPortal = () => {
                             </div>
                             <div className="pt-2">
                               <Label className="text-[10px] text-muted-foreground mb-1 block">Add Resource from Media</Label>
-                              <MediaSelector onSelect={(url) => addResource(semester.id, course.id, url)} />
+                              <MediaSelectorDialog onSelect={(url) => addResource(semester.id, course.id, url)} />
                             </div>
                           </div>
                         </div>
@@ -332,6 +372,101 @@ const AdminPortal = () => {
         </Card>
 
       </div>
+
+      {/* Dialogs */}
+      <Dialog open={isAddSemesterOpen} onOpenChange={setIsAddSemesterOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Semester</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Semester Name</Label>
+              <Input 
+                placeholder="e.g., Level-1 Term-1" 
+                value={newSemesterName} 
+                onChange={e => setNewSemesterName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addSemester()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddSemesterOpen(false)}>Cancel</Button>
+            <Button onClick={addSemester}>Add Semester</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddCourseOpen} onOpenChange={setIsAddCourseOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add New Course</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Course Name</Label>
+              <Input 
+                placeholder="e.g., Anatomy & Physiology" 
+                value={newCourseName} 
+                onChange={e => setNewCourseName(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Course Code (Optional)</Label>
+              <Input 
+                placeholder="e.g., BME 1101" 
+                value={newCourseCode} 
+                onChange={e => setNewCourseCode(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addCourse()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddCourseOpen(false)}>Cancel</Button>
+            <Button onClick={addCourse}>Add Course</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAddTagOpen} onOpenChange={setIsAddTagOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Tag</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <Label>Tag Name</Label>
+              <Input 
+                placeholder="e.g., Lecture Notes" 
+                value={newTagName} 
+                onChange={e => setNewTagName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && addTag()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddTagOpen(false)}>Cancel</Button>
+            <Button onClick={addTag}>Add Tag</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{deleteConfig?.title}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {deleteConfig?.desc}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={deleteConfig?.onConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };

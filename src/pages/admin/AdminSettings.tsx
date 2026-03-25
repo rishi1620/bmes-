@@ -48,6 +48,18 @@ const groups: { key: string; label: string; fields: { key: string; label: string
     ],
   },
   {
+    key: "home_hero",
+    label: "Home Page Hero",
+    fields: [
+      { key: "home_hero_title", label: "Hero Title" },
+      { key: "home_hero_subtitle", label: "Hero Subtitle" },
+      { key: "home_hero_description", label: "Hero Description", type: "textarea" },
+      { key: "home_hero_bg_image", label: "Background Image URL" },
+      { key: "home_hero_button_text", label: "Button Text" },
+      { key: "home_hero_button_link", label: "Button Link" },
+    ],
+  },
+  {
     key: "social",
     label: "Social Links",
     fields: [
@@ -86,8 +98,15 @@ const AdminSettings = () => {
 
   const handleSave = async () => {
     setSaving(true);
-    const updates = Object.entries(settings).map(([setting_key, setting_value]) =>
-      supabase.from("site_settings").upsert({ setting_key, setting_value }, { onConflict: "setting_key" })
+    const updates = groups.flatMap(group => 
+      group.fields.map(field => {
+        const value = settings[field.key] || "";
+        return supabase.from("site_settings").upsert({ 
+          setting_key: field.key, 
+          setting_value: value,
+          setting_group: group.key
+        }, { onConflict: "setting_key" });
+      })
     );
     const results = await Promise.all(updates);
     const hasError = results.some((r) => r.error);
@@ -170,13 +189,23 @@ const AdminSettings = () => {
                         onChange={(e) => setSettings({ ...settings, [field.key]: e.target.value })}
                       />
                     )}
-                    {field.key.includes("url") && (
+                    {(field.key.includes("url") || field.key.includes("image")) && (
                       <MediaSelectorDialog 
                         onSelect={(url) => setSettings({ ...settings, [field.key]: url })}
                         trigger={<Button variant="outline" size="icon" title="Open Media Library"><ImageIcon className="h-4 w-4" /></Button>}
                       />
                     )}
                   </div>
+                  {(field.key.includes("url") || field.key.includes("image")) && settings[field.key] && (
+                    <div className="mt-2">
+                      <img 
+                        src={settings[field.key]} 
+                        alt={field.label} 
+                        className="h-20 w-auto rounded border object-contain bg-muted" 
+                        referrerPolicy="no-referrer"
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
