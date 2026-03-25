@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 
 interface Setting {
   id: string;
@@ -23,6 +24,8 @@ interface Notice {
   date: string;
   content: string;
   category?: "departmental" | "club";
+  media_url?: string;
+  pdf_url?: string;
 }
 
 const AdminNotices = () => {
@@ -93,6 +96,23 @@ const AdminNotices = () => {
 
   const updateJsonArray = (key: string, arr: unknown[]) => {
     updateSetting(key, JSON.stringify(arr));
+  };
+
+  const handlePdfUpload = async (index: number, file: File) => {
+    setSaving(true);
+    const fileName = `pdf-${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+    const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
+      setSaving(false);
+      return;
+    }
+    const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
+    const arr = [...notices];
+    arr[index].pdf_url = urlData.publicUrl;
+    updateJsonArray("portal_notices_json", arr);
+    setSaving(false);
+    toast({ title: "PDF uploaded successfully" });
   };
 
   const notices: Notice[] = getJsonArray("portal_notices_json");
@@ -203,6 +223,34 @@ const AdminNotices = () => {
                             value={item.content} 
                             onChange={e => { const arr = [...notices]; arr[i].content = e.target.value; updateJsonArray("portal_notices_json", arr); }} 
                           />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">Media URL (Image/Video)</Label>
+                            <div className="flex gap-2">
+                              <Input value={item.media_url || ""} onChange={e => { const arr = [...notices]; arr[i].media_url = e.target.value; updateJsonArray("portal_notices_json", arr); }} />
+                              <MediaSelectorDialog onSelect={url => { const arr = [...notices]; arr[i].media_url = url; updateJsonArray("portal_notices_json", arr); }} />
+                            </div>
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-xs font-medium">PDF Upload</Label>
+                            <div className="flex gap-2">
+                              <Input 
+                                type="file" 
+                                accept="application/pdf" 
+                                onChange={(e) => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    handlePdfUpload(i, e.target.files[0]);
+                                  }
+                                }} 
+                              />
+                              {item.pdf_url && (
+                                <Button variant="outline" size="sm" onClick={() => window.open(item.pdf_url, "_blank")}>
+                                  View
+                                </Button>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </AccordionContent>
