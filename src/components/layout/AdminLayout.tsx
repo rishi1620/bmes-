@@ -43,7 +43,7 @@ const linkGroups: LinkGroup[] = [
       { label: "Media Library", path: "/admin/media", icon: Image, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Site Settings", path: "/admin/settings", icon: Settings, roles: ["admin", "super_admin"] },
     ],
-    defaultOpen: true
+    defaultOpen: false
   },
   {
     title: "Core Content",
@@ -79,12 +79,6 @@ const linkGroups: LinkGroup[] = [
       { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
       { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
       { label: "Membership Apps", path: "/admin/membership", icon: UserCheck, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
-    ]
-  },
-  {
-    title: "System",
-    links: [
-      { label: "Users & Roles", path: "/admin/users", icon: Users, roles: ["admin", "super_admin"] },
     ]
   }
 ];
