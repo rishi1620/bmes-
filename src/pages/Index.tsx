@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope,
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import Markdown from "react-markdown";
 import { Button } from "@/components/ui/button";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
@@ -306,29 +307,44 @@ const Index = () => {
 
               <div className="space-y-6 relative z-10">
                 {deptNotices.length > 0 ? (
-                  deptNotices.map((notice: { title: string; date: string }, i: number) => (
-                    <motion.div 
-                      key={i} 
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      whileHover={{ y: -2, scale: 1.02 }}
-                      className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300"
-                    >
-                      <div className="block">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-1">
-                            <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug line-clamp-2">
-                              {notice.title}
-                            </h4>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              {notice.date}
+                  deptNotices.map((notice: { title: string; date: string; content: string }, i: number) => (
+                    <Dialog key={i}>
+                      <DialogTrigger asChild>
+                        <motion.div 
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          whileHover={{ y: -2, scale: 1.02 }}
+                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer"
+                        >
+                          <div className="block">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="space-y-1">
+                                <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug line-clamp-2 text-left">
+                                  {notice.title}
+                                </h4>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Calendar className="h-3 w-3" />
+                                  {notice.date}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        </motion.div>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-primary">{notice.title}</DialogTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                            <Calendar className="h-4 w-4" />
+                            {notice.date}
+                          </div>
+                        </DialogHeader>
+                        <div className="mt-6 prose dark:prose-invert max-w-none">
+                          <Markdown>{notice.content}</Markdown>
                         </div>
-                      </div>
-                    </motion.div>
+                      </DialogContent>
+                    </Dialog>
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
@@ -360,29 +376,44 @@ const Index = () => {
 
               <div className="space-y-6 relative z-10">
                 {clubNews.length > 0 ? (
-                  clubNews.map((news: { title: string; date: string }, i: number) => (
-                    <motion.div 
-                      key={i} 
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: i * 0.1 }}
-                      whileHover={{ y: -2, scale: 1.02 }}
-                      className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-emerald-500/30 transition-all duration-300"
-                    >
-                      <div className="block">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="space-y-1">
-                            <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug line-clamp-2">
-                              {news.title}
-                            </h4>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              <Calendar className="h-3 w-3" />
-                              {news.date}
+                  clubNews.map((news: { title: string; date: string; content: string }, i: number) => (
+                    <Dialog key={i}>
+                      <DialogTrigger asChild>
+                        <motion.div 
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          whileHover={{ y: -2, scale: 1.02 }}
+                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer"
+                        >
+                          <div className="block">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="space-y-1">
+                                <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug line-clamp-2 text-left">
+                                  {news.title}
+                                </h4>
+                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                  <Calendar className="h-3 w-3" />
+                                  {news.date}
+                                </div>
+                              </div>
                             </div>
                           </div>
+                        </motion.div>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-xl">
+                        <DialogHeader>
+                          <DialogTitle className="text-2xl font-bold text-emerald-600">{news.title}</DialogTitle>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
+                            <Calendar className="h-4 w-4" />
+                            {news.date}
+                          </div>
+                        </DialogHeader>
+                        <div className="mt-6 prose dark:prose-invert max-w-none">
+                          <Markdown>{news.content}</Markdown>
                         </div>
-                      </div>
-                    </motion.div>
+                      </DialogContent>
+                    </Dialog>
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
