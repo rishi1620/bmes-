@@ -61,9 +61,14 @@ const AdminPortal = () => {
   const [deleteConfig, setDeleteConfig] = useState<{title: string, desc: string, onConfirm: () => void} | null>(null);
 
   const load = useCallback(async () => {
-    const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "portal_page");
+    const { data } = await supabase.from("site_settings").select("*");
     const map: Record<string, string> = {};
-    (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+    (data as Setting[] | null)?.forEach((s) => { 
+      // Only care about portal_page group or specific keys
+      if (s.setting_group === "portal_page" || s.setting_key.startsWith("portal_")) {
+        map[s.setting_key] = s.setting_value || ""; 
+      }
+    });
     setSettings(map);
   }, []);
 
@@ -86,6 +91,9 @@ const AdminPortal = () => {
     
     try {
       for (const key of keysToSave) {
+        // Skip if value is undefined and not in settings (to avoid overwriting with empty string if not loaded)
+        if (settings[key] === undefined) continue;
+
         const { data: existing, error } = await supabase.from("site_settings").select("id").eq("setting_key", key).maybeSingle();
         
         if (error) {
@@ -93,14 +101,19 @@ const AdminPortal = () => {
           continue;
         }
 
+        const value = settings[key] || "";
+
         if (!existing) {
           await supabase.from("site_settings").insert({
             setting_group: "portal_page",
             setting_key: key,
-            setting_value: settings[key] || ""
+            setting_value: value
           });
         } else {
-          await supabase.from("site_settings").update({ setting_value: settings[key] || "" }).eq("setting_key", key);
+          await supabase.from("site_settings").update({ 
+            setting_value: value,
+            setting_group: "portal_page" 
+          }).eq("setting_key", key);
         }
       }
 

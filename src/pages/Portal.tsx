@@ -238,14 +238,9 @@ const Portal = () => {
               <TabsTrigger value="software" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <Download className="mr-2 h-4 w-4" /> Software
               </TabsTrigger>
-              <TabsTrigger value="membership" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
+              <TabsTrigger value="membership" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <UserPlus className="mr-2 h-4 w-4" /> Membership
               </TabsTrigger>
-              {isAdmin && (
-                <TabsTrigger value="admin" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
-                  <Settings className="mr-2 h-4 w-4" /> Admin Tools
-                </TabsTrigger>
-              )}
             </TabsList>
           </div>
 
@@ -387,11 +382,13 @@ const Portal = () => {
                                     res.type === 'pdf' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' :
                                     res.type === 'image' ? 'bg-blue-50 text-blue-500 dark:bg-blue-900/20' :
                                     res.type === 'video' ? 'bg-purple-50 text-purple-500 dark:bg-purple-900/20' :
+                                    res.name.match(/\.(doc|docx)$/i) ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/20' :
                                     'bg-slate-50 text-slate-500 dark:bg-slate-900/20'
                                   }`}>
                                     {res.type === 'pdf' ? <FileText className="h-6 w-6" /> :
                                      res.type === 'image' ? <ImageIcon className="h-6 w-6" /> :
                                      res.type === 'video' ? <Film className="h-6 w-6" /> :
+                                     res.name.match(/\.(doc|docx)$/i) ? <FileText className="h-6 w-6" /> :
                                      <ExternalLink className="h-6 w-6" />}
                                   </div>
                                   <div className="flex-1 min-w-0">
@@ -576,11 +573,6 @@ const Portal = () => {
                 </Card>
               </div>
             </TabsContent>
-            {isAdmin && (
-              <TabsContent value="admin" className="space-y-8">
-                <ResourceManagement settings={settings} updateSetting={updateSetting} />
-              </TabsContent>
-            )}
           </div>
         </Tabs>
       </section>
