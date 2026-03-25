@@ -6,6 +6,7 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
@@ -17,48 +18,30 @@ import {
   FileText, 
   Image as ImageIcon,
   Loader2,
-  Filter,
-  Upload
+  Upload,
+  Settings,
+  Search,
+  ChevronRight,
+  Film
 } from "lucide-react";
+import { AcademicStructure } from "@/types/academic";
 import { toast } from "sonner";
 import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
 import Markdown from "react-markdown";
 import { generateStudyMaterial } from "@/services/geminiService";
 import * as pdfjsLib from 'pdfjs-dist';
+import { useAuth } from "@/hooks/useAuth";
+import { ResourceManagement } from "@/components/admin/ResourceManagement";
 
 // Set up PDF worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { motion } from "framer-motion";
-
-interface Resource {
-  id: string;
-  file_name: string;
-  file_url: string;
-  file_type: string;
-  file_size: number;
-  created_at: string;
-}
 
 interface SoftwareLink {
   title: string;
   url: string;
   description: string;
-}
-
-interface CustomTable {
-  id: string;
-  title: string;
-  headers: string[];
-  rows: string[][];
 }
 
 const Portal = () => {
@@ -79,9 +62,10 @@ const Portal = () => {
   const [generating, setGenerating] = useState(false);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiResult, setAiResult] = useState("");
-  const [fileTypeFilter, setFileTypeFilter] = useState<"all" | "image" | "pdf" | "video">("all");
-  const [semesterFilter, setSemesterFilter] = useState("all");
-  const [resources, setResources] = useState<Resource[]>([]);
+  const [selectedSemesterId, setSelectedSemesterId] = useState<string>("");
+  const [selectedCourseId, setSelectedCourseId] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTag, setSelectedTag] = useState<string>("All");
   const [fileContent, setFileContent] = useState("");
   const [fileName, setFileName] = useState("");
 
@@ -118,26 +102,7 @@ const Portal = () => {
   };
 
   const fetchResources = useCallback(async () => {
-    const { data } = await supabase.storage
-      .from("media")
-      .list("", { limit: 100, sortBy: { column: "created_at", order: "desc" } });
-    
-    if (data) {
-      const mappedResources = data
-        .filter(file => file.name !== ".emptyFolderPlaceholder")
-        .map(file => {
-          const { data: { publicUrl } } = supabase.storage.from("media").getPublicUrl(file.name);
-          return {
-            id: file.id,
-            file_name: file.name,
-            file_url: publicUrl,
-            file_type: file.metadata?.mimetype || "unknown",
-            file_size: file.metadata?.size || 0,
-            created_at: file.created_at
-          };
-        });
-      setResources(mappedResources);
-    }
+    // Resources are now managed via academicStructure
   }, []);
 
   useEffect(() => {
@@ -192,43 +157,56 @@ const Portal = () => {
     }
   })();
 
-  const customTables: CustomTable[] = useMemo(() => {
+  const { isAdmin } = useAuth();
+  
+  const updateSetting = (key: string, value: string) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const academicStructure: AcademicStructure = useMemo(() => {
     try {
-      return JSON.parse(settings.portal_custom_tables_json || "[]");
+      return JSON.parse(settings.portal_academic_structure_json || '{"semesters": []}');
     } catch {
-      return [];
+      return { semesters: [] };
     }
-  }, [settings.portal_custom_tables_json]);
+  }, [settings.portal_academic_structure_json]);
 
-  const resourceSemesters = useMemo(() => {
-    try {
-      console.log("Portal settings:", settings);
-      const parsed = JSON.parse(settings.portal_resource_semesters_json || "{}");
-      console.log("Parsed resourceSemesters:", parsed);
-      return parsed;
-    } catch (e) {
-      console.error("Error parsing resourceSemesters:", e);
-      return {};
-    }
-  }, [settings]);
+  const selectedSemester = academicStructure.semesters.find(s => s.id === selectedSemesterId);
+  const selectedCourse = selectedSemester?.courses.find(c => c.id === selectedCourseId);
 
-  const filteredResources = resources.filter(res => {
-    const matchesType = fileTypeFilter === "all" || 
-      (fileTypeFilter === "image" && res.file_type.includes("image")) ||
-      (fileTypeFilter === "pdf" && res.file_type.includes("pdf")) ||
-      (fileTypeFilter === "video" && res.file_type.includes("video"));
-    
-    const semester = resourceSemesters[res.file_name];
-    console.log(`Resource: ${res.file_name}, Semester: ${semester}, Filter: ${semesterFilter}`);
-    
-    const matchesSemester = semesterFilter === "all" || (semester === semesterFilter);
-    return matchesType && matchesSemester;
-  });
+  const allTags = useMemo(() => {
+    const tags = new Set<string>(["All"]);
+    academicStructure.semesters.forEach(s => {
+      s.courses.forEach(c => {
+        c.resources.forEach(r => {
+          r.tags.forEach(t => tags.add(t));
+        });
+      });
+    });
+    return Array.from(tags);
+  }, [academicStructure]);
+
+  const filteredResources = useMemo(() => {
+    if (!selectedCourse) return [];
+    return selectedCourse.resources.filter(res => {
+      const matchesSearch = res.name.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesTag = selectedTag === "All" || res.tags.includes(selectedTag);
+      return matchesSearch && matchesTag;
+    });
+  }, [selectedCourse, searchQuery, selectedTag]);
 
   return (
     <PageLayout>
-      <section className="hero-gradient py-16 md:py-24">
-        <div className="container text-center">
+      <section className="hero-gradient py-16 md:py-24 relative overflow-hidden">
+        <div className="absolute inset-0 z-0 opacity-20">
+          <img 
+            src={settings.portal_hero_bg_image || "https://mtibdsxdjvxtmvuhvsev.supabase.co/storage/v1/object/public/media/dna-background.png"} 
+            alt="Background" 
+            className="w-full h-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+        <div className="container text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -263,132 +241,193 @@ const Portal = () => {
               <TabsTrigger value="membership" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
                 <UserPlus className="mr-2 h-4 w-4" /> Membership
               </TabsTrigger>
+              {isAdmin && (
+                <TabsTrigger value="admin" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
+                  <Settings className="mr-2 h-4 w-4" /> Admin Tools
+                </TabsTrigger>
+              )}
             </TabsList>
           </div>
 
           <div className="mt-12">
             <TabsContent value="library" className="space-y-8">
-              <div className="grid gap-8 lg:grid-cols-3">
-                <div className="lg:col-span-1 space-y-6">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <Filter className="h-5 w-5 text-muted-foreground" />
-                        Search & Filter
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex flex-wrap gap-2 mt-4">
-                        {(["all", "image", "pdf", "video"] as const).map((type) => (
-                          <button
-                            key={type}
-                            onClick={() => setFileTypeFilter(type)}
-                            className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                              fileTypeFilter === type
-                                ? "bg-emerald-500 text-white"
-                                : "bg-muted text-muted-foreground hover:bg-accent"
-                            }`}
-                          >
-                            {type.toUpperCase()}
-                          </button>
-                        ))}
-                      </div>
-                      <div className="mt-4">
-                        <Label className="text-xs text-muted-foreground mb-2 block">Semester</Label>
-                        <select 
-                          className="w-full text-sm border rounded p-2"
-                          value={semesterFilter}
-                          onChange={(e) => setSemesterFilter(e.target.value)}
-                        >
-                          <option value="all">All Semesters</option>
-                          {[1, 2, 3, 4].map(level => [1, 2].map(term => (
-                            <option key={`${level}-${term}`} value={`Level-${level} Term-${term}`}>Level-{level} Term-{term}</option>
-                          )))}
-                        </select>
-                      </div>
-                    </CardContent>
-                  </Card>
+              <div className="space-y-6">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input 
+                      placeholder="Search resources..." 
+                      className="pl-10"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
+                    {allTags.map(tag => (
+                      <Button
+                        key={tag}
+                        variant={selectedTag === tag ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setSelectedTag(tag)}
+                        className="whitespace-nowrap rounded-full"
+                      >
+                        {tag}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
 
-                <div className="lg:col-span-2">
-                  <SectionHeading title="Resource Library" description={settings.portal_library_content || "Access lecture notes, reference books, and question banks."} />
-                  <div className="mt-8 grid gap-4 md:grid-cols-2">
-                    {filteredResources.length > 0 ? (
-                      filteredResources.map((res) => (
-                        <Card key={res.id} className="group overflow-hidden border-border hover:border-emerald-500/50 transition-all">
-                          <CardContent className="p-5">
-                            <div className="flex items-start gap-4">
-                              <div className="rounded-lg bg-emerald-500/10 p-3 text-emerald-500">
-                                {res.file_type.includes("image") ? (
-                                  <ImageIcon className="h-6 w-6" />
-                                ) : (
-                                  <FileText className="h-6 w-6" />
-                                )}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+                  {/* Sidebar Selectors */}
+                  <div className="md:col-span-1 space-y-6">
+                    <Card className="border-none shadow-none bg-transparent">
+                      <CardHeader className="px-0 pt-0">
+                        <CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Semesters</CardTitle>
+                      </CardHeader>
+                      <CardContent className="px-0 space-y-2">
+                        {academicStructure.semesters.map(semester => (
+                          <Button
+                            key={semester.id}
+                            variant={selectedSemesterId === semester.id ? "default" : "ghost"}
+                            className="w-full justify-between text-left h-auto py-3 px-4 group"
+                            onClick={() => {
+                              setSelectedSemesterId(semester.id);
+                              setSelectedCourseId("");
+                            }}
+                          >
+                            <span className="font-medium">{semester.name}</span>
+                            <ChevronRight className={`h-4 w-4 transition-transform ${selectedSemesterId === semester.id ? 'rotate-90' : ''}`} />
+                          </Button>
+                        ))}
+                        {academicStructure.semesters.length === 0 && (
+                          <p className="text-sm text-muted-foreground italic px-4">No semesters available.</p>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {selectedSemester && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-2"
+                      >
+                        <Label className="text-xs uppercase tracking-widest text-muted-foreground px-0 mb-2 block">Courses</Label>
+                        <div className="space-y-1">
+                          {selectedSemester.courses.map(course => (
+                            <Button
+                              key={course.id}
+                              variant={selectedCourseId === course.id ? "secondary" : "ghost"}
+                              className="w-full justify-start text-left h-auto py-2.5 px-4 rounded-lg"
+                              onClick={() => setSelectedCourseId(course.id)}
+                            >
+                              <div className="flex flex-col items-start">
+                                <span className="text-sm font-semibold">{course.name}</span>
+                                {course.code && <span className="text-[10px] opacity-60">{course.code}</span>}
                               </div>
-                              <div className="flex-1 min-w-0">
-                                <h3 className="font-semibold truncate">{res.file_name}</h3>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  {(res.file_size / 1024 / 1024).toFixed(2)} MB • {new Date(res.created_at).toLocaleDateString()}
-                                </p>
-                                <Button asChild variant="link" className="h-auto p-0 mt-3 text-emerald-500 hover:text-emerald-600">
-                                  <a href={res.file_url} target="_blank" rel="noopener noreferrer">
-                                    <Download className="mr-2 h-4 w-4" /> Download
-                                  </a>
-                                </Button>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))
-                    ) : (
-                      <div className="col-span-full py-12 text-center">
-                        <div className="mx-auto w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                          <BookOpen className="h-8 w-8 text-muted-foreground/30" />
+                            </Button>
+                          ))}
+                          {selectedSemester.courses.length === 0 && (
+                            <p className="text-sm text-muted-foreground italic px-4">No courses in this semester.</p>
+                          )}
                         </div>
-                        <p className="text-muted-foreground">No resources found matching your search.</p>
-                      </div>
+                      </motion.div>
                     )}
                   </div>
 
-                  {customTables.length > 0 && (
-                    <div className="mt-16 space-y-12">
-                      {customTables.map((table: CustomTable) => (
-                        <div key={table.id} className="space-y-6">
-                          <h3 className="text-xl font-semibold text-foreground">{table.title}</h3>
-                          <div className="rounded-xl border border-border overflow-hidden bg-card">
-                            <div className="overflow-x-auto">
-                              <Table>
-                                <TableHeader className="bg-muted/50">
-                                  <TableRow>
-                                    {table.headers.map((h: string, i: number) => (
-                                      <TableHead key={i} className="font-semibold text-foreground">{h}</TableHead>
-                                    ))}
-                                  </TableRow>
-                                </TableHeader>
-                                <TableBody>
-                                  {table.rows.map((row: string[], i: number) => (
-                                    <TableRow key={i}>
-                                      {row.map((cell: string, j: number) => (
-                                        <TableCell key={j}>
-                                          {cell.startsWith('http') ? (
-                                            <a href={cell} target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:underline inline-flex items-center gap-1">
-                                              Link <ExternalLink className="h-3 w-3" />
-                                            </a>
-                                          ) : (
-                                            cell
-                                          )}
-                                        </TableCell>
-                                      ))}
-                                    </TableRow>
-                                  ))}
-                                </TableBody>
-                              </Table>
+                  {/* Content Area */}
+                  <div className="md:col-span-3">
+                    {!selectedCourse ? (
+                      <div className="h-[400px] flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-3xl bg-slate-50 dark:bg-slate-900/20">
+                        <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
+                          <BookOpen className="h-10 w-10 text-emerald-500" />
+                        </div>
+                        <h3 className="text-xl font-bold">Explore the Library</h3>
+                        <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
+                          Select a semester and course from the sidebar to access lecture notes, reference materials, and more.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
+                          <div>
+                            <div className="flex items-center gap-2 mb-2">
+                              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">
+                                {selectedSemester?.name}
+                              </span>
+                              {selectedCourse.code && (
+                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                                  {selectedCourse.code}
+                                </span>
+                              )}
                             </div>
+                            <h2 className="text-3xl font-extrabold tracking-tight">{selectedCourse.name}</h2>
+                          </div>
+                          <div className="bg-emerald-500/5 px-4 py-2 rounded-2xl border border-emerald-500/10">
+                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Resources Available</p>
+                            <p className="text-2xl font-black text-emerald-600">{filteredResources.length}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+
+                        {filteredResources.length === 0 ? (
+                          <div className="py-20 text-center bg-muted/10 rounded-3xl border border-dashed">
+                            <p className="text-muted-foreground">No resources found matching your criteria.</p>
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {filteredResources.map((res) => (
+                              <motion.div
+                                key={res.id}
+                                layout
+                                initial={{ opacity: 0, scale: 0.98 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl hover:border-emerald-500/30 transition-all duration-300"
+                              >
+                                <div className="p-5 flex items-start gap-4">
+                                  <div className={`p-4 rounded-2xl transition-colors ${
+                                    res.type === 'pdf' ? 'bg-red-50 text-red-500 dark:bg-red-900/20' :
+                                    res.type === 'image' ? 'bg-blue-50 text-blue-500 dark:bg-blue-900/20' :
+                                    res.type === 'video' ? 'bg-purple-50 text-purple-500 dark:bg-purple-900/20' :
+                                    'bg-slate-50 text-slate-500 dark:bg-slate-900/20'
+                                  }`}>
+                                    {res.type === 'pdf' ? <FileText className="h-6 w-6" /> :
+                                     res.type === 'image' ? <ImageIcon className="h-6 w-6" /> :
+                                     res.type === 'video' ? <Film className="h-6 w-6" /> :
+                                     <ExternalLink className="h-6 w-6" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-500 transition-colors">
+                                      {res.name}
+                                    </h4>
+                                    <p className="text-[10px] text-slate-500 mt-1 font-medium">
+                                      Added {new Date(res.created_at).toLocaleDateString()}
+                                    </p>
+                                    <div className="flex flex-wrap gap-1.5 mt-3">
+                                      {res.tags.map(tag => (
+                                        <span key={tag} className="text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                          {tag}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{res.type}</span>
+                                  <a 
+                                    href={res.url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-xs font-bold text-emerald-500 flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
+                                  >
+                                    <Download className="h-3.5 w-3.5" /> Download
+                                  </a>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </TabsContent>
@@ -537,6 +576,11 @@ const Portal = () => {
                 </Card>
               </div>
             </TabsContent>
+            {isAdmin && (
+              <TabsContent value="admin" className="space-y-8">
+                <ResourceManagement settings={settings} updateSetting={updateSetting} />
+              </TabsContent>
+            )}
           </div>
         </Tabs>
       </section>

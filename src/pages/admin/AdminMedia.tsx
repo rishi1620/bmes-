@@ -85,12 +85,17 @@ const AdminMedia = () => {
       
       // 3. Create Database Record
       const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) {
+        toast({ title: "Error", description: "You must be logged in to upload files.", variant: "destructive" });
+        setUploading(false);
+        return;
+      }
       const { error: dbError } = await supabase.from("media_library").insert({
         file_name: fileName,
         file_url: urlData.publicUrl,
         file_size: file.size,
         file_type: file.type,
-        uploaded_by: userData.user?.id,
+        uploaded_by: userData.user.id,
       });
 
       if (dbError) {
