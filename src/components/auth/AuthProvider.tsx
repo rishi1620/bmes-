@@ -72,13 +72,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         message.toLowerCase().includes("session_not_found") ||
         message.toLowerCase().includes("invalid_refresh_token") ||
         message.toLowerCase().includes("refresh token not found") ||
-        message.toLowerCase().includes("invalid grant")) {
+        message.toLowerCase().includes("invalid grant") ||
+        message.toLowerCase().includes("session expired")) {
       console.warn("Invalid refresh token or session detected, signing out and clearing storage...");
-      try {
-        await supabase.auth.signOut();
-      } catch (e) {
-        console.error("Error during signOut:", e);
-      }
       
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -90,9 +86,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       keysToRemove.forEach(key => localStorage.removeItem(key));
       sessionStorage.clear();
       
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error("Error during signOut:", e);
+      }
+      
+      if (!window.location.pathname.includes('/auth')) {
+        window.location.href = '/auth';
+      }
     }
   };
 

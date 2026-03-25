@@ -57,7 +57,8 @@ export const supabase =
                       errorDesc.toLowerCase().includes("refresh token") ||
                       errorDesc.toLowerCase().includes("invalid_grant") ||
                       errorDesc.toLowerCase().includes("session_not_found") ||
-                      errorDesc.toLowerCase().includes("invalid_refresh_token")
+                      errorDesc.toLowerCase().includes("invalid_refresh_token") ||
+                      errorDesc.toLowerCase().includes("refresh token not found")
                     ) {
                       console.warn("Intercepted invalid refresh token error, clearing session...");
                       const keysToRemove: string[] = [];
@@ -69,10 +70,12 @@ export const supabase =
                       }
                       keysToRemove.forEach(key => localStorage.removeItem(key));
                       sessionStorage.clear();
-                      // Only redirect if we are not already on the auth page
-                      if (!window.location.pathname.includes('/auth')) {
-                        window.location.href = '/auth';
-                      }
+                      
+                      // Return a mock error response that won't trigger further retries
+                      return new Response(JSON.stringify({ error: "Session expired", message: "Your session has expired. Please sign in again." }), {
+                        status: 401,
+                        headers: { "Content-Type": "application/json" },
+                      });
                     }
                   } catch {
                     // ignore JSON parse errors
