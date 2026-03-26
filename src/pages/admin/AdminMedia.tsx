@@ -41,6 +41,7 @@ const AdminMedia = () => {
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [search, setSearch] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "image" | "video" | "pdf">("all");
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set()); // IDs now
   const [fileToDelete, setFileToDelete] = useState<MediaFile | null>(null);
   const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
@@ -114,13 +115,28 @@ const AdminMedia = () => {
     }
   }, [fetchFiles]);
 
-  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ onDrop, accept: {'image/*': [], 'video/*': [], 'application/pdf': []} });
+  const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ 
+    onDrop, 
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'], 
+      'video/*': ['.mp4', '.webm', '.mov', '.avi'], 
+      'application/pdf': ['.pdf']
+    } 
+  });
 
   const toggleSelect = (id: string) => {
     const next = new Set(selectedFiles);
     if (next.has(id)) next.delete(id);
     else next.add(id);
     setSelectedFiles(next);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedFiles.size === filtered.length && filtered.length > 0) {
+      setSelectedFiles(new Set());
+    } else {
+      setSelectedFiles(new Set(filtered.map(f => f.id)));
+    }
   };
 
   const deleteSelected = async () => {
@@ -194,9 +210,15 @@ const AdminMedia = () => {
   const isImage = (name: string) => /\.(jpg|jpeg|png|gif|webp|svg|ico)$/i.test(name);
   const isVideo = (name: string) => /\.(mp4|webm|mov|avi)$/i.test(name);
 
-  const filtered = files.filter((f) => 
-    f.file_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = files.filter((f) => {
+    const matchesSearch = f.file_name.toLowerCase().includes(search.toLowerCase());
+    if (!matchesSearch) return false;
+    if (filterType === "all") return true;
+    if (filterType === "image") return isImage(f.file_name);
+    if (filterType === "video") return isVideo(f.file_name);
+    if (filterType === "pdf") return f.file_name.toLowerCase().endsWith(".pdf");
+    return true;
+  });
 
   const formatSize = (bytes?: number) => {
     if (!bytes) return "—";
@@ -261,8 +283,26 @@ const AdminMedia = () => {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4, delay: 0.2 }}
+        className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-4"
       >
-        <Input placeholder="Search files…" value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} className="mb-4 max-w-sm" />
+        <Input placeholder="Search files…" value={search} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)} className="max-w-sm" />
+        <div className="flex items-center gap-2">
+          <select
+            className="h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            value={filterType}
+            onChange={(e) => setFilterType(e.target.value as "all" | "image" | "video" | "pdf")}
+          >
+            <option value="all">All Files</option>
+            <option value="image">Images</option>
+            <option value="video">Videos</option>
+            <option value="pdf">PDFs</option>
+          </select>
+          {filtered.length > 0 && (
+            <Button variant="outline" size="sm" onClick={toggleSelectAll}>
+              {selectedFiles.size === filtered.length ? "Deselect All" : "Select All"}
+            </Button>
+          )}
+        </div>
       </motion.div>
 
       {loading ? (
@@ -307,7 +347,9 @@ const AdminMedia = () => {
               </div>
               <div className="absolute inset-0 flex items-center justify-center gap-2 bg-background/80 opacity-0 transition-opacity group-hover:opacity-100">
                 <Button variant="outline" size="sm" onClick={() => copyUrl(file.file_url)} title="Copy URL"><Copy className="h-4 w-4" /></Button>
-                <Button variant="outline" size="sm" onClick={() => setEditingAlt({ id: file.id, text: file.alt_text || "" })} title="Edit Alt Text"><FileText className="h-4 w-4" /></Button>
+                {isImage(file.file_name) && (
+                  <Button variant="outline" size="sm" onClick={() => setEditingAlt({ id: file.id, text: file.alt_text || "" })} title="Edit Alt Text"><FileText className="h-4 w-4" /></Button>
+                )}
                 <Button variant="outline" size="sm" onClick={() => setFileToDelete(file)} title="Delete" className="text-destructive hover:bg-destructive hover:text-destructive-foreground"><Trash2 className="h-4 w-4" /></Button>
               </div>
             </motion.div>
