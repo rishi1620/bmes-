@@ -1,16 +1,32 @@
 import express from "express";
 import cors from "cors";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Helper to check config and get transporter
+const getTransporter = (res: express.Response) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("GMAIL_USER or GMAIL_APP_PASSWORD is not set");
+    res.status(500).json({ error: "Email service is not configured on the server." });
+    return null;
+  }
+  
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+};
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -18,10 +34,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.post("/api/send-confirmation", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
-    return res.status(500).json({ error: "Email service is not configured on the server." });
-  }
+  const transporter = getTransporter(res);
+  if (!transporter) return;
 
   const { email, name, eventTitle } = req.body;
 
@@ -30,9 +44,9 @@ app.post("/api/send-confirmation", async (req, res) => {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "BMES Society <onboarding@resend.dev>", // Replace with your verified domain in production
-      to: [email],
+    const info = await transporter.sendMail({
+      from: `"BMES Society" <${process.env.GMAIL_USER}>`,
+      to: email,
       subject: `Registration Confirmed: ${eventTitle}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -47,12 +61,7 @@ app.post("/api/send-confirmation", async (req, res) => {
       `,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: info.messageId });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -60,10 +69,8 @@ app.post("/api/send-confirmation", async (req, res) => {
 });
 
 app.post("/api/send-membership-confirmation", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
-    return res.status(500).json({ error: "Email service is not configured on the server." });
-  }
+  const transporter = getTransporter(res);
+  if (!transporter) return;
 
   const { email, name } = req.body;
 
@@ -72,9 +79,9 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "CUET BMES <onboarding@resend.dev>",
-      to: [email],
+    const info = await transporter.sendMail({
+      from: `"CUET BMES" <${process.env.GMAIL_USER}>`,
+      to: email,
       subject: "Membership Application Received",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -89,12 +96,7 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
       `,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: info.messageId });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -102,10 +104,8 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
 });
 
 app.post("/api/send-membership-status", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
-    return res.status(500).json({ error: "Email service is not configured on the server." });
-  }
+  const transporter = getTransporter(res);
+  if (!transporter) return;
 
   const { email, name, status, reason } = req.body;
 
@@ -142,19 +142,14 @@ app.post("/api/send-membership-status", async (req, res) => {
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "CUET BMES <onboarding@resend.dev>",
-      to: [email],
+    const info = await transporter.sendMail({
+      from: `"CUET BMES" <${process.env.GMAIL_USER}>`,
+      to: email,
       subject: subject,
       html: html,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: info.messageId });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -162,10 +157,8 @@ app.post("/api/send-membership-status", async (req, res) => {
 });
 
 app.post("/api/send-welcome", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
-    return res.status(500).json({ error: "Email service is not configured on the server." });
-  }
+  const transporter = getTransporter(res);
+  if (!transporter) return;
 
   const { email, name } = req.body;
 
@@ -174,9 +167,9 @@ app.post("/api/send-welcome", async (req, res) => {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: "CUET BMES <onboarding@resend.dev>",
-      to: [email],
+    const info = await transporter.sendMail({
+      from: `"CUET BMES" <${process.env.GMAIL_USER}>`,
+      to: email,
       subject: "Welcome to CUET BMES Society!",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -195,12 +188,7 @@ app.post("/api/send-welcome", async (req, res) => {
       `,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true, data: info.messageId });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
