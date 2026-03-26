@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
@@ -65,6 +65,9 @@ const Portal = () => {
     const tab = queryParams.get("tab");
     if (tab && tab !== activeTab) {
       setActiveTab(tab);
+      if (tab === "library") {
+        scrollToContent();
+      }
     }
   }, [queryParams, activeTab]);
 
@@ -74,7 +77,8 @@ const Portal = () => {
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiResult, setAiResult] = useState("");
   const [studyMode, setStudyMode] = useState<StudyMode>("general");
-  const [aiHistory, setAiHistory] = useState<{id: string, title: string, content: string, date: string}[]>([]);
+  const [aiHistory, setAiHistory] = useState<{id: string, title: string, content: string, date: string, chatHistory?: { role: string, parts: { text: string }[] }[]}[]>([]);
+  const [chatHistory, setChatHistory] = useState<{ role: string, parts: { text: string }[] }[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [copied, setCopied] = useState(false);
   const [selectedSemesterId, setSelectedSemesterId] = useState<string>("");
@@ -83,6 +87,32 @@ const Portal = () => {
   const [selectedTag, setSelectedTag] = useState<string>("All");
   const [fileContent, setFileContent] = useState("");
   const [fileName, setFileName] = useState("");
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const clearChat = () => {
+    setAiResult("");
+    setChatHistory([]);
+    setAiPrompt("");
+    setFileContent("");
+    setFileName("");
+    toast.success("Chat cleared!");
+  };
+
+  const clearSavedHistory = () => {
+    setAiHistory([]);
+    localStorage.removeItem("ai_study_history");
+    toast.success("Saved history cleared!");
+  };
+
+  const scrollToContent = () => {
+    setTimeout(() => {
+      if (contentRef.current) {
+        const yOffset = -100; // Adjust for sticky header
+        const y = contentRef.current.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({ top: y, behavior: 'smooth' });
+      }
+    }, 100);
+  };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -155,12 +185,13 @@ const Portal = () => {
     }
   }, []);
 
-  const saveToHistory = (title: string, content: string) => {
+  const saveToHistory = (title: string, content: string, currentChatHistory?: { role: string, parts: { text: string }[] }[]) => {
     const newItem = {
       id: Date.now().toString(),
       title: title || "Study Material",
       content,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      chatHistory: currentChatHistory
     };
     const updatedHistory = [newItem, ...aiHistory].slice(0, 10);
     setAiHistory(updatedHistory);
@@ -183,10 +214,28 @@ const Portal = () => {
 
     setGenerating(true);
     try {
-      const result = await generateStudyMaterial(aiPrompt || "Summarize this material", fileContent, mode);
-      setAiResult(result || "No content generated.");
-      saveToHistory(aiPrompt.substring(0, 30) || `${mode.charAt(0).toUpperCase() + mode.slice(1)} Summary`, result || "");
+      const promptText = aiPrompt || "Summarize this material";
+      const result = await generateStudyMaterial(promptText, fileContent, mode, chatHistory);
+      
+      const newHistory = [
+        ...chatHistory,
+        { role: "user", parts: [{ text: promptText }] },
+        { role: "model", parts: [{ text: result || "No content generated." }] }
+      ];
+      setChatHistory(newHistory);
+      
+      const newResult = aiResult 
+        ? `${aiResult}\n\n---\n\n**You:** ${promptText}\n\n**AI:** ${result}`
+        : result;
+        
+      setAiResult(newResult || "No content generated.");
+      saveToHistory(promptText.substring(0, 30) || `${mode.charAt(0).toUpperCase() + mode.slice(1)} Summary`, newResult || "", newHistory);
+      
+      setAiPrompt(""); // Clear prompt after sending
+      setFileContent(""); // Clear file content so it's not sent again
+      setFileName(""); // Clear file name from UI
       toast.success("Study material generated!");
+      scrollToContent();
     } catch (error) {
       console.error("AI Generation error:", error);
       const errorMessage = error instanceof Error ? error.message : "The AI service might be temporarily unavailable.";
@@ -267,19 +316,38 @@ const Portal = () => {
       </section>
 
       <section className="container py-16">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <Tabs 
+          value={activeTab} 
+          onValueChange={(val) => {
+            setActiveTab(val);
+            scrollToContent();
+          }} 
+          className="w-full"
+        >
           <div className="flex justify-center">
             <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-200/50 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-300/50 dark:border-slate-800 rounded-2xl">
-              <TabsTrigger value="library" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
+              <TabsTrigger 
+                value="library" 
+                className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
                 <BookOpen className="mr-2 h-4 w-4" /> Library
               </TabsTrigger>
-              <TabsTrigger value="generate" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
+              <TabsTrigger 
+                value="generate" 
+                className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
                 <Sparkles className="mr-2 h-4 w-4" /> AI Assistant
               </TabsTrigger>
-              <TabsTrigger value="software" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
+              <TabsTrigger 
+                value="software" 
+                className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
                 <Download className="mr-2 h-4 w-4" /> Software
               </TabsTrigger>
-              <TabsTrigger value="membership" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400">
+              <TabsTrigger 
+                value="membership" 
+                className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400"
+              >
                 <UserPlus className="mr-2 h-4 w-4" /> Membership
               </TabsTrigger>
             </TabsList>
@@ -328,6 +396,9 @@ const Portal = () => {
                           if (val && val !== selectedSemesterId) {
                             setSelectedCourseId("");
                           }
+                          if (window.innerWidth < 768 && val) {
+                            scrollToContent();
+                          }
                         }}
                       >
                         {academicStructure.semesters.map(semester => (
@@ -350,7 +421,10 @@ const Portal = () => {
                                         ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-sm' 
                                         : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
-                                    onClick={() => setSelectedCourseId(course.id)}
+                                    onClick={() => {
+                                      setSelectedCourseId(course.id);
+                                      scrollToContent();
+                                    }}
                                   >
                                     <div className="flex flex-col items-start">
                                       <span className="text-sm font-bold">{course.name}</span>
@@ -373,7 +447,7 @@ const Portal = () => {
                   </div>
 
                   {/* Content Area */}
-                  <div className="md:col-span-3">
+                  <div className="md:col-span-3" ref={contentRef}>
                     {!selectedCourse ? (
                       <div className="h-[400px] flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-3xl bg-slate-50 dark:bg-slate-900/20">
                         <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
@@ -607,6 +681,9 @@ const Portal = () => {
                                 YOUR STUDY MATERIAL
                               </CardTitle>
                               <div className="flex gap-2">
+                                <Button variant="ghost" size="sm" className="rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30" onClick={clearChat}>
+                                  Clear Chat
+                                </Button>
                                 <Button variant="ghost" size="icon" className="rounded-full" onClick={copyToClipboard}>
                                   {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                                 </Button>
@@ -662,7 +739,14 @@ const Portal = () => {
                         animate={{ opacity: 1, x: 0 }}
                         className="space-y-4"
                       >
-                        <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Recent History</h3>
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Recent History</h3>
+                          {aiHistory.length > 0 && (
+                            <Button variant="ghost" size="sm" className="h-6 text-[10px] text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30" onClick={clearSavedHistory}>
+                              Clear
+                            </Button>
+                          )}
+                        </div>
                         <div className="space-y-3">
                           {aiHistory.length === 0 ? (
                             <p className="text-xs text-slate-500 italic p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed">No recent history found.</p>
@@ -671,7 +755,11 @@ const Portal = () => {
                               <button
                                 key={item.id}
                                 className="w-full text-left p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-emerald-500/30 hover:shadow-md transition-all group"
-                                onClick={() => setAiResult(item.content)}
+                                onClick={() => {
+                                  setAiResult(item.content);
+                                  setChatHistory(item.chatHistory || []);
+                                  scrollToContent();
+                                }}
                               >
                                 <p className="text-sm font-bold truncate group-hover:text-emerald-500 transition-colors">{item.title}</p>
                                 <p className="text-[10px] text-slate-400 mt-1">{new Date(item.date).toLocaleDateString()}</p>

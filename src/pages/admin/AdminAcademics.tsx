@@ -82,6 +82,8 @@ const AdminAcademics = () => {
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [batchResources, setBatchResources] = useState<BatchResource[]>([]);
   const [saving, setSaving] = useState(false);
+  const [batchFilter, setBatchFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const load = useCallback(async () => {
     const { data } = await supabase.from("site_settings").select("*").eq("setting_group", "academics_page");
@@ -248,17 +250,51 @@ const AdminAcademics = () => {
 
         <motion.div variants={itemVariants}>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-lg">Batch-wise Academic Resources</CardTitle>
-              <Button onClick={addBatchResource} size="sm" variant="outline">
+            <CardHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <CardTitle className="text-lg">Batch-wise Academic Resources</CardTitle>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  <div className="w-[140px]">
+                    <Select value={batchFilter} onValueChange={setBatchFilter}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Filter by Batch" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Batches</SelectItem>
+                        {Array.from(new Set(batchResources.map(r => r.batch))).sort((a, b) => b.localeCompare(a)).map(batch => (
+                          <SelectItem key={batch} value={batch}>Batch {batch}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="w-[140px]">
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="h-8 text-xs">
+                        <SelectValue placeholder="Filter by Category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Categories</SelectItem>
+                        <SelectItem value="calendar">Calendar</SelectItem>
+                        <SelectItem value="routine">Routine</SelectItem>
+                        <SelectItem value="exam">Exam</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+              <Button onClick={addBatchResource} size="sm" variant="outline" className="shrink-0">
                 <Plus className="mr-1.5 h-4 w-4" /> Add Resource
               </Button>
             </CardHeader>
             <CardContent className="space-y-6">
               {batchResources.length === 0 ? (
                 <p className="text-sm text-muted-foreground text-center py-4">No batch resources added yet.</p>
+              ) : batchResources.filter(r => (batchFilter === "all" || r.batch === batchFilter) && (categoryFilter === "all" || r.category === categoryFilter)).length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4 italic">No resources match the current filters.</p>
               ) : (
-                batchResources.map((resource) => (
+                batchResources
+                  .filter(r => (batchFilter === "all" || r.batch === batchFilter) && (categoryFilter === "all" || r.category === categoryFilter))
+                  .map((resource) => (
                   <div key={resource.id} className="p-4 border border-border rounded-md relative bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm">
                     <Button 
                       variant="ghost" 

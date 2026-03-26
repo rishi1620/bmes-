@@ -2,7 +2,12 @@ import { GoogleGenAI } from "@google/genai";
 
 export type StudyMode = 'summary' | 'quiz' | 'concepts' | 'plan' | 'explain' | 'general';
 
-export const generateStudyMaterial = async (prompt: string, fileContent?: string, mode: StudyMode = 'general') => {
+export const generateStudyMaterial = async (
+  prompt: string, 
+  fileContent?: string, 
+  mode: StudyMode = 'general',
+  chatHistory: { role: string, parts: { text: string }[] }[] = []
+) => {
   try {
     const apiKey = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
@@ -31,9 +36,14 @@ export const generateStudyMaterial = async (prompt: string, fileContent?: string
       ? "CONTEXT MATERIAL (PDF CONTENT):\n" + fileContent + "\n\nUSER SPECIFIC REQUEST: " + prompt
       : "USER REQUEST: " + prompt;
 
+    const contents = [
+      ...chatHistory,
+      { role: "user", parts: [{ text: contentText }] }
+    ];
+
     const response = await ai.models.generateContent({
       model: "gemini-3-flash-preview",
-      contents: [{ parts: [{ text: contentText }] }],
+      contents: contents,
       config: {
         systemInstruction: systemInstruction,
         temperature: 0.7,

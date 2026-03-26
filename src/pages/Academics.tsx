@@ -8,8 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 interface BatchResource {
   id: string;
@@ -68,76 +68,95 @@ const ResourceSection = ({
   };
 
   return (
-    <Card className="h-full flex flex-col">
-      <CardContent className="flex flex-col items-center p-6 text-center flex-1">
-        <Icon className="h-10 w-10 text-primary mb-4" />
-        <h3 className="font-semibold text-lg">{title}</h3>
+    <Card className="h-full flex flex-col border-none shadow-xl bg-white/50 dark:bg-slate-900/50 backdrop-blur-md overflow-hidden group hover:shadow-2xl transition-all duration-500">
+      <div className="h-2 bg-primary/20 w-full" />
+      <CardContent className="flex flex-col items-center p-8 text-center flex-1">
+        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
+          <Icon className="h-8 w-8 text-primary" />
+        </div>
+        <h3 className="font-bold text-xl mb-2">{title}</h3>
+        <p className="text-xs text-muted-foreground mb-6">Select your batch and semester to access the latest {title.toLowerCase()}.</p>
         
         {batches.length > 0 ? (
-          <div className="w-full mt-6 flex flex-col flex-1">
-            <ScrollArea className="w-full whitespace-nowrap mb-4">
-              <div className="flex w-max space-x-2 p-1 mx-auto">
-                {batches.map(batch => (
-                  <Button
-                    key={batch}
-                    variant={selectedBatch === batch ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSelectedBatch(batch)}
-                    className="rounded-full px-4"
-                  >
-                    {batch}
-                  </Button>
-                ))}
-              </div>
-              <ScrollBar orientation="horizontal" className="invisible" />
-            </ScrollArea>
-
-            {availableSemesters.length > 0 && (
-              <div className="mb-4">
-                <Select value={selectedSemester} onValueChange={setSelectedSemesterState}>
-                  <SelectTrigger className="w-full text-sm h-9">
-                    <SelectValue placeholder="Select Semester" />
+          <div className="w-full flex flex-col flex-1">
+            <div className="grid grid-cols-1 gap-3 mb-6">
+              <div className="space-y-1.5">
+                <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-1 text-left">Academic Batch</Label>
+                <Select value={selectedBatch} onValueChange={setSelectedBatch}>
+                  <SelectTrigger className="w-full bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl h-10">
+                    <SelectValue placeholder="Select Batch" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Semesters</SelectItem>
-                    {availableSemesters.map(sem => (
-                      <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                    {batches.map(batch => (
+                      <SelectItem key={batch} value={batch}>Batch {batch}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-            )}
 
-            <div className="space-y-3 w-full mt-2 flex-1">
+              {availableSemesters.length > 0 && (
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest block px-1 text-left">Semester (Optional)</Label>
+                  <Select value={selectedSemester} onValueChange={setSelectedSemesterState}>
+                    <SelectTrigger className="w-full bg-white/80 dark:bg-slate-950/80 border-slate-200 dark:border-slate-800 rounded-xl h-10">
+                      <SelectValue placeholder="Select Semester" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Semesters</SelectItem>
+                      {availableSemesters.map(sem => (
+                        <SelectItem key={sem} value={sem}>{sem}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-4 w-full flex-1">
               {filteredResources.length > 0 ? (
                 filteredResources.map(resource => (
-                  <div key={resource.id} className="flex flex-col gap-3 p-4 border border-border rounded-xl bg-card shadow-sm hover:shadow-md transition-all text-left">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-primary/10 p-2.5 rounded-lg text-primary shrink-0 mt-0.5">
+                  <motion.div 
+                    key={resource.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col gap-4 p-5 border border-slate-100 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-950 shadow-sm hover:shadow-md transition-all text-left relative overflow-hidden group/item"
+                  >
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full -mr-12 -mt-12 transition-all group-hover/item:bg-primary/10" />
+                    
+                    <div className="flex items-start gap-4 relative z-10">
+                      <div className="bg-primary/10 p-3 rounded-xl text-primary shrink-0">
                         {getFileIcon(resource.fileType)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="text-sm font-semibold text-foreground line-clamp-2 leading-tight">{resource.title}</h4>
-                        {resource.semester && (
-                          <span className="inline-block mt-1.5 text-[10px] font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
-                            {resource.semester}
+                        <h4 className="text-sm font-bold text-foreground line-clamp-2 leading-snug">{resource.title}</h4>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <span className="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 uppercase tracking-wider">
+                            Batch {resource.batch}
                           </span>
-                        )}
+                          {resource.semester && (
+                            <span className="inline-flex items-center text-[9px] font-bold px-2 py-0.5 rounded-md bg-primary/10 text-primary uppercase tracking-wider">
+                              {resource.semester}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <Button asChild variant="secondary" size="sm" className="w-full mt-1">
+                    
+                    <Button asChild variant="default" size="sm" className="w-full rounded-xl h-10 font-bold relative z-10">
                       <a href={resource.fileUrl} target="_blank" rel="noopener noreferrer">
-                        <Download className="mr-2 h-3.5 w-3.5" /> 
-                        {resource.fileType === 'link' ? 'Open Link' : 'Download'}
+                        <Download className="mr-2 h-4 w-4" /> 
+                        {resource.fileType === 'link' ? 'Open Resource' : 'Download Now'}
                       </a>
                     </Button>
-                  </div>
+                  </motion.div>
                 ))
               ) : (
-                <div className="flex flex-col items-center justify-center py-8 px-4 text-center border border-dashed border-border rounded-xl bg-slate-50/50 dark:bg-slate-900/20">
-                  <FileText className="h-8 w-8 text-muted-foreground/50 mb-3" />
-                  <p className="text-sm font-medium text-foreground">No resources found</p>
-                  <p className="text-xs text-muted-foreground mt-1">There are no {title.toLowerCase()} available for this batch.</p>
+                <div className="flex flex-col items-center justify-center py-10 px-4 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl bg-slate-50/50 dark:bg-slate-900/20">
+                  <div className="w-12 h-12 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center mb-4">
+                    <FileText className="h-6 w-6 text-muted-foreground/50" />
+                  </div>
+                  <p className="text-sm font-bold text-foreground">No resources found</p>
+                  <p className="text-xs text-muted-foreground mt-1">Try selecting a different batch or semester.</p>
                 </div>
               )}
             </div>
