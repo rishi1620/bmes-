@@ -20,7 +20,6 @@ import {
   Loader2,
   Upload,
   Search,
-  ChevronRight,
   Film,
   History,
   Copy,
@@ -31,6 +30,12 @@ import {
   HelpCircle,
   X
 } from "lucide-react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { AcademicStructure } from "@/types/academic";
 import { toast } from "sonner";
 import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
@@ -311,58 +316,60 @@ const Portal = () => {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                   {/* Sidebar Selectors */}
                   <div className="md:col-span-1 space-y-6">
-                    <Card className="border-none shadow-none bg-transparent">
-                      <CardHeader className="px-0 pt-0">
-                        <CardTitle className="text-xs uppercase tracking-widest text-muted-foreground">Semesters</CardTitle>
-                      </CardHeader>
-                      <CardContent className="px-0 space-y-2">
-                        {academicStructure.semesters.map(semester => (
-                          <Button
-                            key={semester.id}
-                            variant={selectedSemesterId === semester.id ? "default" : "ghost"}
-                            className="w-full justify-between text-left h-auto py-3 px-4 group"
-                            onClick={() => {
-                              setSelectedSemesterId(semester.id);
-                              setSelectedCourseId("");
-                            }}
-                          >
-                            <span className="font-medium">{semester.name}</span>
-                            <ChevronRight className={`h-4 w-4 transition-transform ${selectedSemesterId === semester.id ? 'rotate-90' : ''}`} />
-                          </Button>
-                        ))}
-                        {academicStructure.semesters.length === 0 && (
-                          <p className="text-sm text-muted-foreground italic px-4">No semesters available.</p>
-                        )}
-                      </CardContent>
-                    </Card>
-
-                    {selectedSemester && (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="space-y-2"
+                    <div className="space-y-4">
+                      <Label className="text-xs uppercase tracking-widest text-muted-foreground font-bold px-1">Semesters</Label>
+                      <Accordion 
+                        type="single" 
+                        collapsible 
+                        className="w-full space-y-3" 
+                        value={selectedSemesterId} 
+                        onValueChange={(val) => {
+                          setSelectedSemesterId(val);
+                          if (val && val !== selectedSemesterId) {
+                            setSelectedCourseId("");
+                          }
+                        }}
                       >
-                        <Label className="text-xs uppercase tracking-widest text-muted-foreground px-0 mb-2 block">Courses</Label>
-                        <div className="space-y-1">
-                          {selectedSemester.courses.map(course => (
-                            <Button
-                              key={course.id}
-                              variant={selectedCourseId === course.id ? "secondary" : "ghost"}
-                              className="w-full justify-start text-left h-auto py-2.5 px-4 rounded-lg"
-                              onClick={() => setSelectedCourseId(course.id)}
-                            >
-                              <div className="flex flex-col items-start">
-                                <span className="text-sm font-semibold">{course.name}</span>
-                                {course.code && <span className="text-[10px] opacity-60">{course.code}</span>}
+                        {academicStructure.semesters.map(semester => (
+                          <AccordionItem 
+                            key={semester.id} 
+                            value={semester.id} 
+                            className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900/40 px-4 transition-all data-[state=open]:border-emerald-500/30 data-[state=open]:shadow-sm"
+                          >
+                            <AccordionTrigger className="hover:no-underline py-4 font-bold text-sm text-slate-700 dark:text-slate-300">
+                              {semester.name}
+                            </AccordionTrigger>
+                            <AccordionContent className="pb-4">
+                              <div className="space-y-1.5 pt-2">
+                                {semester.courses.map(course => (
+                                  <Button
+                                    key={course.id}
+                                    variant={selectedCourseId === course.id ? "secondary" : "ghost"}
+                                    className={`w-full justify-start text-left h-auto py-3 px-3 rounded-xl transition-all ${
+                                      selectedCourseId === course.id 
+                                        ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-sm' 
+                                        : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                                    }`}
+                                    onClick={() => setSelectedCourseId(course.id)}
+                                  >
+                                    <div className="flex flex-col items-start">
+                                      <span className="text-sm font-bold">{course.name}</span>
+                                      {course.code && <span className="text-[10px] opacity-60 font-mono mt-0.5">{course.code}</span>}
+                                    </div>
+                                  </Button>
+                                ))}
+                                {semester.courses.length === 0 && (
+                                  <p className="text-xs text-muted-foreground italic py-3 px-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg border border-dashed">No courses available.</p>
+                                )}
                               </div>
-                            </Button>
-                          ))}
-                          {selectedSemester.courses.length === 0 && (
-                            <p className="text-sm text-muted-foreground italic px-4">No courses in this semester.</p>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                      {academicStructure.semesters.length === 0 && (
+                        <p className="text-sm text-muted-foreground italic p-8 text-center border-2 border-dashed rounded-3xl">No semesters available.</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Content Area */}
