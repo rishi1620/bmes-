@@ -280,7 +280,7 @@ const Index = () => {
         >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
               <h2 className="text-2xl font-bold tracking-tight">Latest Announcements</h2>
             </div>
           </div>
@@ -360,16 +360,16 @@ const Index = () => {
               whileHover={{ y: -4, boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)" }}
               className="group rounded-2xl border border-border bg-card p-6 shadow-sm transition-all duration-300 relative overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full -mr-16 -mt-16 group-hover:bg-emerald-500/10 transition-colors" />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors" />
 
               <div className="flex items-center justify-between mb-8 relative z-10">
                 <div className="flex items-center gap-4">
-                  <div className="rounded-xl bg-emerald-500/10 p-3 text-emerald-600 shadow-inner">
+                  <div className="rounded-xl bg-primary/10 p-3 text-primary shadow-inner">
                     <Users className="h-6 w-6" />
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">{announcements.club_title || "Club News"}</h3>
                 </div>
-                <Link to="/notices" className="text-xs font-medium text-emerald-600 hover:underline flex items-center gap-1">
+                <Link to="/notices" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
                   View All <ChevronRight className="h-3 w-3" />
                 </Link>
               </div>
@@ -384,12 +384,12 @@ const Index = () => {
                           whileInView={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.1 }}
                           whileHover={{ y: -2, scale: 1.02 }}
-                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-emerald-500/30 transition-all duration-300 cursor-pointer"
+                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer"
                         >
                           <div className="block">
                             <div className="flex items-start justify-between gap-4">
                               <div className="space-y-1">
-                                <h4 className="font-semibold text-foreground group-hover/item:text-emerald-600 transition-colors leading-snug line-clamp-2 text-left">
+                                <h4 className="font-semibold text-foreground group-hover/item:text-primary transition-colors leading-snug line-clamp-2 text-left">
                                   {news.title}
                                 </h4>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -403,7 +403,7 @@ const Index = () => {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-xl">
                         <DialogHeader>
-                          <DialogTitle className="text-2xl font-bold text-emerald-600">{news.title}</DialogTitle>
+                          <DialogTitle className="text-2xl font-bold text-primary">{news.title}</DialogTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                             <Calendar className="h-4 w-4" />
                             {news.date}
@@ -478,7 +478,7 @@ const Index = () => {
                   
                   <div className="relative z-10">
                     <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[9px] font-black uppercase tracking-[0.15em] border border-white/10">
-                      <Bell className="h-3 w-3 text-emerald-300" />
+                      <Bell className="h-3 w-3 text-primary/70" />
                       Next Major Event
                     </div>
                     
@@ -501,7 +501,7 @@ const Index = () => {
                       if (open) setSelectedEvent(recentEvents[0] as Tables<"events">);
                     }}>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-white text-[#1e4e69] hover:bg-emerald-50 hover:text-emerald-700 font-black py-5 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/btn">
+                        <Button className="w-full bg-white text-[#1e4e69] hover:bg-primary/10 hover:text-primary font-black py-5 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/btn">
                           Register Now
                           <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
                         </Button>

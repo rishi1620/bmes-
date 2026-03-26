@@ -60,16 +60,16 @@ const About = () => {
         <Tabs defaultValue="messages" className="w-full">
           <div className="flex justify-center mb-10">
             <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-200/50 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-300/50 dark:border-slate-800 rounded-2xl">
-              <TabsTrigger value="messages" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="messages" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <MessageSquare className="h-4 w-4" /> {settings.about_tab_messages || "Messages"}
               </TabsTrigger>
-              <TabsTrigger value="dept" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="dept" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <Building className="h-4 w-4" /> {settings.about_tab_dept || "Dept Profile"}
               </TabsTrigger>
-              <TabsTrigger value="bmes" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="bmes" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <Users className="h-4 w-4" /> {settings.about_tab_bmes || "BMES Profile"}
               </TabsTrigger>
-              <TabsTrigger value="constitution" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
+              <TabsTrigger value="constitution" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <FileText className="h-4 w-4" /> {settings.about_tab_constitution || "Constitution"}
               </TabsTrigger>
             </TabsList>

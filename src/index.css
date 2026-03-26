@@ -53,25 +53,25 @@
   }
 
   .dark {
-    --background: 200 30% 6%;
-    --foreground: 210 20% 94%;
-    --card: 200 25% 10%;
-    --card-foreground: 210 20% 94%;
-    --popover: 200 25% 10%;
-    --popover-foreground: 210 20% 94%;
-    --primary: 190 80% 50%;
-    --primary-foreground: 200 100% 8%;
-    --secondary: 210 14% 40%;
-    --secondary-foreground: 210 20% 94%;
-    --muted: 200 20% 15%;
-    --muted-foreground: 210 10% 55%;
-    --accent: 190 80% 42%;
-    --accent-foreground: 0 0% 100%;
-    --destructive: 0 62% 30%;
+    --background: 200 50% 3%;
+    --foreground: 210 20% 98%;
+    --card: 200 30% 7%;
+    --card-foreground: 210 20% 98%;
+    --popover: 200 30% 7%;
+    --popover-foreground: 210 20% 98%;
+    --primary: 190 90% 50%;
+    --primary-foreground: 200 100% 10%;
+    --secondary: 200 20% 15%;
+    --secondary-foreground: 210 20% 98%;
+    --muted: 200 20% 12%;
+    --muted-foreground: 210 15% 65%;
+    --accent: 190 80% 20%;
+    --accent-foreground: 190 90% 50%;
+    --destructive: 0 62% 40%;
     --destructive-foreground: 210 40% 98%;
-    --border: 200 20% 18%;
-    --input: 200 20% 18%;
-    --ring: 190 80% 50%;
+    --border: 200 20% 15%;
+    --input: 200 20% 15%;
+    --ring: 190 90% 50%;
   }
 }
 
@@ -171,10 +171,27 @@
       ),
       linear-gradient(
         180deg,
-        #f8fafc 0%,
-        #edf7f6 35%,
-        #e3f2f1 70%,
-        #f8fafc 100%
+        hsl(var(--background)) 0%,
+        hsl(var(--background) / 0.95) 35%,
+        hsl(var(--background) / 0.9) 70%,
+        hsl(var(--background)) 100%
+      );
+    background-attachment: fixed;
+  }
+
+  .dark .page-gradient {
+    background: 
+      radial-gradient(
+        circle at 15% 20%,
+        rgba(20, 184, 166, 0.05),
+        transparent 40%
+      ),
+      linear-gradient(
+        180deg,
+        hsl(var(--background)) 0%,
+        hsl(var(--background) / 0.95) 35%,
+        hsl(var(--background) / 0.9) 70%,
+        hsl(var(--background)) 100%
       );
     background-attachment: fixed;
   }

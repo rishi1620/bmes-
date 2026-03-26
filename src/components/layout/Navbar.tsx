@@ -60,7 +60,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-emerald-500/10 bg-gradient-to-r from-emerald-50/40 via-background/40 to-teal-50/40 backdrop-blur-xl dark:from-emerald-950/20 dark:via-background/20 dark:to-teal-950/20 shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-primary/10 bg-gradient-to-r from-primary/5 via-background/40 to-accent/5 backdrop-blur-xl dark:from-primary/10 dark:via-background/40 dark:to-accent/10 shadow-sm transition-colors duration-300">
       <div className="container flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5">
           <img
@@ -74,8 +74,8 @@ const Navbar = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-primary hover:bg-emerald-500/5 dark:hover:bg-emerald-400/5 ${
-                  location.pathname === link.path ? "text-primary bg-emerald-500/5 dark:bg-emerald-400/5" : "text-muted-foreground"
+                className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 ${
+                  location.pathname === link.path ? "text-primary bg-primary/5 dark:bg-primary/10" : "text-muted-foreground"
                 }`}
               >
                 {link.label}
@@ -103,7 +103,7 @@ const Navbar = () => {
       </div>
 
       {mobileOpen &&
-      <div className="border-t border-emerald-500/10 bg-gradient-to-b from-background to-emerald-50/50 dark:to-emerald-950/30 lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+      <div className="border-t border-primary/10 bg-gradient-to-b from-background to-primary/5 dark:to-primary/10 lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
           <nav className="container flex flex-col gap-1 py-4">
             {navLinks.map((link) =>
               <Link

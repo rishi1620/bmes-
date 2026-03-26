@@ -135,13 +135,13 @@ const Activities = () => {
         <Tabs defaultValue="events" className="w-full">
           <div className="flex justify-center mb-10">
             <TabsList className="h-auto flex-wrap justify-center gap-2 bg-slate-200/50 dark:bg-slate-900/50 p-1.5 backdrop-blur-sm border border-slate-300/50 dark:border-slate-800 rounded-2xl">
-              <TabsTrigger value="events" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm transition-all">
+              <TabsTrigger value="events" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm transition-all">
                 <CalendarDays className="h-4 w-4" /> Events
               </TabsTrigger>
-              <TabsTrigger value="gallery" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm transition-all">
+              <TabsTrigger value="gallery" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm transition-all">
                 <Image className="h-4 w-4" /> Gallery
               </TabsTrigger>
-              <TabsTrigger value="publications" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm transition-all">
+              <TabsTrigger value="publications" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm transition-all">
                 <BookOpen className="h-4 w-4" /> Publications
               </TabsTrigger>
             </TabsList>
@@ -286,16 +286,16 @@ const Activities = () => {
             >
               <SectionHeading title="Publications/Magazine" description="Digital copies of the annual club magazine, newsletters, or student-written articles." />
               <motion.div variants={itemVariants} className="mt-10 max-w-4xl mx-auto">
-                <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-emerald-50 to-white dark:from-slate-900 dark:to-slate-950 ring-1 ring-emerald-100 dark:ring-slate-800">
+                <Card className="overflow-hidden border-none shadow-xl bg-gradient-to-br from-primary/5 to-white dark:from-slate-900 dark:to-slate-950 ring-1 ring-primary/10 dark:ring-slate-800">
                   <CardContent className="p-0">
                     <div className="flex flex-col md:flex-row">
-                      <div className="md:w-1/3 bg-emerald-600 flex items-center justify-center p-12 relative overflow-hidden">
+                      <div className="md:w-1/3 bg-primary flex items-center justify-center p-12 relative overflow-hidden">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 to-transparent opacity-50" />
-                        <BookOpen className="h-24 w-24 text-white relative z-10" />
+                        <BookOpen className="h-24 w-24 text-primary-foreground relative z-10" />
                       </div>
                       <div className="md:w-2/3 p-8 md:p-12 flex flex-col justify-center space-y-6">
                         <div className="space-y-3">
-                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-bold uppercase tracking-wider">
+                          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary text-xs font-bold uppercase tracking-wider">
                             Featured
                           </div>
                           <h3 className="text-3xl font-bold text-foreground">Latest Publication</h3>
@@ -306,7 +306,7 @@ const Activities = () => {
                         
                         {settings.activities_publications_pdf_url ? (
                           <div className="flex flex-wrap gap-4 pt-4">
-                            <Button asChild className="rounded-xl px-8 py-6 bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-600/20 transition-all hover:scale-105">
+                            <Button asChild className="rounded-xl px-8 py-6 bg-primary hover:bg-primary/90 shadow-lg shadow-primary/20 transition-all hover:scale-105">
                               <a 
                                 href={settings.activities_publications_pdf_url} 
                                 target="_blank" 
@@ -316,7 +316,7 @@ const Activities = () => {
                                 <Download className="h-5 w-5" /> Download PDF
                               </a>
                             </Button>
-                            <Button variant="outline" asChild className="rounded-xl px-8 py-6 border-emerald-200 hover:bg-emerald-50 dark:border-slate-800 dark:hover:bg-slate-900 transition-all">
+                            <Button variant="outline" asChild className="rounded-xl px-8 py-6 border-primary/20 hover:bg-primary/5 dark:border-slate-800 dark:hover:bg-slate-900 transition-all">
                               <a 
                                 href={settings.activities_publications_pdf_url} 
                                 target="_blank" 
@@ -328,7 +328,7 @@ const Activities = () => {
                           </div>
                         ) : (
                           <div className="pt-4 flex items-center gap-3 text-muted-foreground italic">
-                            <div className="h-1 w-12 bg-emerald-200 dark:bg-slate-800 rounded-full" />
+                            <div className="h-1 w-12 bg-primary/20 dark:bg-slate-800 rounded-full" />
                             <p className="text-sm">
                               Digital copies will be available soon.
                             </p>

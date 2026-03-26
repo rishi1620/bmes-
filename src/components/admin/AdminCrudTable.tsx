@@ -12,6 +12,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
+import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
 import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import MediaSelectorDialog from "./MediaSelectorDialog";
@@ -20,7 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export interface FieldDef {
   key: string;
   label: string;
-  type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime" | "list";
+  type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime" | "list" | "slider";
   options?: string[];
   required?: boolean;
 }
@@ -253,6 +255,11 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                               </div>
                             ) : field?.type === "image" && row[c] ? (
                               <img src={row[c] as string} alt="Thumbnail" className="h-9 w-9 rounded-md object-cover border shadow-sm" />
+                            ) : field?.type === "slider" ? (
+                              <div className="flex items-center gap-2 w-full max-w-[150px]">
+                                <Progress value={Number(row[c]) || 0} className="h-2 flex-1" />
+                                <span className="text-xs text-muted-foreground w-8 text-right">{Number(row[c]) || 0}%</span>
+                              </div>
                             ) : (
                               <span className="text-sm">{String(row[c] ?? "")}</span>
                             )}
@@ -358,6 +365,17 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                         onSelect={(url) => setForm({ ...form, [f.key]: url })} 
                       />
                     </div>
+                  </div>
+                ) : f.type === "slider" ? (
+                  <div className="flex items-center gap-4 pt-2">
+                    <Slider 
+                      value={[Number(form[f.key]) || 0]} 
+                      onValueChange={(vals) => setForm({ ...form, [f.key]: vals[0] })} 
+                      max={100} 
+                      step={1} 
+                      className="flex-1"
+                    />
+                    <span className="w-12 text-right text-sm font-medium">{Number(form[f.key]) || 0}%</span>
                   </div>
                 ) : (
                   <Input 
