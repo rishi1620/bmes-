@@ -1,73 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/</loc>
-    <changefreq>daily</changefreq>
+    <loc>https://cuetbmes.vercel.app/</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/about</loc>
+    <loc>https://cuetbmes.vercel.app/about</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/academics</loc>
+    <loc>https://cuetbmes.vercel.app/academics</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuetbmes.vercel.app/activities</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/people</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/research</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/activities</loc>
+    <loc>https://cuetbmes.vercel.app/portal</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/portal</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/notices</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/projects</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/events</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/blog</loc>
-    <changefreq>daily</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/achievements</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/alumni</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/contact</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.5</priority>
   </url>
 </urlset>

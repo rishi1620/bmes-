@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ais-pre-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/sitemap.xml
+Sitemap: https://cuetbmes.vercel.app/sitemap.xml
