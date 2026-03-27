@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight, ExternalLink } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -806,7 +806,13 @@ const Index = () => {
                   <p className="text-sm text-primary font-medium mb-3">{format(new Date(post.created_at as string), "PPP")}</p>
                   <p className="text-sm text-muted-foreground mb-4 flex-1 line-clamp-2">{post.excerpt as string}</p>
                   <Button asChild variant="outline" size="sm" className="w-full mt-auto">
-                    <Link to={`/blog/${post.slug}`}>Read More</Link>
+                    {post.external_url ? (
+                      <a href={post.external_url as string} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1">
+                        Read More <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <Link to={`/blog/${post.slug}`}>Read More</Link>
+                    )}
                   </Button>
                 </div>
               </motion.div>

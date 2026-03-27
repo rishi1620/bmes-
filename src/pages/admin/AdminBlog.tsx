@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ interface BlogPost {
   author: string;
   published_at: string | null;
   created_at: string;
+  external_url?: string | null;
 }
 
 const AdminBlog = () => {
@@ -34,6 +35,7 @@ const AdminBlog = () => {
   const [form, setForm] = useState({
     title: "", slug: "", content: "", excerpt: "", featured_image: "",
     category: "", tags: "", status: "draft", author: "",
+    external_url: "",
   });
   const [saving, setSaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -50,7 +52,7 @@ const AdminBlog = () => {
 
   const openNew = () => {
     setEditing(null);
-    setForm({ title: "", slug: "", content: "", excerpt: "", featured_image: "", category: "", tags: "", status: "draft", author: "" });
+    setForm({ title: "", slug: "", content: "", excerpt: "", featured_image: "", category: "", tags: "", status: "draft", author: "", external_url: "" });
     setOpen(true);
   };
 
@@ -61,6 +63,7 @@ const AdminBlog = () => {
       excerpt: post.excerpt ?? "", featured_image: post.featured_image ?? "",
       category: post.category ?? "", tags: (post.tags ?? []).join(", "),
       status: post.status, author: post.author ?? "",
+      external_url: post.external_url ?? "",
     });
     setOpen(true);
   };
@@ -69,6 +72,7 @@ const AdminBlog = () => {
     setSaving(true);
     const payload = {
       ...form,
+      external_url: form.external_url || null,
       slug: form.slug || slugify(form.title),
       tags: form.tags.split(",").map((t) => t.trim()).filter(Boolean),
       published_at: form.status === "published" ? new Date().toISOString() : null,
@@ -161,7 +165,14 @@ const AdminBlog = () => {
                     <div className="h-10 w-10 rounded bg-muted flex items-center justify-center text-[10px] text-muted-foreground">No img</div>
                   )}
                 </TableCell>
-                <TableCell className="max-w-[200px] truncate font-medium">{post.title}</TableCell>
+                <TableCell className="max-w-[200px] truncate font-medium">
+                  {post.title}
+                  {post.external_url && (
+                    <span className="ml-2 inline-flex items-center gap-1 rounded bg-blue-100 px-1.5 py-0.5 text-[10px] font-medium text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+                      <ExternalLink className="h-2.5 w-2.5" /> External
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell>{post.category}</TableCell>
                 <TableCell>{post.author}</TableCell>
                 <TableCell>
@@ -222,6 +233,10 @@ const AdminBlog = () => {
             <div className="space-y-1.5">
               <Label>Excerpt</Label>
               <Textarea value={form.excerpt} onChange={(e) => setForm({ ...form, excerpt: e.target.value })} rows={2} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>External URL (Optional - if post links to another site)</Label>
+              <Input value={form.external_url} onChange={(e) => setForm({ ...form, external_url: e.target.value })} placeholder="https://..." />
             </div>
             <div className="space-y-1.5">
               <Label>Content</Label>

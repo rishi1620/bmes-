@@ -180,6 +180,7 @@ export type Database = {
           content: string
           created_at: string
           excerpt: string | null
+          external_url: string | null
           featured_image: string | null
           id: string
           published_at: string | null
@@ -195,6 +196,7 @@ export type Database = {
           content?: string
           created_at?: string
           excerpt?: string | null
+          external_url?: string | null
           featured_image?: string | null
           id?: string
           published_at?: string | null
@@ -210,6 +212,7 @@ export type Database = {
           content?: string
           created_at?: string
           excerpt?: string | null
+          external_url?: string | null
           featured_image?: string | null
           id?: string
           published_at?: string | null

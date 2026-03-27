@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,6 +13,7 @@ import { ShareButtons } from "@/components/shared/ShareButtons";
 
 const BlogPost = () => {
   const { slug } = useParams();
+  const [redirecting, setRedirecting] = useState(false);
 
   const { data: post, isLoading } = useQuery({
     queryKey: ["blog-post", slug],
@@ -27,7 +29,14 @@ const BlogPost = () => {
     },
   });
 
-  if (isLoading) {
+  useEffect(() => {
+    if (post?.external_url) {
+      setRedirecting(true);
+      window.location.href = post.external_url;
+    }
+  }, [post]);
+
+  if (isLoading || redirecting) {
     return (
       <PageLayout>
         <div className="container py-16 max-w-3xl">
@@ -35,6 +44,11 @@ const BlogPost = () => {
           <Skeleton className="h-12 w-3/4 mb-4" />
           <Skeleton className="h-6 w-1/2 mb-8" />
           <Skeleton className="h-96 w-full rounded-xl" />
+          {redirecting && (
+            <div className="mt-8 text-center text-muted-foreground animate-pulse">
+              Redirecting to external article...
+            </div>
+          )}
         </div>
       </PageLayout>
     );

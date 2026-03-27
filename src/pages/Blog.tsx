@@ -1,4 +1,4 @@
-import { Clock, User, ArrowRight } from "lucide-react";
+import { Clock, User, ArrowRight, ExternalLink } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
@@ -105,7 +105,13 @@ const Blog = () => {
                     <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">{p.title}</h3>
                     <p className="mt-2 text-sm text-muted-foreground leading-relaxed line-clamp-2">
                       {p.excerpt}
-                      <Link to={`/blog/${p.slug}`} className="text-primary font-semibold ml-1 hover:underline">Read More</Link>
+                      {p.external_url ? (
+                        <a href={p.external_url} target="_blank" rel="noopener noreferrer" className="text-primary font-semibold ml-1 hover:underline inline-flex items-center gap-1">
+                          Read More <ExternalLink className="h-3 w-3" />
+                        </a>
+                      ) : (
+                        <Link to={`/blog/${p.slug}`} className="text-primary font-semibold ml-1 hover:underline">Read More</Link>
+                      )}
                     </p>
                   </div>
                   
@@ -122,7 +128,13 @@ const Blog = () => {
                     </div>
                   )}
                   <Button asChild variant="link" className="p-0 h-auto font-semibold text-primary hover:text-primary/80">
-                    <Link to={`/blog/${p.slug}`}>Read Article <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                    {p.external_url ? (
+                      <a href={p.external_url} target="_blank" rel="noopener noreferrer">
+                        Read Article <ExternalLink className="ml-1 h-3.5 w-3.5" />
+                      </a>
+                    ) : (
+                      <Link to={`/blog/${p.slug}`}>Read Article <ArrowRight className="ml-1 h-3.5 w-3.5" /></Link>
+                    )}
                   </Button>
                 </div>
               </div>
