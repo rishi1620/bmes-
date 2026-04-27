@@ -55,12 +55,13 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   const fetchRows = useCallback(async () => {
     setIsFetching(true);
+    const selectQuery = Array.from(new Set([...fields.map(f => f.key), "id", "created_at", "updated_at"])).join(",");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = await supabase.from(tableName as any).select("*").order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    const { data } = await supabase.from(tableName as any).select(selectQuery).order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
     const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
     setIsFetching(false);
-  }, [tableName, orderBy, filter]);
+  }, [tableName, orderBy, filter, fields]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 

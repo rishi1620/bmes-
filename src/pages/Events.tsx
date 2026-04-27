@@ -63,38 +63,39 @@ const Events = () => {
         ) : (
           <div className="mt-10 grid gap-6 md:grid-cols-3">
             {upcoming.map((e) => (
-              <div key={e.id} id={e.id} className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
+              <div key={e.id} id={e.id} className="group flex flex-col h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-2">
                 <div className="relative h-48 w-full overflow-hidden">
                   <img 
                     src={e.image_url || "https://picsum.photos/seed/event/800/600"} 
                     alt={e.title} 
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110 p-2"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                   {e.type && (
                     <div className="absolute top-4 left-4">
-                      <span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm">
+                      <span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm shadow-sm">
                         {e.type}
                       </span>
                     </div>
                   )}
                 </div>
-                <div className="flex-1 p-6">
-                  <h3 className="text-xl font-bold text-foreground">{e.title}</h3>
-                  <div className="mt-3 space-y-2 text-sm text-muted-foreground">
+                <div className="flex flex-col flex-1 p-5 gap-3">
+                  <h3 className="text-lg font-bold text-foreground leading-tight line-clamp-1">{e.title}</h3>
+                  <div className="space-y-1.5 text-sm text-muted-foreground mt-1">
                     <p className="flex items-center gap-2"><CalendarDays className="h-4 w-4" />{format(new Date(e.date), "PPP")}</p>
                     {e.location && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{e.location}</p>}
                   </div>
-                  {e.description && <p className="mt-3 text-sm text-muted-foreground line-clamp-2">{e.description}</p>}
                   
-                  <div className="mt-6 border-t border-border pt-4">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Starts In</p>
+                  <div className="flex-1" />
+                  
+                  <div className="mt-3 border-t border-border pt-4">
+                    <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Starts In</p>
                     <CountdownTimer targetDate={e.date} />
                   </div>
                 </div>
                 
-                <div className="px-6 pb-6 space-y-4">
+                <div className="px-5 pb-5 space-y-3 mt-auto">
                   <Dialog open={isRegOpen && selectedEvent?.id === e.id} onOpenChange={(open) => {
                     if (isRegistrationOpen(e.registration_start_date, e.registration_end_date)) {
                       setIsRegOpen(open);
@@ -104,7 +105,7 @@ const Events = () => {
                     <DialogTrigger asChild>
                       <div className="w-full flex flex-col gap-2">
                         <Button 
-                          className="w-full"
+                          className="w-full rounded-xl py-6 font-semibold"
                           disabled={!isRegistrationOpen(e.registration_start_date, e.registration_end_date)}
                         >
                           Register Now
@@ -128,7 +129,7 @@ const Events = () => {
                     </DialogContent>
                   </Dialog>
                   
-                  <div className="flex justify-center border-t border-border pt-4">
+                  <div className="flex justify-center border-t border-border pt-3">
                     <ShareButtons url={`${window.location.origin}/events#${e.id}`} title={e.title} />
                   </div>
                 </div>

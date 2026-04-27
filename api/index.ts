@@ -49,8 +49,8 @@ app.post("/api/send-confirmation", async (req, res) => {
     });
 
     if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
+      console.error("Detailed Resend error in /api/send-confirmation:", JSON.stringify(error, null, 2));
+      return res.status(500).json({ error: error.message, details: error });
     }
 
     res.json({ success: true, data });

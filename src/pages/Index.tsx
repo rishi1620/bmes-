@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight, ExternalLink } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight, ExternalLink, CalendarDays, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -469,33 +469,38 @@ const Index = () => {
           <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x">
               {recentEvents.map((event: Tables<"events">) => (
                 <motion.div key={event.id} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] min-w-0 snap-start" variants={itemVariants}>
-                  <div className="group h-full overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md flex flex-col">
-                    <div className="relative h-48 overflow-hidden">
+                  <div className="group h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-2 flex flex-col">
+                    <div className="relative h-48 w-full overflow-hidden">
                       <img 
                         src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
                         alt={event.title} 
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110 p-2"
                         referrerPolicy="no-referrer"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                       <div className="absolute bottom-4 left-4 text-white">
-                        <p className="text-sm font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
+                        <p className="text-xs font-bold bg-primary/90 px-2 py-0.5 rounded-full inline-block mb-1">{format(new Date(event.date), "MMM dd, yyyy")}</p>
                       </div>
                       {event.location && (
-                        <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                        <div className="absolute top-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
                           {event.location}
                         </div>
                       )}
                     </div>
-                    <div className="p-6 flex-1 flex flex-col">
-                      <h3 className="mb-2 text-xl font-bold text-foreground line-clamp-1">{event.title}</h3>
-                      <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground flex-1">
-                        <Calendar className="h-4 w-4" />
-                        {format(new Date(event.date), "hh:mm a")}
+                    <div className="p-5 flex-1 flex flex-col gap-3">
+                      <h3 className="text-lg font-bold text-foreground leading-tight line-clamp-1">{event.title}</h3>
+                      <div className="space-y-1.5 text-sm text-muted-foreground mt-1">
+                        <p className="flex items-center gap-2"><Calendar className="h-4 w-4" />{format(new Date(event.date), "PPP")}</p>
+                        {event.location && <p className="flex items-center gap-2"><MapPin className="h-4 w-4" />{event.location}</p>}
                       </div>
-                      <div className="mb-4">
+                      
+                      <div className="flex-1" />
+                      
+                      <div className="mt-3 border-t border-border pt-4">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Starts In</p>
                         <CountdownTimer targetDate={event.date} />
                       </div>
+                      
                       <Dialog open={isRegOpen && selectedEvent?.id === event.id} onOpenChange={(open) => {
                           if (isRegistrationOpen(event.registration_start_date, event.registration_end_date)) {
                             setIsRegOpen(open);
@@ -503,7 +508,7 @@ const Index = () => {
                           }
                       }}>
                         <DialogTrigger asChild>
-                           <Button variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
+                           <Button variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary mt-2">
                              {isRegistrationOpen(event.registration_start_date, event.registration_end_date) ? "Register Now" : "View Details"}
                            </Button>
                         </DialogTrigger>
