@@ -14,6 +14,7 @@ import { FloatingNotice } from "@/components/shared/FloatingNotice";
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { isRegistrationOpen, getRegistrationMessage } from "@/lib/utils";
 import { Tables } from "@/integrations/supabase/types";
 import heroBg from "@/assets/hero-bg.jpg";
 import { motion } from "framer-motion";
@@ -500,14 +501,26 @@ const Index = () => {
 
                   <div className="relative z-10 mt-6">
                     <Dialog open={isRegOpen && selectedEvent?.id === recentEvents[0].id} onOpenChange={(open) => {
-                      setIsRegOpen(open);
-                      if (open) setSelectedEvent(recentEvents[0] as Tables<"events">);
+                      if (isRegistrationOpen(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date)) {
+                        setIsRegOpen(open);
+                        if (open) setSelectedEvent(recentEvents[0] as Tables<"events">);
+                      }
                     }}>
                       <DialogTrigger asChild>
-                        <Button className="w-full bg-white text-[#1e4e69] hover:bg-primary/10 hover:text-primary font-black py-5 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/btn">
-                          Register Now
-                          <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
-                        </Button>
+                        <div className="w-full flex justify-start flex-col gap-2">
+                          <Button 
+                            className="w-full bg-white text-[#1e4e69] hover:bg-primary/10 hover:text-primary font-black py-5 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/btn disabled:opacity-50 disabled:pointer-events-none"
+                            disabled={!isRegistrationOpen(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date)}
+                          >
+                            Register Now
+                            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
+                          </Button>
+                          {!isRegistrationOpen(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date) && (
+                            <div className="text-white/80 text-xs font-semibold text-center w-full">
+                              {getRegistrationMessage(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date)}
+                            </div>
+                          )}
+                        </div>
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>

@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { ShareButtons } from "@/components/shared/ShareButtons";
+import { isRegistrationOpen, getRegistrationMessage } from "@/lib/utils";
 
 import { Tables } from "@/integrations/supabase/types";
 
@@ -95,11 +96,25 @@ const Events = () => {
                 
                 <div className="px-6 pb-6 space-y-4">
                   <Dialog open={isRegOpen && selectedEvent?.id === e.id} onOpenChange={(open) => {
-                    setIsRegOpen(open);
-                    if (open) setSelectedEvent(e);
+                    if (isRegistrationOpen(e.registration_start_date, e.registration_end_date)) {
+                      setIsRegOpen(open);
+                      if (open) setSelectedEvent(e);
+                    }
                   }}>
                     <DialogTrigger asChild>
-                      <Button className="w-full">Register Now</Button>
+                      <div className="w-full flex flex-col gap-2">
+                        <Button 
+                          className="w-full"
+                          disabled={!isRegistrationOpen(e.registration_start_date, e.registration_end_date)}
+                        >
+                          Register Now
+                        </Button>
+                        {!isRegistrationOpen(e.registration_start_date, e.registration_end_date) && (
+                          <div className="text-center text-xs font-semibold text-destructive">
+                            {getRegistrationMessage(e.registration_start_date, e.registration_end_date)}
+                          </div>
+                        )}
+                      </div>
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-md">
                       <DialogHeader>

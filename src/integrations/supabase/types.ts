@@ -265,6 +265,8 @@ export type Database = {
           location: string | null
           title: string
           type: string | null
+          registration_start_date: string | null
+          registration_end_date: string | null
           updated_at: string
         }
         Insert: {
@@ -277,6 +279,8 @@ export type Database = {
           location?: string | null
           title: string
           type?: string | null
+          registration_start_date?: string | null
+          registration_end_date?: string | null
           updated_at?: string
         }
         Update: {
@@ -289,6 +293,8 @@ export type Database = {
           location?: string | null
           title?: string
           type?: string | null
+          registration_start_date?: string | null
+          registration_end_date?: string | null
           updated_at?: string
         }
         Relationships: []

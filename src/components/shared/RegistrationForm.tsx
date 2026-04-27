@@ -19,6 +19,9 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    student_id: "",
+    batch: "",
+    department: "",
     details: "",
   });
 
@@ -32,6 +35,9 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
         event_id: eventId,
         name: formData.name,
         email: formData.email,
+        student_id: formData.student_id,
+        batch: formData.batch,
+        department: formData.department,
         details: formData.details,
       });
 
@@ -129,6 +135,36 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
           placeholder="john@example.com"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="student_id">Student ID</Label>
+        <Input
+          id="student_id"
+          placeholder="e.g. 2111001"
+          value={formData.student_id}
+          onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="batch">Batch</Label>
+        <Input
+          id="batch"
+          placeholder="e.g. 21"
+          value={formData.batch}
+          onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="department">Department</Label>
+        <Input
+          id="department"
+          placeholder="e.g. BME"
+          value={formData.department}
+          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
           required
         />
       </div>
