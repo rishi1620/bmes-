@@ -49,7 +49,7 @@ app.post("/api/send-confirmation", async (req, res) => {
           <p style="font-size: 16px; color: #374151; line-height: 1.5;">We look forward to seeing you there!</p>
           <br/>
           <p style="font-size: 16px; color: #374151; line-height: 1.5;">Best regards,</p>
-          <p style="font-size: 16px; color: #374151; line-height: 1.5;"><strong>BMES Society Team</strong></p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.5;"><strong>CUET BIOMEDICAL ENGINEERING SOCIETY</strong></p>
         </div>
       `,
     });
