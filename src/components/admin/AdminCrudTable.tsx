@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Plus, Pencil, Trash2, Search, X, Loader2, RefreshCw, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, X, Loader2, RefreshCw, Copy, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -55,13 +55,14 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   const fetchRows = useCallback(async () => {
     setIsFetching(true);
-    const selectQuery = Array.from(new Set([...fields.map(f => f.key), "id", "created_at", "updated_at"])).join(",");
+    const selectQuery = columns.length > 0 ? Array.from(new Set([...columns, "id"])).join(",") : "*";
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { data, error } = await supabase.from(tableName as any).select(selectQuery).order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
     if (error) {
       console.error("Supabase fetch error:", error);
+      toast({ title: "Error fetching data", description: error.message, variant: "destructive" });
     } else {
-      console.log("Supabase fetched rows:", data);
+      console.log(`Supabase fetched rows for ${tableName}:`, data);
     }
     const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
@@ -207,6 +208,44 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     )
   );
 
+  const exportCSV = () => {
+    if (filteredRows.length === 0) {
+      toast({ title: "No data to export", variant: "default" });
+      return;
+    }
+    
+    // Use columns to determine headers
+    const headers = columns;
+    const csvContent = [
+      headers.map(c => fieldLabel(c)).join(","),
+      ...filteredRows.map(row => 
+        headers.map(c => {
+          const field = fields.find(f => f.key === c);
+          let val = row[c];
+          if (field?.render) {
+            const rendered = field.render(val, row);
+            if (typeof rendered === 'string' || typeof rendered === 'number') {
+              val = rendered;
+            }
+          }
+          if (val === null || val === undefined) return '""';
+          if (typeof val === 'string') return `"${val.replace(/"/g, '""')}"`;
+          return `"${String(val)}"`;
+        }).join(",")
+      )
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${tableName}_export_${format(new Date(), "yyyy-MM-dd")}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Card className="border-none shadow-sm">
       <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-4 sm:space-y-0 pb-4">
@@ -236,6 +275,9 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
           </div>
           <Button variant="outline" size="icon" onClick={fetchRows} disabled={isFetching} title="Refresh Data">
             <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button variant="outline" onClick={exportCSV} disabled={filteredRows.length === 0} title="Download CSV">
+            <Download className="h-4 w-4 mr-2" /> Export
           </Button>
           <Button onClick={openNew} className="gap-1.5 font-semibold shadow-sm w-full sm:w-auto">
             <Plus className="h-4 w-4" /> {addLabel || "Add New"}

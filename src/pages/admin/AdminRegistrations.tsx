@@ -21,6 +21,9 @@ const AdminRegistrations = () => {
     { key: "event_id", label: "Event", required: true, render: (val) => eventMap[val as string] || String(val) },
     { key: "name", label: "Name", required: true },
     { key: "email", label: "Email", required: true },
+    { key: "student_id", label: "Student ID" },
+    { key: "batch", label: "Batch" },
+    { key: "department", label: "Department" },
     { key: "created_at", label: "Date", type: "datetime" },
   ];
 
@@ -29,7 +32,7 @@ const AdminRegistrations = () => {
       tableName="event_registrations" 
       title="Event Registrations" 
       fields={fields} 
-      columns={["name", "email", "event_id", "created_at"]} 
+      columns={["name", "email", "student_id", "batch", "department", "event_id", "created_at"]} 
     />
   );
 };

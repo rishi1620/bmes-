@@ -1,7 +1,7 @@
 import AdminLayout from "@/components/layout/AdminLayout";
 import AdminCrudTable, { FieldDef } from "./AdminCrudTable";
 
-type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "event_registrations" | "faqs";
+type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "event_registrations" | "membership_registrations" | "faqs";
 
 interface Props {
   tableName: TableName;
