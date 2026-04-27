@@ -1,12 +1,18 @@
 import express from "express";
 import cors from "cors";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const RESEND_FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "onboarding@resend.dev";
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  }
+});
+const FROM_EMAIL = process.env.GMAIL_USER;
 const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
 
 const app = express();
@@ -19,8 +25,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.post("/api/send-confirmation", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("GMAIL credentials are not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -31,38 +37,33 @@ app.post("/api/send-confirmation", async (req, res) => {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `BMES Society <${RESEND_FROM_EMAIL}>`,
-      to: [email],
+    await transporter.sendMail({
+      from: `BMES Society <${FROM_EMAIL}>`,
+      to: email,
       subject: `Registration Confirmed: ${eventTitle}`,
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h1 style="color: #10b981;">Registration Confirmed!</h1>
-          <p>Hi ${name},</p>
-          <p>You have successfully registered for <strong>${eventTitle}</strong>.</p>
-          <p>We look forward to seeing you there!</p>
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+          <h1 style="color: #10b981; font-size: 24px; margin-top: 0;">Registration Confirmed!</h1>
+          <p style="font-size: 16px; color: #374151; line-height: 1.5;">Hi ${name},</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.5;">You have successfully registered for <strong>${eventTitle}</strong>.</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.5;">We look forward to seeing you there!</p>
           <br/>
-          <p>Best regards,</p>
-          <p>BMES Society Team</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.5;">Best regards,</p>
+          <p style="font-size: 16px; color: #374151; line-height: 1.5;"><strong>BMES Society Team</strong></p>
         </div>
       `,
     });
 
-    if (error) {
-      console.error("Detailed Resend error in /api/send-confirmation:", JSON.stringify(error, null, 2));
-      return res.status(500).json({ error: error.message, details: error });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true });
   } catch (err) {
-    console.error("Server error:", err);
+    console.error("Detailed Nodemailer error in /api/send-confirmation:", err);
     res.status(500).json({ error: "Internal server error" });
   }
 });
 
 app.post("/api/send-membership-confirmation", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("GMAIL credentials are not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -73,9 +74,9 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `CUET BMES <${RESEND_FROM_EMAIL}>`,
-      to: [email],
+    await transporter.sendMail({
+      from: `CUET BMES <${FROM_EMAIL}>`,
+      to: email,
       subject: "Membership Application Received",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -90,12 +91,7 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
       `,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -103,8 +99,8 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
 });
 
 app.post("/api/send-membership-status", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("GMAIL credentials are not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -143,19 +139,14 @@ app.post("/api/send-membership-status", async (req, res) => {
   `;
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `CUET BMES <${RESEND_FROM_EMAIL}>`,
-      to: [email],
+    await transporter.sendMail({
+      from: `CUET BMES <${FROM_EMAIL}>`,
+      to: email,
       subject: subject,
       html: html,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });
@@ -163,8 +154,8 @@ app.post("/api/send-membership-status", async (req, res) => {
 });
 
 app.post("/api/send-welcome", async (req, res) => {
-  if (!process.env.RESEND_API_KEY) {
-    console.error("RESEND_API_KEY is not set");
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("GMAIL credentials are not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -175,9 +166,9 @@ app.post("/api/send-welcome", async (req, res) => {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
-      from: `CUET BMES <${RESEND_FROM_EMAIL}>`,
-      to: [email],
+    await transporter.sendMail({
+      from: `CUET BMES <${FROM_EMAIL}>`,
+      to: email,
       subject: "Welcome to CUET BMES Society!",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
@@ -196,12 +187,7 @@ app.post("/api/send-welcome", async (req, res) => {
       `,
     });
 
-    if (error) {
-      console.error("Resend error:", error);
-      return res.status(500).json({ error: error.message });
-    }
-
-    res.json({ success: true, data });
+    res.json({ success: true });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });

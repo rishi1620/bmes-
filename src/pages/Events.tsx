@@ -143,17 +143,11 @@ const Events = () => {
         <section className="bg-muted/50 py-16 animate-fade-up animate-fade-up-delay-200">
           <div className="container">
             <SectionHeading badge="Archive" title="Past Events" />
-            <div className="mt-10 space-y-4">
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               {past.map((e) => (
-                <div key={e.id} id={e.id} className="flex items-center justify-between rounded-xl border border-border bg-card p-5 shadow-elevated">
-                  <div>
-                    <h3 className="font-semibold text-foreground">{e.title}</h3>
-                    <p className="text-sm text-muted-foreground">{format(new Date(e.date), "PPP")}</p>
-                  </div>
-                  <div className="flex items-center gap-6">
-                    {e.type && <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">{e.type}</span>}
-                    <ShareButtons url={`${window.location.origin}/events#${e.id}`} title={e.title} />
-                  </div>
+                <div key={e.id} className="rounded-xl border border-border bg-card p-4 shadow-sm transition-all hover:shadow-md">
+                  <h3 className="font-semibold text-foreground text-sm line-clamp-1">{e.title}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{format(new Date(e.date), "PPP")}</p>
                 </div>
               ))}
             </div>
