@@ -53,30 +53,27 @@ export const supabase =
                     const clone = response.clone();
                     const data = await clone.json();
                     const errorDesc = data?.error_description || data?.msg || data?.message || data?.error || "";
-                    if (
-                      errorDesc.toLowerCase().includes("refresh token") ||
-                      errorDesc.toLowerCase().includes("invalid_grant") ||
-                      errorDesc.toLowerCase().includes("session_not_found") ||
-                      errorDesc.toLowerCase().includes("invalid_refresh_token") ||
-                      errorDesc.toLowerCase().includes("refresh token not found")
-                    ) {
-                      console.warn("Intercepted invalid refresh token error, clearing session...");
-                      const keysToRemove: string[] = [];
-                      for (let j = 0; j < localStorage.length; j++) {
-                        const key = localStorage.key(j);
-                        if (key && (key.includes('supabase') || key.includes('sb-'))) {
-                          keysToRemove.push(key);
+                      if (
+                        errorDesc.toLowerCase().includes("refresh token") ||
+                        errorDesc.toLowerCase().includes("invalid_grant") ||
+                        errorDesc.toLowerCase().includes("session_not_found") ||
+                        errorDesc.toLowerCase().includes("invalid_refresh_token") ||
+                        errorDesc.toLowerCase().includes("refresh token not found")
+                      ) {
+                        console.warn("Intercepted invalid refresh token error, clearing session...");
+                        const keysToRemove: string[] = [];
+                        for (let j = 0; j < localStorage.length; j++) {
+                          const key = localStorage.key(j);
+                          if (key && (key.includes('supabase') || key.includes('sb-'))) {
+                            keysToRemove.push(key);
+                          }
                         }
+                        keysToRemove.forEach(key => localStorage.removeItem(key));
+                        sessionStorage.clear();
+                        
+                        // We still want to return the original response so the app can handle it normally
+                        // AuthProvider will see the real error and redirect to /auth
                       }
-                      keysToRemove.forEach(key => localStorage.removeItem(key));
-                      sessionStorage.clear();
-                      
-                      // Return a mock error response that won't trigger further retries
-                      return new Response(JSON.stringify({ error: "Session expired", message: "Your session has expired. Please sign in again." }), {
-                        status: 401,
-                        headers: { "Content-Type": "application/json" },
-                      });
-                    }
                   } catch {
                     // ignore JSON parse errors
                   }
