@@ -57,7 +57,12 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     setIsFetching(true);
     const selectQuery = Array.from(new Set([...fields.map(f => f.key), "id", "created_at", "updated_at"])).join(",");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { data } = await supabase.from(tableName as any).select(selectQuery).order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    const { data, error } = await supabase.from(tableName as any).select(selectQuery).order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    if (error) {
+      console.error("Supabase fetch error:", error);
+    } else {
+      console.log("Supabase fetched rows:", data);
+    }
     const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
     setIsFetching(false);
