@@ -25,6 +25,7 @@ export interface FieldDef {
   type?: "text" | "textarea" | "number" | "boolean" | "select" | "image" | "datetime" | "list" | "slider";
   options?: string[];
   required?: boolean;
+  render?: (value: unknown, row: Record<string, unknown>) => React.ReactNode;
 }
 
 type TableName = "members" | "events" | "projects" | "achievements" | "advisors" | "alumni" | "pages" | "contact_submissions" | "event_registrations" | "membership_registrations" | "home_sections" | "media_library" | "site_settings" | "user_roles" | "blog_posts" | "faqs";
@@ -156,6 +157,43 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
   };
 
   const fieldLabel = (key: string) => fields.find((f) => f.key === key)?.label ?? key;
+  const renderCell = (row: Record<string, unknown>, c: string, field: FieldDef | undefined) => {
+    if (field?.render) return field.render(row[c], row);
+    
+    if (typeof row[c] === "boolean") return (
+      <Badge variant={row[c] ? "default" : "secondary"} className={row[c] ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
+        {row[c] ? "Active" : "Inactive"}
+      </Badge>
+    );
+
+    if (field?.type === "datetime") return (
+      <div className="flex flex-col gap-1">
+        <span className="text-sm font-medium">{format(new Date(row[c] as string), "MMM d, yyyy")}</span>
+        <span className="text-xs text-muted-foreground">{format(new Date(row[c] as string), "h:mm a")}</span>
+      </div>
+    );
+    
+    if (field?.type === "list") return (
+      <div className="flex flex-wrap gap-1">
+        {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
+          <Badge key={i} variant="outline" className="text-[10px] font-normal">{item}</Badge>
+        )) : String(row[c] ?? "")}
+      </div>
+    );
+
+    if (field?.type === "image" && row[c]) return (
+      <img src={row[c] as string} alt="Thumbnail" className="h-9 w-9 rounded-md object-cover border shadow-sm" />
+    );
+
+    if (field?.type === "slider") return (
+      <div className="flex items-center gap-2 w-full max-w-[150px]">
+        <Progress value={Number(row[c]) || 0} className="h-2 flex-1" />
+        <span className="text-xs text-muted-foreground w-8 text-right">{Number(row[c]) || 0}%</span>
+      </div>
+    );
+
+    return <span className="text-sm">{String(row[c] ?? "")}</span>;
+  };
 
   const filteredRows = rows.filter(row => 
     Object.values(row).some(val => 
@@ -238,31 +276,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                         const field = fields.find(f => f.key === c);
                         return (
                           <TableCell key={c} className="max-w-[300px] truncate py-3">
-                            {typeof row[c] === "boolean" ? (
-                              <Badge variant={row[c] ? "default" : "secondary"} className={row[c] ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
-                                {row[c] ? "Active" : "Inactive"}
-                              </Badge>
-                            ) : field?.type === "datetime" ? (
-                              <div className="flex flex-col gap-1">
-                                <span className="text-sm font-medium">{format(new Date(row[c] as string), "MMM d, yyyy")}</span>
-                                <span className="text-xs text-muted-foreground">{format(new Date(row[c] as string), "h:mm a")}</span>
-                              </div>
-                            ) : field?.type === "list" ? (
-                              <div className="flex flex-wrap gap-1">
-                                {Array.isArray(row[c]) ? (row[c] as string[]).map((item, i) => (
-                                  <Badge key={i} variant="outline" className="text-[10px] font-normal">{item}</Badge>
-                                )) : String(row[c] ?? "")}
-                              </div>
-                            ) : field?.type === "image" && row[c] ? (
-                              <img src={row[c] as string} alt="Thumbnail" className="h-9 w-9 rounded-md object-cover border shadow-sm" />
-                            ) : field?.type === "slider" ? (
-                              <div className="flex items-center gap-2 w-full max-w-[150px]">
-                                <Progress value={Number(row[c]) || 0} className="h-2 flex-1" />
-                                <span className="text-xs text-muted-foreground w-8 text-right">{Number(row[c]) || 0}%</span>
-                              </div>
-                            ) : (
-                              <span className="text-sm">{String(row[c] ?? "")}</span>
-                            )}
+                            {renderCell(row, c, field)}
                           </TableCell>
                         );
                       })}

@@ -11,10 +11,10 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import StatCard from "@/components/shared/StatCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FloatingNotice } from "@/components/shared/FloatingNotice";
-import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
+import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { isRegistrationOpen, getRegistrationMessage } from "@/lib/utils";
+import { isRegistrationOpen } from "@/lib/utils";
 import { Tables } from "@/integrations/supabase/types";
 import heroBg from "@/assets/hero-bg.jpg";
 import { motion } from "framer-motion";
@@ -99,7 +99,7 @@ const Index = () => {
         .select("*")
         .or(`is_upcoming.eq.true,date.gte.${today.toISOString()}`)
         .order("date", { ascending: true })
-        .limit(3);
+        .limit(6);
       return data ?? [];
     },
   });
@@ -466,97 +466,10 @@ const Index = () => {
             ))}
           </div>
         ) : recentEvents && recentEvents.length > 0 ? (
-          <div className="grid gap-8 lg:grid-cols-12">
-            {/* Featured Event */}
-            <div className={recentEvents.length === 1 ? "lg:col-span-8 lg:col-start-3" : "lg:col-span-4"}>
-              {recentEvents[0] && (
-                <motion.div 
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, ease: "easeOut" }}
-                  className="relative h-full min-h-[350px] overflow-hidden rounded-[2rem] shadow-xl flex flex-col group"
-                >
-                  <img 
-                    src={recentEvents[0].image_url || heroBg} 
-                    alt={recentEvents[0].title}
-                    className="absolute inset-0 h-full w-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#1e4e69]/90 via-[#3E82A7]/80 to-[#5ba4c9]/70" />
-                  
-                  {/* Decorative elements */}
-                  <div className="absolute top-0 right-0 -mr-16 -mt-16 h-48 w-48 rounded-full bg-white/5 blur-3xl group-hover:bg-white/10 transition-colors duration-500" />
-                  
-                  <div className="relative z-10 p-6 sm:p-8">
-                    <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-[9px] font-black uppercase tracking-[0.15em] border border-white/10">
-                      <Bell className="h-3 w-3 text-primary-foreground/70" />
-                      Next Major Event
-                    </div>
-                    
-                    <h3 className="mb-3 text-2xl sm:text-3xl font-black leading-tight tracking-tight text-white drop-shadow-sm">
-                      {recentEvents[0].title}
-                    </h3>
-                    
-                    <p className="mb-6 text-white/70 text-xs sm:text-sm font-medium max-w-xs leading-relaxed line-clamp-2 drop-shadow-sm">
-                      Don't miss out on this exclusive opportunity to enhance your skills and network with professionals.
-                    </p>
-                  </div>
-                  
-                  <div className="relative z-10 mb-auto px-6 sm:px-8">
-                    <CountdownTimer targetDate={recentEvents[0].date} />
-                  </div>
-
-                  <div className="relative z-10 mt-6 px-6 sm:px-8 pb-8">
-                    <Dialog open={isRegOpen && selectedEvent?.id === recentEvents[0].id} onOpenChange={(open) => {
-                      if (isRegistrationOpen(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date)) {
-                        setIsRegOpen(open);
-                        if (open) setSelectedEvent(recentEvents[0] as Tables<"events">);
-                      }
-                    }}>
-                      <DialogTrigger asChild>
-                        <div className="w-full flex justify-start flex-col gap-2">
-                          <Button 
-                            className="w-full bg-white text-[#1e4e69] hover:bg-white/90 font-black py-5 text-base rounded-xl shadow-lg transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/btn disabled:opacity-50 disabled:pointer-events-none"
-                            disabled={!isRegistrationOpen(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date)}
-                          >
-                            Register Now
-                            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover/btn:translate-x-1" />
-                          </Button>
-                          {!isRegistrationOpen(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date) && (
-                            <div className="text-white/90 text-xs font-semibold text-center w-full drop-shadow-md">
-                              {getRegistrationMessage(recentEvents[0].registration_start_date, recentEvents[0].registration_end_date)}
-                            </div>
-                          )}
-                        </div>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Register for {recentEvents[0].title}</DialogTitle>
-                        </DialogHeader>
-                        <RegistrationForm 
-                          eventId={recentEvents[0].id} 
-                          eventTitle={recentEvents[0].title} 
-                          onSuccess={() => setIsRegOpen(false)} 
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* Other Events */}
-            {recentEvents.length > 1 && (
-              <motion.div 
-                variants={containerVariants}
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true }}
-                className="lg:col-span-8 grid gap-6 md:grid-cols-2"
-              >
-                {recentEvents.slice(1, 3).map((event: Tables<"events">) => (
-                  <motion.div key={event.id} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+          <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x">
+              {recentEvents.map((event: Tables<"events">) => (
+                <motion.div key={event.id} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] min-w-0 snap-start" variants={itemVariants}>
+                  <div className="group h-full overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md flex flex-col">
                     <div className="relative h-48 overflow-hidden">
                       <img 
                         src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
@@ -574,20 +487,41 @@ const Index = () => {
                         </div>
                       )}
                     </div>
-                    <div className="p-6">
+                    <div className="p-6 flex-1 flex flex-col">
                       <h3 className="mb-2 text-xl font-bold text-foreground line-clamp-1">{event.title}</h3>
-                      <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground flex-1">
                         <Calendar className="h-4 w-4" />
                         {format(new Date(event.date), "hh:mm a")}
                       </div>
-                      <Button asChild variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
-                        <Link to="/events">View Details</Link>
-                      </Button>
+                      <div className="mb-4">
+                        <CountdownTimer targetDate={event.date} />
+                      </div>
+                      <Dialog open={isRegOpen && selectedEvent?.id === event.id} onOpenChange={(open) => {
+                          if (isRegistrationOpen(event.registration_start_date, event.registration_end_date)) {
+                            setIsRegOpen(open);
+                            if (open) setSelectedEvent(event);
+                          }
+                      }}>
+                        <DialogTrigger asChild>
+                           <Button variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
+                             {isRegistrationOpen(event.registration_start_date, event.registration_end_date) ? "Register Now" : "View Details"}
+                           </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Register for {event.title}</DialogTitle>
+                          </DialogHeader>
+                          <RegistrationForm 
+                            eventId={event.id} 
+                            eventTitle={event.title} 
+                            onSuccess={() => setIsRegOpen(false)} 
+                          />
+                        </DialogContent>
+                      </Dialog>
                     </div>
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+                  </div>
+                </motion.div>
+              ))}
           </div>
         ) : (
           <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-sm">

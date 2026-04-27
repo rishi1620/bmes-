@@ -30,7 +30,7 @@ const AdminDashboard = () => {
         supabase.from("contact_submissions").select("id", { count: "exact", head: true }),
         supabase.from("contact_submissions").select("id", { count: "exact", head: true }).eq("is_read", false),
         supabase.storage.from("media").list("", { limit: 1000 }),
-        supabase.from("advisors").select("id", { count: "exact", head: true }),
+        supabase.from("advisors").select("id", { count: "exact", head: true }).in("role_type", ["Advisor", "Moderator", "Counselor"]),
         supabase.from("alumni").select("id", { count: "exact", head: true }),
         supabase.from("event_registrations").select("id", { count: "exact", head: true }),
         supabase.from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),

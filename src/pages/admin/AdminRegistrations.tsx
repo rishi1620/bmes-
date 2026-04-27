@@ -1,19 +1,40 @@
+import { useEffect, useState } from "react";
 import AdminCrudPage, { FieldDef } from "@/components/admin/AdminCrudPage";
+import { supabase } from "@/integrations/supabase/client";
 
-const fields: FieldDef[] = [
-  { key: "event_id", label: "Event ID", required: true },
-  { key: "name", label: "Name", required: true },
-  { key: "email", label: "Email", required: true },
-  { key: "details", label: "Additional Details", type: "textarea" },
-];
+const AdminRegistrations = () => {
+  const [eventMap, setEventMap] = useState<Record<string, string>>({});
 
-const AdminRegistrations = () => (
-  <AdminCrudPage 
-    tableName="event_registrations" 
-    title="Event Registrations" 
-    fields={fields} 
-    columns={["name", "email", "event_id", "created_at"]} 
-  />
-);
+  useEffect(() => {
+    const fetchEvents = async () => {
+      const { data } = await supabase.from("events").select("id, title");
+      if (data) {
+        const map: Record<string, string> = {};
+        data.forEach(e => map[e.id] = e.title);
+        setEventMap(map);
+      }
+    };
+    fetchEvents();
+  }, []);
+
+  const fields: FieldDef[] = [
+    { key: "event_id", label: "Event", required: true, render: (val) => eventMap[val as string] || String(val) },
+    { key: "name", label: "Name", required: true },
+    { key: "email", label: "Email", required: true },
+    { key: "student_id", label: "Student ID" },
+    { key: "batch", label: "Batch" },
+    { key: "department", label: "Department" },
+    { key: "details", label: "Additional Details", type: "textarea" },
+  ];
+
+  return (
+    <AdminCrudPage 
+      tableName="event_registrations" 
+      title="Event Registrations" 
+      fields={fields} 
+      columns={["name", "email", "student_id", "batch", "department", "event_id", "created_at"]} 
+    />
+  );
+};
 
 export default AdminRegistrations;

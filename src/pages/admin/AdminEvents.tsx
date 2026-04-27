@@ -8,7 +8,6 @@ const fields: FieldDef[] = [
   { key: "type", label: "Type", type: "select", options: ["workshop", "seminar", "competition", "meetup", "conference"] },
   { key: "image_url", label: "Event Image", type: "image" },
   { key: "registration_start_date", label: "Registration Start Time", type: "datetime" },
-  { key: "registration_end_date", label: "Registration End Time", type: "datetime" },
   { key: "is_upcoming", label: "Is Upcoming Event?", type: "boolean" },
 ];
 
