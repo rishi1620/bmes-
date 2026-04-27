@@ -53,14 +53,18 @@ export const supabase =
                     const clone = response.clone();
                     const data = await clone.json();
                     const errorDesc = data?.error_description || data?.msg || data?.message || data?.error || "";
+                    const lowerError = errorDesc.toLowerCase();
                       if (
-                        errorDesc.toLowerCase().includes("refresh token") ||
-                        errorDesc.toLowerCase().includes("invalid_grant") ||
-                        errorDesc.toLowerCase().includes("session_not_found") ||
-                        errorDesc.toLowerCase().includes("invalid_refresh_token") ||
-                        errorDesc.toLowerCase().includes("refresh token not found")
+                        lowerError.includes("refresh token") ||
+                        lowerError.includes("invalid_grant") ||
+                        lowerError.includes("invalid grant") ||
+                        lowerError.includes("session_not_found") ||
+                        lowerError.includes("invalid_refresh_token") ||
+                        lowerError.includes("refresh token not found")
                       ) {
-                        console.warn("Intercepted invalid refresh token error, clearing session...");
+                        console.warn("Intercepted invalid refresh token error, clearing session:", errorDesc);
+                        
+                        // Clear storage
                         const keysToRemove: string[] = [];
                         for (let j = 0; j < localStorage.length; j++) {
                           const key = localStorage.key(j);
@@ -71,8 +75,12 @@ export const supabase =
                         keysToRemove.forEach(key => localStorage.removeItem(key));
                         sessionStorage.clear();
                         
-                        // We still want to return the original response so the app can handle it normally
-                        // AuthProvider will see the real error and redirect to /auth
+                        // Small delay to ensure storage is cleared before redirect or state update
+                        setTimeout(() => {
+                          if (window.location.pathname !== '/auth') {
+                            window.location.href = '/auth';
+                          }
+                        }, 100);
                       }
                   } catch {
                     // ignore JSON parse errors

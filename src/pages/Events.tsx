@@ -30,8 +30,16 @@ const Events = () => {
     },
   });
 
-  const upcoming = events.filter((e) => e.is_upcoming);
-  const past = events.filter((e) => !e.is_upcoming);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const upcoming = events
+    .filter((e) => new Date(e.date) >= today || e.is_upcoming)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+  const past = events
+    .filter((e) => new Date(e.date) < today && !e.is_upcoming)
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
     <PageLayout>

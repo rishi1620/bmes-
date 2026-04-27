@@ -90,10 +90,13 @@ const Index = () => {
   const { data: recentEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ["home-recent-events"],
     queryFn: async () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
       const { data } = await supabase
         .from("events")
         .select("*")
-        .eq("is_upcoming", true)
+        .or(`is_upcoming.eq.true,date.gte.${today.toISOString()}`)
         .order("date", { ascending: true })
         .limit(3);
       return data ?? [];
@@ -464,7 +467,7 @@ const Index = () => {
         ) : recentEvents && recentEvents.length > 0 ? (
           <div className="grid gap-8 lg:grid-cols-12">
             {/* Featured Event */}
-            <div className="lg:col-span-4">
+            <div className={recentEvents.length === 1 ? "lg:col-span-8 lg:col-start-3" : "lg:col-span-4"}>
               {recentEvents[0] && (
                 <motion.div 
                   initial={{ opacity: 0, y: 30 }}
@@ -523,50 +526,47 @@ const Index = () => {
             </div>
 
             {/* Other Events */}
-            <motion.div 
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="lg:col-span-8 grid gap-6 md:grid-cols-2"
-            >
-              {recentEvents.slice(1, 3).map((event: Tables<"events">) => (
-                <motion.div key={event.id} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                  <div className="relative h-48 overflow-hidden">
-                    <img 
-                      src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
-                      alt={event.title} 
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                    <div className="absolute bottom-4 left-4 text-white">
-                      <p className="text-sm font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
-                    </div>
-                    {event.location && (
-                      <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
-                        {event.location}
+            {recentEvents.length > 1 && (
+              <motion.div 
+                variants={containerVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true }}
+                className="lg:col-span-8 grid gap-6 md:grid-cols-2"
+              >
+                {recentEvents.slice(1, 3).map((event: Tables<"events">) => (
+                  <motion.div key={event.id} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
+                    <div className="relative h-48 overflow-hidden">
+                      <img 
+                        src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
+                        alt={event.title} 
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        referrerPolicy="no-referrer"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                      <div className="absolute bottom-4 left-4 text-white">
+                        <p className="text-sm font-bold">{format(new Date(event.date), "MMM dd, yyyy")}</p>
                       </div>
-                    )}
-                  </div>
-                  <div className="p-6">
-                    <h3 className="mb-2 text-xl font-bold text-foreground line-clamp-1">{event.title}</h3>
-                    <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {format(new Date(event.date), "hh:mm a")}
+                      {event.location && (
+                        <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
+                          {event.location}
+                        </div>
+                      )}
                     </div>
-                    <Button asChild variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
-                      <Link to="/events">View Details</Link>
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-              {recentEvents.length === 1 && (
-                <div className="flex items-center justify-center rounded-3xl border border-dashed border-border bg-muted/20 p-8 text-center md:col-span-2">
-                  <p className="text-muted-foreground">Stay tuned for more upcoming events!</p>
-                </div>
-              )}
-            </motion.div>
+                    <div className="p-6">
+                      <h3 className="mb-2 text-xl font-bold text-foreground line-clamp-1">{event.title}</h3>
+                      <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {format(new Date(event.date), "hh:mm a")}
+                      </div>
+                      <Button asChild variant="outline" className="w-full rounded-xl py-6 font-semibold border-border hover:bg-primary/5 hover:text-primary">
+                        <Link to="/events">View Details</Link>
+                      </Button>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
           </div>
         ) : (
           <div className="rounded-3xl border border-border bg-card p-12 text-center shadow-sm">
