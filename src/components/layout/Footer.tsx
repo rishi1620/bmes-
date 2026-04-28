@@ -95,7 +95,6 @@ const Footer = () => {
 
         <div className="mt-10 border-t border-border pt-6 text-center text-xs text-muted-foreground flex flex-col md:flex-row justify-center items-center gap-4">
           <span>&copy; {new Date().getFullYear()} CUET Biomedical Engineering Society. All rights reserved.</span>
-          <Link to="/admin" className="hover:text-primary transition-colors">Admin</Link>
         </div>
       </div>
     </footer>
