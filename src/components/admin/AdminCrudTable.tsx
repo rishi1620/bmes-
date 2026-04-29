@@ -67,7 +67,8 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
     setRows(filter ? allRows.filter(filter) : allRows);
     setIsFetching(false);
-  }, [tableName, orderBy, filter, fields]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableName, orderBy]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
@@ -99,6 +100,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     setOpen(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleSupabaseError = (error: any) => {
     if (error.code === '23505') {
       if (error.message?.includes('email')) {

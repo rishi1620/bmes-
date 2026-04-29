@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight, ExternalLink, CalendarDays, MapPin } from "lucide-react";
+import { ArrowRight, BookOpen, Users, FlaskConical, Calendar, Award, Microscope, Bell, ChevronRight, ExternalLink, MapPin } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
