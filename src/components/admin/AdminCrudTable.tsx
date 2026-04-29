@@ -99,6 +99,22 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     setOpen(true);
   };
 
+  const handleSupabaseError = (error: any) => {
+    if (error.code === '23505') {
+      if (error.message?.includes('email')) {
+        return "An entry with this email already exists.";
+      }
+      if (error.message?.includes('slug')) {
+        return "An entry with this slug already exists. Please choose a unique slug.";
+      }
+      return "A unique constraint violation occurred. Please check for duplicate values.";
+    }
+    if (error.code === '23503') {
+      return "Cannot delete this item because it is referenced by other records.";
+    }
+    return error.message || "An unexpected error occurred.";
+  };
+
   const save = async () => {
     setLoading(true);
     const payload = { ...form };
@@ -114,12 +130,20 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     if (editing) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await supabase.from(tableName as any).update(payload).eq("id", editing.id as string);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
+      if (error) { 
+        toast({ title: "Error Updating", description: handleSupabaseError(error), variant: "destructive" }); 
+        setLoading(false);
+        return;
+      }
       else { toast({ title: "Updated successfully" }); }
     } else {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await supabase.from(tableName as any).insert(payload as unknown as any);
-      if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
+      if (error) { 
+        toast({ title: "Error Creating", description: handleSupabaseError(error), variant: "destructive" }); 
+        setLoading(false);
+        return;
+      }
       else { toast({ title: "Created successfully" }); }
     }
     setLoading(false);
@@ -145,7 +169,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await supabase.from(tableName as any).insert(payload as unknown as any);
-    if (error) { toast({ title: "Error duplicating", description: error.message, variant: "destructive" }); }
+    if (error) { toast({ title: "Error duplicating", description: handleSupabaseError(error), variant: "destructive" }); }
     else { toast({ title: "Duplicated successfully" }); fetchRows(); }
     setLoading(false);
   };
@@ -158,7 +182,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     if (!deleteId) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const { error } = await supabase.from(tableName as any).delete().eq("id", deleteId);
-    if (error) { toast({ title: "Error", description: error.message, variant: "destructive" }); }
+    if (error) { toast({ title: "Error Deleting", description: handleSupabaseError(error), variant: "destructive" }); }
     else { toast({ title: "Deleted successfully" }); fetchRows(); }
     setDeleteId(null);
   };
