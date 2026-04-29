@@ -19,6 +19,7 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpSending, setOtpSending] = useState(false);
+  const [verificationToken, setVerificationToken] = useState("");
 
   const [formData, setFormData] = useState({
     name: "",
@@ -47,6 +48,7 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
         throw new Error(data.error || "Failed to send verification code");
       }
       
+      setVerificationToken(data.verificationToken);
       setShowOtpInput(true);
       toast({
         title: "Verification Code Sent",
@@ -77,6 +79,11 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
       return;
     }
 
+    if (!verificationToken) {
+      toast({ title: "Error", description: "Verification token missing. Please resend the code.", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -84,7 +91,7 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
       const verifyResponse = await fetch("/api/verify-otp", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: formData.email, otp }),
+        body: JSON.stringify({ email: formData.email, otp, verificationToken }),
       });
       
       const verifyData = await verifyResponse.json();

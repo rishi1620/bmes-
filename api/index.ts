@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
+import crypto from "crypto";
 
 dotenv.config();
 
@@ -14,8 +15,6 @@ const transporter = nodemailer.createTransport({
 });
 const FROM_EMAIL = process.env.GMAIL_USER;
 const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
-
-const otpStore = new Map<string, { code: string, expiresAt: number }>();
 
 const app = express();
 app.use(cors());
@@ -35,7 +34,13 @@ app.post("/api/send-otp", async (req, res) => {
   if (!email) return res.status(400).json({ error: "Missing email" });
 
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  otpStore.set(email, { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 }); // 10 mins
+  
+  // Create stateless verification token
+  const secret = process.env.GMAIL_APP_PASSWORD || "fallback-secret-key-123";
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+  const dataToHash = `${email}:${otp}:${expiresAt}`;
+  const hash = crypto.createHmac("sha256", secret).update(dataToHash).digest("hex");
+  const verificationToken = `${expiresAt}.${hash}`;
 
   try {
     await transporter.sendMail({
@@ -54,7 +59,7 @@ app.post("/api/send-otp", async (req, res) => {
         </div>
       `,
     });
-    res.json({ success: true });
+    res.json({ success: true, verificationToken });
   } catch (err) {
     console.error("Failed to send OTP:", err);
     res.status(500).json({ error: "Failed to send verification code." });
@@ -62,23 +67,32 @@ app.post("/api/send-otp", async (req, res) => {
 });
 
 app.post("/api/verify-otp", (req, res) => {
-  const { email, otp } = req.body;
-  if (!email || !otp) return res.status(400).json({ error: "Missing email or otp" });
-
-  const record = otpStore.get(email);
-  if (!record) return res.status(400).json({ error: "No OTP requested for this email" });
-
-  if (Date.now() > record.expiresAt) {
-    otpStore.delete(email);
-    return res.status(400).json({ error: "OTP has expired" });
+  const { email, otp, verificationToken } = req.body;
+  if (!email || !otp || !verificationToken) {
+    return res.status(400).json({ error: "Missing email, otp, or verification token" });
   }
 
-  if (record.code !== otp) {
+  const parts = verificationToken.split(".");
+  if (parts.length !== 2) {
+    return res.status(400).json({ error: "Invalid verification token format" });
+  }
+
+  const [expiresAtStr, hash] = parts;
+  const expiresAt = parseInt(expiresAtStr, 10);
+  
+  if (Date.now() > expiresAt) {
+    return res.status(400).json({ error: "OTP has expired. Please request a new one." });
+  }
+
+  const secret = process.env.GMAIL_APP_PASSWORD || "fallback-secret-key-123";
+  const dataToHash = `${email}:${otp}:${expiresAt}`;
+  const expectedHash = crypto.createHmac("sha256", secret).update(dataToHash).digest("hex");
+
+  if (hash !== expectedHash) {
     return res.status(400).json({ error: "Invalid verification code" });
   }
 
   // OTP is valid
-  otpStore.delete(email);
   res.json({ success: true });
 });
 
