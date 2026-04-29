@@ -186,95 +186,96 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name">Full Name</Label>
-        <Input
-          id="name"
-          placeholder="John Doe"
-          value={formData.name}
-          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-          required
-          disabled={showOtpInput}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="email">Email Address</Label>
-        <Input
-          id="email"
-          type="email"
-          placeholder="john@example.com"
-          value={formData.email}
-          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-          required
-          disabled={showOtpInput}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="student_id">Student ID</Label>
-        <Input
-          id="student_id"
-          placeholder="e.g. 2111001"
-          value={formData.student_id}
-          onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
-          required
-          disabled={showOtpInput}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="batch">Batch</Label>
-        <Input
-          id="batch"
-          placeholder="e.g. 21"
-          value={formData.batch}
-          onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
-          required
-          disabled={showOtpInput}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="department">Department</Label>
-        <Input
-          id="department"
-          placeholder="e.g. BME"
-          value={formData.department}
-          onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-          required
-          disabled={showOtpInput}
-        />
-      </div>
-      <div className="space-y-2">
-        <Label htmlFor="details">Additional Details (Optional)</Label>
-        <Textarea
-          id="details"
-          placeholder="Any specific requirements or questions?"
-          value={formData.details}
-          onChange={(e) => setFormData({ ...formData, details: e.target.value })}
-          disabled={showOtpInput}
-        />
-      </div>
-
-      {showOtpInput && (
-        <div className="space-y-2 p-4 bg-muted rounded-lg border">
-          <Label htmlFor="otp" className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Verification Code
-          </Label>
-          <p className="text-xs text-muted-foreground mb-2">
-            We sent a 6-digit code to <strong>{formData.email}</strong>. Entering it below will complete your registration.
-          </p>
-          <Input
-            id="otp"
-            placeholder="123456"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            required
-            maxLength={6}
-            className="font-mono text-center tracking-widest text-lg"
-          />
-          <div className="flex justify-end pt-2">
-            <Button type="button" variant="link" size="sm" onClick={sendOtp} disabled={otpSending}>
-              Resend Code
-            </Button>
+      {!showOtpInput ? (
+        <>
+          <div className="space-y-2">
+            <Label htmlFor="name">Full Name</Label>
+            <Input
+              id="name"
+              placeholder="John Doe"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="john@example.com"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="student_id">Student ID</Label>
+            <Input
+              id="student_id"
+              placeholder="e.g. 2111001"
+              value={formData.student_id}
+              onChange={(e) => setFormData({ ...formData, student_id: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="batch">Batch</Label>
+            <Input
+              id="batch"
+              placeholder="e.g. 21"
+              value={formData.batch}
+              onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="department">Department</Label>
+            <Input
+              id="department"
+              placeholder="e.g. BME"
+              value={formData.department}
+              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="details">Additional Details (Optional)</Label>
+            <Textarea
+              id="details"
+              placeholder="Any specific requirements or questions?"
+              value={formData.details}
+              onChange={(e) => setFormData({ ...formData, details: e.target.value })}
+            />
+          </div>
+        </>
+      ) : (
+        <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
+          <div className="space-y-4 p-6 bg-muted/50 rounded-xl border">
+            <Label htmlFor="otp" className="flex items-center gap-2 text-lg font-semibold">
+              <Mail className="h-5 w-5 text-primary" />
+              Verification Code
+            </Label>
+            <p className="text-sm text-muted-foreground">
+              We sent a 6-digit code to <strong>{formData.email}</strong>. Entering it below will complete your registration.
+            </p>
+            <Input
+              id="otp"
+              placeholder="123456"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              required
+              maxLength={6}
+              className="font-mono text-center tracking-widest text-2xl h-14"
+            />
+            <div className="flex justify-between items-center pt-2">
+              <Button type="button" variant="ghost" size="sm" onClick={() => setShowOtpInput(false)}>
+                Back to Form
+              </Button>
+              <Button type="button" variant="link" size="sm" onClick={sendOtp} disabled={otpSending}>
+                Resend Code
+              </Button>
+            </div>
           </div>
         </div>
       )}
