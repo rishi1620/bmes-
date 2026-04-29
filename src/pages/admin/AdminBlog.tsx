@@ -4,6 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -32,6 +42,7 @@ const AdminBlog = () => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<BlogPost | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "", slug: "", content: "", excerpt: "", featured_image: "",
     category: "", tags: "", status: "draft", author: "",
@@ -92,10 +103,15 @@ const AdminBlog = () => {
     fetchPosts();
   };
 
-  const remove = async (id: string) => {
-    if (!confirm("Delete this post?")) return;
-    await supabase.from("blog_posts").delete().eq("id", id);
+  const confirmDelete = (id: string) => {
+    setDeleteId(id);
+  };
+
+  const executeDelete = async () => {
+    if (!deleteId) return;
+    await supabase.from("blog_posts").delete().eq("id", deleteId);
     toast({ title: "Deleted" });
+    setDeleteId(null);
     fetchPosts();
   };
 
@@ -184,7 +200,7 @@ const AdminBlog = () => {
                       {post.status === "published" ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </Button>
                     <Button variant="ghost" size="icon" onClick={() => openEdit(post)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => remove(post.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    <Button variant="ghost" size="icon" onClick={() => confirmDelete(post.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -253,8 +269,26 @@ const AdminBlog = () => {
           <Button onClick={save} disabled={saving} className="w-full">{saving ? "Saving…" : "Save Post"}</Button>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the post.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={executeDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AdminLayout>
   );
 };
 
 export default AdminBlog;
+

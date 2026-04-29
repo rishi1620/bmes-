@@ -50,8 +50,6 @@ const AdminHomeSections = () => {
   const [editing, setEditing] = useState<HomeSection | null>(null);
   const [jsonText, setJsonText] = useState("");
   const [saving, setSaving] = useState(false);
-  const [addingNew, setAddingNew] = useState(false);
-  const [newKey, setNewKey] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -148,17 +146,14 @@ const AdminHomeSections = () => {
   };
 
   const handleAddNew = () => {
-    if (!newKey.trim()) return;
     setEditing({
       id: "new",
-      section_key: newKey.trim().toLowerCase().replace(/\s+/g, '_'),
+      section_key: "custom_section",
       section_data: {},
       is_visible: true,
       display_order: sections.length + 1
     });
     setJsonText("{}");
-    setAddingNew(false);
-    setNewKey("");
   };
 
   return (
@@ -170,7 +165,7 @@ const AdminHomeSections = () => {
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Button onClick={() => setAddingNew(true)} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add Section</Button>
+          <Button onClick={handleAddNew} size="sm"><Plus className="mr-1.5 h-4 w-4" /> Add Section</Button>
         </div>
       </div>
 
@@ -218,31 +213,25 @@ const AdminHomeSections = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <Dialog open={addingNew} onOpenChange={setAddingNew}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add New Section</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Section Key</Label>
-              <Input 
-                placeholder="e.g. hero, quick_links, custom_section" 
-                value={newKey} 
-                onChange={e => setNewKey(e.target.value)} 
-              />
-              <p className="text-xs text-muted-foreground">Use lowercase and underscores. Standard keys: hero, quick_links, announcements, upcoming_events, recent_achievements, featured_projects, recent_blog.</p>
-            </div>
-            <Button onClick={handleAddNew} className="w-full" disabled={!newKey.trim()}>Continue to Edit</Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Edit {sectionLabels[editing?.section_key ?? ""] || editing?.section_key}</DialogTitle>
+            <DialogTitle>
+              {editing?.id === "new" ? "Add New Section" : `Edit ${sectionLabels[editing?.section_key ?? ""] || editing?.section_key}`}
+            </DialogTitle>
           </DialogHeader>
+
+          {editing?.id === "new" && (
+            <div className="space-y-1.5 py-2">
+              <Label>Section Key</Label>
+              <Input 
+                placeholder="e.g. custom_section" 
+                value={editing.section_key} 
+                onChange={e => setEditing({ ...editing, section_key: e.target.value.toLowerCase().replace(/\s+/g, '_') })} 
+              />
+              <p className="text-xs text-muted-foreground">Key is used to identify the section (use lowercase and underscores).</p>
+            </div>
+          )}
 
           {editing?.section_key === "hero" && (() => {
             let data: Record<string, string> = {};

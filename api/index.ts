@@ -15,6 +15,8 @@ const transporter = nodemailer.createTransport({
 const FROM_EMAIL = process.env.GMAIL_USER;
 const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
 
+const otpStore = new Map<string, { code: string, expiresAt: number }>();
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -22,6 +24,62 @@ app.use(express.json());
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+app.post("/api/send-otp", async (req, res) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    return res.status(500).json({ error: "Email service is not configured." });
+  }
+
+  const { email } = req.body;
+  if (!email) return res.status(400).json({ error: "Missing email" });
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  otpStore.set(email, { code: otp, expiresAt: Date.now() + 10 * 60 * 1000 }); // 10 mins
+
+  try {
+    await transporter.sendMail({
+      from: `CUET BMES <${FROM_EMAIL}>`,
+      to: email,
+      subject: "Your Event Registration Verification Code",
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h1 style="color: #10b981;">Verification Code</h1>
+          <p>Hi,</p>
+          <p>Your verification code for event registration is: <strong style="font-size: 24px;">${otp}</strong></p>
+          <p>Please enter this code in the registration form to complete your registration. This code will expire in 10 minutes.</p>
+          <br/>
+          <p>Best regards,</p>
+          <p><strong>CUET BIOMEDICAL ENGINEERING SOCIETY</strong></p>
+        </div>
+      `,
+    });
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to send OTP:", err);
+    res.status(500).json({ error: "Failed to send verification code." });
+  }
+});
+
+app.post("/api/verify-otp", (req, res) => {
+  const { email, otp } = req.body;
+  if (!email || !otp) return res.status(400).json({ error: "Missing email or otp" });
+
+  const record = otpStore.get(email);
+  if (!record) return res.status(400).json({ error: "No OTP requested for this email" });
+
+  if (Date.now() > record.expiresAt) {
+    otpStore.delete(email);
+    return res.status(400).json({ error: "OTP has expired" });
+  }
+
+  if (record.code !== otp) {
+    return res.status(400).json({ error: "Invalid verification code" });
+  }
+
+  // OTP is valid
+  otpStore.delete(email);
+  res.json({ success: true });
 });
 
 app.post("/api/send-confirmation", async (req, res) => {
