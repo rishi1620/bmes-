@@ -1,9 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
+    --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-serif: 'Playfair Display', Georgia, Cambria, serif;
+    --font-display: 'Playfair Display', Georgia, serif;
+
     --background: 210 20% 98%;
     --foreground: 200 50% 10%;
 
@@ -82,7 +88,7 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans), 'Inter', sans-serif;
     min-height: 100vh;
     background-attachment: fixed;
     background-image: 
@@ -106,6 +112,17 @@
 }
 
 @layer utilities {
+  .font-sans {
+    font-family: 'Inter', var(--font-sans), system-ui, sans-serif;
+  }
+
+  .font-serif {
+    font-family: 'Playfair Display', var(--font-serif), Georgia, serif;
+  }
+
+  .font-display {
+    font-family: 'Playfair Display', var(--font-display), Georgia, serif;
+  }
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: linear-gradient(135deg, hsl(200 100% 27%), hsl(190 80% 42%));
