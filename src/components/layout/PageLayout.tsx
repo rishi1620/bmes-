@@ -1,9 +1,10 @@
 import Navbar from "./Navbar";
 import Footer from "./Footer";
+import { MobileBottomDock } from "./MobileBottomDock";
 import { motion } from "framer-motion";
 
 const PageLayout = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex min-h-screen flex-col">
+  <div className="flex min-h-screen flex-col pb-16 lg:pb-0">
     <Navbar />
     <motion.main 
       className="flex-1 page-gradient"
@@ -15,6 +16,7 @@ const PageLayout = ({ children }: { children: React.ReactNode }) => (
       {children}
     </motion.main>
     <Footer />
+    <MobileBottomDock />
   </div>
 );
 

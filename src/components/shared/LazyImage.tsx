@@ -27,12 +27,19 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const [currentSrc, setCurrentSrc] = useState<string | undefined>(src || fallbackSrc || undefined);
+  const imgRef = React.useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
     setCurrentSrc(src || fallbackSrc || undefined);
     setIsLoaded(false);
     setHasError(false);
   }, [src, fallbackSrc]);
+
+  useEffect(() => {
+    if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
+      setIsLoaded(true);
+    }
+  }, [currentSrc]);
 
   const aspectStyles = {
     square: "aspect-square",
@@ -76,6 +83,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 
       {/* Lazy / Eager Image */}
       <img
+        ref={imgRef}
         src={currentSrc}
         alt={alt}
         loading={priority ? "eager" : "lazy"}
