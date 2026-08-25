@@ -11,6 +11,7 @@ import { ArrowLeft, Calendar, User, Clock } from "lucide-react";
 import { format } from "date-fns";
 import ReactMarkdown from "react-markdown";
 import { ShareButtons } from "@/components/shared/ShareButtons";
+import LazyImage from "@/components/shared/LazyImage";
 
 const BlogPost = () => {
   const { slug } = useParams();
@@ -133,11 +134,12 @@ const BlogPost = () => {
 
         {post.featured_image && (
           <div className="mb-10 overflow-hidden rounded-2xl border border-border bg-muted">
-            <img 
+            <LazyImage 
               src={post.featured_image} 
               alt={post.title} 
               className="w-full object-cover max-h-[500px]"
-              referrerPolicy="no-referrer"
+              containerClassName="w-full"
+              priority={true}
             />
           </div>
         )}

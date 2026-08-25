@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
+import { DEFAULT_SEED_DATA } from './defaultSeedData';
 
 const envUrl = import.meta.env.VITE_SUPABASE_URL;
 const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -33,16 +34,29 @@ const SUPABASE_URL = hasValidUrl ? envUrl.trim() : 'https://placeholder-project.
 const SUPABASE_PUBLISHABLE_KEY = hasValidKey ? (envKey as string).trim() : DEMO_JWT;
 
 if (isPlaceholder) {
-  console.info('Supabase running in local fallback mode (mock database enabled).');
+  console.info('Supabase running in local fallback mode (mock database enabled with seed data).');
 }
 
-// In-memory / localStorage mock database store for seamless local operations
+// In-memory / localStorage mock database store with instant seed data fallback
 const getMockTable = (tableName: string): Record<string, unknown>[] => {
   try {
     const raw = localStorage.getItem(`mock_sb_${tableName}`);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
   } catch {
     // ignore parsing errors
+  }
+  // Fall back to built-in seed data
+  const seed = DEFAULT_SEED_DATA[tableName];
+  if (seed && seed.length > 0) {
+    try {
+      localStorage.setItem(`mock_sb_${tableName}`, JSON.stringify(seed));
+    } catch {
+      // ignore storage quota
+    }
+    return [...seed];
   }
   return [];
 };
@@ -158,7 +172,7 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
 
     // Filter by columns (e.g., id=eq.xxx, setting_key=eq.xxx, user_id=eq.xxx, etc.)
     params.forEach((val, key) => {
-      if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset') return;
+      if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset' || key === 'or') return;
       if (val.startsWith('eq.')) {
         const targetVal = val.slice(3);
         items = items.filter((item) => String(item[key]) === targetVal);
@@ -167,6 +181,14 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
         items = items.filter((item) => inVals.includes(String(item[key])));
       }
     });
+
+    const limit = params.get('limit');
+    if (limit) {
+      const limitNum = parseInt(limit, 10);
+      if (!isNaN(limitNum) && limitNum > 0) {
+        items = items.slice(0, limitNum);
+      }
+    }
 
     if (method === 'GET' || method === 'HEAD') {
       const isHead = method === 'HEAD' || headers.get('Range-Unit') === 'items';
@@ -223,7 +245,7 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
       const updated = tableData.map((item) => {
         let matches = true;
         params.forEach((val, key) => {
-          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset') return;
+          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset' || key === 'or') return;
           if (val.startsWith('eq.') && String(item[key]) !== val.slice(3)) {
             matches = false;
           }
@@ -257,7 +279,7 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
       const remaining = tableData.filter((item) => {
         let matches = true;
         params.forEach((val, key) => {
-          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset') return;
+          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset' || key === 'or') return;
           if (val.startsWith('eq.') && String(item[key]) !== val.slice(3)) {
             matches = false;
           }

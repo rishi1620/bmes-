@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
+import LazyImage from "@/components/shared/LazyImage";
 
 interface MediaFile {
   id: string;
@@ -334,7 +335,7 @@ const AdminMedia = () => {
               </div>
               <div className="aspect-square flex items-center justify-center bg-muted/50">
                 {isImage(file.file_name) ? (
-                  <img src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" loading="lazy" />
+                  <LazyImage src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" containerClassName="h-full w-full" />
                 ) : isVideo(file.file_name) ? (
                   <Film className="h-10 w-10 text-muted-foreground" />
                 ) : (

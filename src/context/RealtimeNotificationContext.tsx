@@ -236,9 +236,12 @@ export const RealtimeNotificationProvider: React.FC<{ children: React.ReactNode 
   // Setup WebSocket connection
   useEffect(() => {
     let ws: WebSocket | null = null;
-    let reconnectTimer: NodeJS.Timeout;
+    let reconnectTimer: NodeJS.Timeout | null = null;
+    let isUnmounted = false;
+    let retryDelay = 4000;
 
     const connectWs = () => {
+      if (isUnmounted) return;
       try {
         const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
         const wsUrl = `${protocol}//${window.location.host}/ws/notifications`;
@@ -247,10 +250,13 @@ export const RealtimeNotificationProvider: React.FC<{ children: React.ReactNode 
         wsRef.current = ws;
 
         ws.onopen = () => {
+          if (isUnmounted) return;
           setIsConnected(true);
+          retryDelay = 4000;
         };
 
         ws.onmessage = (event) => {
+          if (isUnmounted) return;
           try {
             const msg = JSON.parse(event.data);
             if (msg.type === "NOTIFICATION" && msg.data) {
@@ -262,25 +268,36 @@ export const RealtimeNotificationProvider: React.FC<{ children: React.ReactNode 
         };
 
         ws.onclose = () => {
+          if (isUnmounted) return;
           setIsConnected(false);
-          // Try reconnecting after 4s
-          reconnectTimer = setTimeout(connectWs, 4000);
+          reconnectTimer = setTimeout(connectWs, retryDelay);
+          retryDelay = Math.min(30000, retryDelay * 1.5);
         };
 
         ws.onerror = () => {
+          if (isUnmounted) return;
           setIsConnected(false);
         };
       } catch {
-        setIsConnected(false);
+        if (!isUnmounted) {
+          setIsConnected(false);
+        }
       }
     };
 
     connectWs();
 
     return () => {
-      clearTimeout(reconnectTimer);
+      isUnmounted = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
       if (ws) {
-        ws.close();
+        try {
+          ws.close();
+        } catch {
+          // ignore
+        }
       }
     };
   }, [handleIncomingNotification]);

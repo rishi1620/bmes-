@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Skeleton } from "@/components/ui/skeleton";
+import LazyImage from "@/components/shared/LazyImage";
 
 const Alumni = () => {
   const { data: alumni, isLoading } = useQuery({
@@ -36,9 +37,9 @@ const Alumni = () => {
                 <blockquote key={a.id} className="rounded-xl border border-border bg-card p-6 shadow-elevated">
                   <div className="flex items-center gap-3 mb-4">
                     {a.photo ? (
-                      <img src={a.photo} alt={a.name} className="h-12 w-12 rounded-full object-cover" />
+                      <LazyImage src={a.photo} alt={a.name} className="h-12 w-12 rounded-full object-cover" containerClassName="h-12 w-12 rounded-full shrink-0" />
                     ) : (
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">{a.name.charAt(0)}</div>
+                      <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">{a.name.charAt(0)}</div>
                     )}
                     <div>
                       <p className="font-semibold text-foreground flex items-center gap-1"><Star className="h-3.5 w-3.5 text-amber-500 fill-amber-500" /> {a.name}</p>
@@ -67,9 +68,9 @@ const Alumni = () => {
               <div key={a.id} className="rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="flex items-center gap-3 mb-3">
                   {a.photo ? (
-                    <img src={a.photo} alt={a.name} className="h-14 w-14 rounded-full object-cover" />
+                    <LazyImage src={a.photo} alt={a.name} className="h-14 w-14 rounded-full object-cover" containerClassName="h-14 w-14 rounded-full shrink-0" />
                   ) : (
-                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg shrink-0">
                       {a.name.charAt(0)}
                     </div>
                   )}

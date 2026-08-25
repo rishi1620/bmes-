@@ -6,6 +6,7 @@ import { Users, UserCheck, GraduationCap, Briefcase, Linkedin, Mail } from "luci
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import LazyImage from "@/components/shared/LazyImage";
 
 interface Person {
   id: string;
@@ -26,11 +27,11 @@ const PersonCard = ({ person }: { person: Person }) => (
   <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
     <div className="aspect-square w-full overflow-hidden bg-muted relative group">
       {person.image_url || person.photo ? (
-        <img
+        <LazyImage
           src={person.image_url || person.photo}
           alt={person.name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          referrerPolicy="no-referrer"
+          containerClassName="h-full w-full"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
@@ -39,7 +40,7 @@ const PersonCard = ({ person }: { person: Person }) => (
       )}
       
       {/* Overlay with social links */}
-      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 z-10">
         {person.linkedin && (
           <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-[#0077b5] hover:scale-110 transition-transform">
             <Linkedin className="h-5 w-5" />

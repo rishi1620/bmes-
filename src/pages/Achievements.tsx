@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import LazyImage from "@/components/shared/LazyImage";
 
 const placeColor = (place: string) => {
   if (place?.includes("1st")) return "default";
@@ -125,7 +126,7 @@ const Achievements = () => {
                       <Card className="group overflow-hidden transition-all hover:shadow-glow hover:-translate-y-1 h-full">
                         {c.image_url && (
                           <div className="h-48 w-full overflow-hidden bg-muted">
-                            <img src={c.image_url} alt={c.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                            <LazyImage src={c.image_url} alt={c.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" containerClassName="h-full w-full" />
                           </div>
                         )}
                         <CardHeader className="pb-3">
@@ -169,7 +170,7 @@ const Achievements = () => {
                         <CardContent className="flex flex-col gap-4 p-5 md:flex-row md:items-start md:justify-between">
                           {p.image_url && (
                             <div className="h-24 w-24 shrink-0 overflow-hidden rounded-md bg-muted">
-                              <img src={p.image_url} alt={p.title} className="h-full w-full object-cover" />
+                              <LazyImage src={p.image_url} alt={p.title} className="h-full w-full object-cover" containerClassName="h-full w-full" />
                             </div>
                           )}
                           <div className="flex-1">
@@ -212,7 +213,7 @@ const Achievements = () => {
                       <Card className="overflow-hidden transition-all hover:shadow-elevated h-full">
                         {g.image_url && (
                           <div className="h-40 w-full overflow-hidden bg-muted">
-                            <img src={g.image_url} alt={g.title} className="h-full w-full object-cover" />
+                            <LazyImage src={g.image_url} alt={g.title} className="h-full w-full object-cover" containerClassName="h-full w-full" />
                           </div>
                         )}
                         <CardHeader className="pb-3">
@@ -260,7 +261,7 @@ const Achievements = () => {
                         <CardContent className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-5">
                           {m.image_url ? (
                             <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-muted">
-                              <img src={m.image_url} alt={m.title} className="h-full w-full object-cover" />
+                              <LazyImage src={m.image_url} alt={m.title} className="h-full w-full object-cover" containerClassName="h-full w-full" />
                             </div>
                           ) : (
                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">

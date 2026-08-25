@@ -12,6 +12,7 @@ import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { ShareButtons } from "@/components/shared/ShareButtons";
 import { isRegistrationOpen, getRegistrationMessage } from "@/lib/utils";
+import LazyImage from "@/components/shared/LazyImage";
 
 import { Tables } from "@/integrations/supabase/types";
 
@@ -65,15 +66,15 @@ const Events = () => {
             {upcoming.map((e) => (
               <div key={e.id} id={e.id} className="group flex flex-col h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-2">
                 <div className="relative h-48 w-full overflow-hidden">
-                  <img 
+                  <LazyImage 
                     src={e.image_url || "https://picsum.photos/seed/event/800/600"} 
                     alt={e.title} 
                     className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110 p-2"
-                    referrerPolicy="no-referrer"
+                    containerClassName="h-full w-full bg-muted/20"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
                   {e.type && (
-                    <div className="absolute top-4 left-4">
+                    <div className="absolute top-4 left-4 z-10">
                       <span className="rounded-full bg-primary/90 px-3 py-1 text-xs font-bold text-primary-foreground backdrop-blur-sm shadow-sm">
                         {e.type}
                       </span>
