@@ -63,7 +63,7 @@ const AdminDashboard = () => {
         blog: b.count ?? 0,
         submissions: s.count ?? 0,
         unread: u.count ?? 0,
-        media: Array.isArray(media.data) ? media.data.filter((f) => f && f.name !== ".emptyFolderPlaceholder").length : 0,
+        media: media.data?.filter((f) => f.name !== ".emptyFolderPlaceholder").length ?? 0,
         advisors: adv.count ?? 0,
         alumni: alum.count ?? 0,
         registrations: reg.count ?? 0,

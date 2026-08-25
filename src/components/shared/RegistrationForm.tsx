@@ -7,8 +7,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "@/hooks/use-toast";
 import { Loader2, Mail } from "lucide-react";
 
-import { Checkbox } from "@/components/ui/checkbox";
-
 interface RegistrationFormProps {
   eventId: string;
   eventTitle: string;
@@ -278,23 +276,6 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
                 Resend Code
               </Button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {!showOtpInput && (
-        <div className="p-4 bg-muted/50 border rounded-lg space-y-3">
-          <h4 className="font-semibold text-sm text-foreground">Event Subscription Criteria</h4>
-          <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-            <li>Must be a currently enrolled student at CUET.</li>
-            <li>Must present valid student ID card at the venue.</li>
-            <li>Must abide by event rules and regulations.</li>
-          </ul>
-          <div className="flex flex-row items-start space-x-3 mt-4 pt-2 border-t">
-            <Checkbox id="event_criteria" required className="mt-1" />
-            <Label htmlFor="event_criteria" className="font-normal text-sm leading-snug cursor-pointer">
-              I confirm that I meet the eligibility criteria to subscribe to this event.
-            </Label>
           </div>
         </div>
       )}
