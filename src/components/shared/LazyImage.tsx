@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { ImageOff } from "lucide-react";
+import { resolveMediaUrl, FALLBACK_IMAGES } from "@/lib/media";
 
 export interface LazyImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
   src?: string | null;
   alt?: string;
   fallbackSrc?: string;
   aspectRatio?: "square" | "video" | "4/3" | "3/2" | "auto";
+  category?: keyof typeof FALLBACK_IMAGES;
   containerClassName?: string;
   placeholderClassName?: string;
   priority?: boolean;
@@ -17,6 +19,7 @@ export const LazyImage: React.FC<LazyImageProps> = ({
   alt = "Image",
   fallbackSrc,
   aspectRatio = "auto",
+  category = "general",
   className,
   containerClassName,
   placeholderClassName,
@@ -26,14 +29,15 @@ export const LazyImage: React.FC<LazyImageProps> = ({
 }) => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
-  const [currentSrc, setCurrentSrc] = useState<string | undefined>(src || fallbackSrc || undefined);
+  const [currentSrc, setCurrentSrc] = useState<string>(() => resolveMediaUrl(src, fallbackSrc, category));
   const imgRef = React.useRef<HTMLImageElement | null>(null);
 
   useEffect(() => {
-    setCurrentSrc(src || fallbackSrc || undefined);
+    const resolved = resolveMediaUrl(src, fallbackSrc, category);
+    setCurrentSrc(resolved);
     setIsLoaded(false);
     setHasError(false);
-  }, [src, fallbackSrc]);
+  }, [src, fallbackSrc, category]);
 
   useEffect(() => {
     if (imgRef.current && imgRef.current.complete && imgRef.current.naturalWidth > 0) {
@@ -91,8 +95,9 @@ export const LazyImage: React.FC<LazyImageProps> = ({
         referrerPolicy={referrerPolicy}
         onLoad={() => setIsLoaded(true)}
         onError={() => {
-          if (fallbackSrc && currentSrc !== fallbackSrc) {
-            setCurrentSrc(fallbackSrc);
+          const fallback = fallbackSrc || FALLBACK_IMAGES[category] || FALLBACK_IMAGES.general;
+          if (fallback && currentSrc !== fallback) {
+            setCurrentSrc(fallback);
           } else {
             setHasError(true);
           }

@@ -101,15 +101,24 @@ const AdminNotices = () => {
   const handlePdfUpload = async (index: number, file: File) => {
     setSaving(true);
     const fileName = `pdf-${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
+    const dataUrl = await new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string) || "");
+      reader.readAsDataURL(file);
+    });
+
     const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
-    if (uploadError) {
-      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
-      setSaving(false);
-      return;
-    }
     const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
+    
+    let finalUrl = "";
+    if (!uploadError && urlData?.publicUrl && !urlData.publicUrl.includes("placeholder-") && !urlData.publicUrl.includes("example.com")) {
+      finalUrl = urlData.publicUrl;
+    } else {
+      finalUrl = dataUrl || urlData?.publicUrl || "";
+    }
+
     const arr = [...notices];
-    arr[index].pdf_url = urlData.publicUrl;
+    arr[index].pdf_url = finalUrl;
     updateJsonArray("portal_notices_json", arr);
     setSaving(false);
     toast({ title: "PDF uploaded successfully" });

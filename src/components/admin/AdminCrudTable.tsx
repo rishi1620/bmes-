@@ -18,6 +18,7 @@ import { toast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import MediaSelectorDialog from "./MediaSelectorDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import LazyImage from "@/components/shared/LazyImage";
 
 export interface FieldDef {
   key: string;
@@ -215,7 +216,12 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     );
 
     if (field?.type === "image" && row[c]) return (
-      <img src={row[c] as string} alt="Thumbnail" className="h-9 w-9 rounded-md object-cover border shadow-sm" />
+      <LazyImage
+        src={row[c] as string}
+        alt="Thumbnail"
+        className="h-9 w-9 rounded-md object-cover border shadow-sm"
+        containerClassName="h-9 w-9"
+      />
     );
 
     if (field?.type === "slider") return (
@@ -437,9 +443,14 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                   </div>
                 ) : f.type === "image" ? (
                   <div className="flex flex-col gap-3 rounded-md border p-4 bg-muted/10">
-                    {form[f.key] && (
+                    {Boolean(form[f.key]) && (
                       <div className="relative aspect-video w-full max-w-sm mx-auto overflow-hidden rounded-md border bg-background shadow-sm">
-                        <img src={form[f.key] as string} alt="Preview" className="h-full w-full object-contain" />
+                        <LazyImage
+                          src={form[f.key] as string}
+                          alt="Preview"
+                          className="h-full w-full object-contain"
+                          containerClassName="h-full w-full"
+                        />
                       </div>
                     )}
                     <div className="flex gap-2">

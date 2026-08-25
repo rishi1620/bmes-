@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw } from "lucide-react";
+import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_SEED_DATA } from "@/integrations/supabase/defaultSeedData";
+import { fileToDataUrl, fetchUnifiedMediaFiles } from "@/lib/media";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,15 +52,11 @@ const AdminMedia = () => {
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("media_library")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
-      toast({ title: "Error fetching files", description: error.message, variant: "destructive" });
-    } else {
-      setFiles((data as MediaFile[]) ?? []);
+    try {
+      const unifiedFiles = await fetchUnifiedMediaFiles();
+      setFiles(unifiedFiles);
+    } catch (err) {
+      toast({ title: "Error fetching files", description: String(err), variant: "destructive" });
     }
     setLoading(false);
   }, []);
@@ -66,14 +64,6 @@ const AdminMedia = () => {
   useEffect(() => {
     fetchFiles();
   }, [fetchFiles]);
-
-  const readFileAsDataUrl = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve((reader.result as string) || "");
-      reader.readAsDataURL(file);
-    });
-  };
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     setUploading(true);
@@ -84,7 +74,7 @@ const AdminMedia = () => {
       let finalUrl = "";
       
       // Read data URL as a guaranteed local fallback
-      const dataUrl = await readFileAsDataUrl(file);
+      const dataUrl = await fileToDataUrl(file);
 
       // 1. Upload to Storage
       const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
@@ -92,10 +82,23 @@ const AdminMedia = () => {
       // 2. Get Public URL
       const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
       
-      if (!uploadError && urlData?.publicUrl && !urlData.publicUrl.includes("placeholder-supabase-url")) {
+      if (
+        !uploadError &&
+        urlData?.publicUrl &&
+        !urlData.publicUrl.includes("placeholder-") &&
+        !urlData.publicUrl.includes("example.com")
+      ) {
         finalUrl = urlData.publicUrl;
       } else {
         finalUrl = dataUrl || urlData?.publicUrl || "";
+      }
+
+      if (dataUrl) {
+        try {
+          localStorage.setItem(`mock_storage_file_${fileName}`, dataUrl);
+        } catch {
+          // ignore
+        }
       }
       
       // 3. Create Database Record
@@ -123,6 +126,24 @@ const AdminMedia = () => {
       fetchFiles();
     }
   }, [fetchFiles]);
+
+  const restoreSampleMedia = async () => {
+    setLoading(true);
+    try {
+      const sample = DEFAULT_SEED_DATA.media_library || [];
+      if (sample.length > 0) {
+        for (const item of sample) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await supabase.from("media_library").insert(item as any);
+        }
+        toast({ title: "Sample media library restored!" });
+        fetchFiles();
+      }
+    } catch {
+      toast({ title: "Failed to restore sample media", variant: "destructive" });
+    }
+    setLoading(false);
+  };
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ 
     onDrop, 
@@ -259,6 +280,10 @@ const AdminMedia = () => {
       >
         <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={restoreSampleMedia} disabled={loading || uploading} className="gap-2" title="Load Sample Media">
+            <Sparkles className="h-4 w-4 text-amber-500" />
+            <span className="hidden sm:inline">Load Sample Media</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={fetchFiles} disabled={loading || uploading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -324,8 +349,17 @@ const AdminMedia = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-16 text-muted-foreground"
         >
-          <ImageIcon className="mb-3 h-10 w-10" />
-          <p>No media files yet.</p>
+          <ImageIcon className="mb-3 h-10 w-10 text-muted-foreground/60" />
+          <p className="font-medium text-foreground">No media files yet</p>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">Upload your media files or load sample biomedical photos.</p>
+          <div className="flex gap-2">
+            <Button size="sm" variant="outline" onClick={restoreSampleMedia} className="gap-1.5">
+              <Sparkles className="h-4 w-4 text-amber-500" /> Load Sample Photos
+            </Button>
+            <Button size="sm" onClick={open} className="gap-1.5">
+              <Upload className="h-4 w-4" /> Upload Files
+            </Button>
+          </div>
         </motion.div>
       ) : (
         <motion.div 
