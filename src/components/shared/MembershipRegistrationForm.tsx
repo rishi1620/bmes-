@@ -9,6 +9,8 @@ import { Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
 
+import { Checkbox } from "@/components/ui/checkbox";
+
 interface RegistrationStatus {
   status: string | null;
   created_at: string | null;
@@ -322,6 +324,22 @@ export function MembershipRegistrationForm() {
         <p className="text-[10px] text-muted-foreground italic">
           Note: Membership requires a one-time registration fee. Please follow the instructions provided by the EC members.
         </p>
+      </div>
+
+      <div className="p-4 bg-muted/50 border rounded-lg space-y-3">
+        <h4 className="font-semibold text-sm text-foreground">Membership Subscription Criteria</h4>
+        <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
+          <li>Must be a currently enrolled student at CUET.</li>
+          <li>Must provide a valid @student.cuet.ac.bd email address.</li>
+          <li>Must pay the applicable membership subscription fee.</li>
+          <li>Must abide by the rules and regulations of the society.</li>
+        </ul>
+        <div className="flex flex-row items-start space-x-3 mt-4 pt-2 border-t">
+          <Checkbox id="criteria" required className="mt-1" />
+          <Label htmlFor="criteria" className="font-normal text-sm leading-snug cursor-pointer">
+            I confirm that I meet the membership subscription criteria and agree to submit my application for review by the Executive Committee.
+          </Label>
+        </div>
       </div>
 
       <Button type="submit" className="w-full bg-primary hover:bg-primary/90" disabled={loading}>
