@@ -8,7 +8,6 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import LazyImage from "@/components/shared/LazyImage";
 
 const Blog = () => {
   const { data: posts, isLoading } = useQuery({
@@ -90,11 +89,11 @@ const Blog = () => {
               >
                 {p.featured_image && (
                   <div className="aspect-video w-full overflow-hidden border-b">
-                    <LazyImage 
+                    <img 
                       src={p.featured_image} 
                       alt={p.title} 
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      containerClassName="h-full w-full bg-muted/20"
+                      referrerPolicy="no-referrer"
                     />
                   </div>
                 )}

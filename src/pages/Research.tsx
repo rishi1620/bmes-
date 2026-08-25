@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import LazyImage from "@/components/shared/LazyImage";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 
@@ -132,11 +131,11 @@ const Research = () => {
                   <Card key={lab.id} className="overflow-hidden">
                     {lab.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden">
-                        <LazyImage 
+                        <img 
                           src={lab.imageUrl} 
                           alt={lab.title} 
                           className="h-full w-full object-cover transition-transform hover:scale-105"
-                          containerClassName="h-full w-full"
+                          referrerPolicy="no-referrer"
                         />
                       </div>
                     )}
@@ -171,11 +170,11 @@ const Research = () => {
                   <Card key={area.id} className="overflow-hidden">
                     {area.imageUrl && (
                       <div className="aspect-video w-full overflow-hidden">
-                        <LazyImage 
+                        <img 
                           src={area.imageUrl} 
                           alt={area.title} 
                           className="h-full w-full object-cover transition-transform hover:scale-105"
-                          containerClassName="h-full w-full"
+                          referrerPolicy="no-referrer"
                         />
                       </div>
                     )}

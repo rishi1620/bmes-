@@ -1,9 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw, Sparkles } from "lucide-react";
+import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_SEED_DATA } from "@/integrations/supabase/defaultSeedData";
-import { fileToDataUrl, fetchUnifiedMediaFiles } from "@/lib/media";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,7 +25,6 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import LazyImage from "@/components/shared/LazyImage";
 
 interface MediaFile {
   id: string;
@@ -52,11 +49,15 @@ const AdminMedia = () => {
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
-    try {
-      const unifiedFiles = await fetchUnifiedMediaFiles();
-      setFiles(unifiedFiles);
-    } catch (err) {
-      toast({ title: "Error fetching files", description: String(err), variant: "destructive" });
+    const { data, error } = await supabase
+      .from("media_library")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      toast({ title: "Error fetching files", description: error.message, variant: "destructive" });
+    } else {
+      setFiles((data as MediaFile[]) ?? []);
     }
     setLoading(false);
   }, []);
@@ -71,50 +72,37 @@ const AdminMedia = () => {
     
     for (const file of acceptedFiles) {
       const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-      let finalUrl = "";
       
-      // Read data URL as a guaranteed local fallback
-      const dataUrl = await fileToDataUrl(file);
-
       // 1. Upload to Storage
       const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
       
+      if (uploadError) {
+        toast({ title: `Failed to upload ${file.name}`, description: uploadError.message, variant: "destructive" });
+        continue;
+      }
+
       // 2. Get Public URL
       const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
       
-      if (
-        !uploadError &&
-        urlData?.publicUrl &&
-        !urlData.publicUrl.includes("placeholder-") &&
-        !urlData.publicUrl.includes("example.com")
-      ) {
-        finalUrl = urlData.publicUrl;
-      } else {
-        finalUrl = dataUrl || urlData?.publicUrl || "";
-      }
-
-      if (dataUrl) {
-        try {
-          localStorage.setItem(`mock_storage_file_${fileName}`, dataUrl);
-        } catch {
-          // ignore
-        }
-      }
-      
       // 3. Create Database Record
       const { data: userData } = await supabase.auth.getUser();
-      const userId = userData?.user?.id || "00000000-0000-0000-0000-000000000001";
-
+      if (!userData.user) {
+        toast({ title: "Error", description: "You must be logged in to upload files.", variant: "destructive" });
+        setUploading(false);
+        return;
+      }
       const { error: dbError } = await supabase.from("media_library").insert({
         file_name: fileName,
-        file_url: finalUrl,
+        file_url: urlData.publicUrl,
         file_size: file.size,
         file_type: file.type,
-        uploaded_by: userId,
+        uploaded_by: userData.user.id,
       });
 
       if (dbError) {
         toast({ title: `Failed to register ${file.name} in database`, description: dbError.message, variant: "destructive" });
+        // Cleanup storage if DB fails? Maybe not strictly necessary but good practice
+        await supabase.storage.from("media").remove([fileName]);
       } else {
         successCount++;
       }
@@ -122,28 +110,10 @@ const AdminMedia = () => {
     
     setUploading(false);
     if (successCount > 0) {
-      toast({ title: `${successCount} file(s) uploaded successfully` });
+      toast({ title: `${successCount} file(s) uploaded` });
       fetchFiles();
     }
   }, [fetchFiles]);
-
-  const restoreSampleMedia = async () => {
-    setLoading(true);
-    try {
-      const sample = DEFAULT_SEED_DATA.media_library || [];
-      if (sample.length > 0) {
-        for (const item of sample) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          await supabase.from("media_library").insert(item as any);
-        }
-        toast({ title: "Sample media library restored!" });
-        fetchFiles();
-      }
-    } catch {
-      toast({ title: "Failed to restore sample media", variant: "destructive" });
-    }
-    setLoading(false);
-  };
 
   const { getRootProps, getInputProps, isDragActive, open } = useDropzone({ 
     onDrop, 
@@ -280,10 +250,6 @@ const AdminMedia = () => {
       >
         <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={restoreSampleMedia} disabled={loading || uploading} className="gap-2" title="Load Sample Media">
-            <Sparkles className="h-4 w-4 text-amber-500" />
-            <span className="hidden sm:inline">Load Sample Media</span>
-          </Button>
           <Button variant="outline" size="sm" onClick={fetchFiles} disabled={loading || uploading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -349,17 +315,8 @@ const AdminMedia = () => {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center rounded-lg border border-dashed border-border bg-card py-16 text-muted-foreground"
         >
-          <ImageIcon className="mb-3 h-10 w-10 text-muted-foreground/60" />
-          <p className="font-medium text-foreground">No media files yet</p>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">Upload your media files or load sample biomedical photos.</p>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={restoreSampleMedia} className="gap-1.5">
-              <Sparkles className="h-4 w-4 text-amber-500" /> Load Sample Photos
-            </Button>
-            <Button size="sm" onClick={open} className="gap-1.5">
-              <Upload className="h-4 w-4" /> Upload Files
-            </Button>
-          </div>
+          <ImageIcon className="mb-3 h-10 w-10" />
+          <p>No media files yet.</p>
         </motion.div>
       ) : (
         <motion.div 
@@ -377,7 +334,7 @@ const AdminMedia = () => {
               </div>
               <div className="aspect-square flex items-center justify-center bg-muted/50">
                 {isImage(file.file_name) ? (
-                  <LazyImage src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" containerClassName="h-full w-full" />
+                  <img src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" loading="lazy" />
                 ) : isVideo(file.file_name) ? (
                   <Film className="h-10 w-10 text-muted-foreground" />
                 ) : (

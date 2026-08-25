@@ -18,7 +18,6 @@ import { isRegistrationOpen } from "@/lib/utils";
 import { Tables } from "@/integrations/supabase/types";
 import heroBg from "@/assets/hero-bg.jpg";
 import { motion } from "framer-motion";
-import LazyImage from "@/components/shared/LazyImage";
 
 const iconMap: Record<string, React.ElementType> = {
   FlaskConical, Users, Calendar, BookOpen, Award, Microscope,
@@ -49,7 +48,7 @@ const Index = () => {
   const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
   const [isRegOpen, setIsRegOpen] = useState(false);
 
-  const { data: sections } = useQuery({
+  const { data: sections, isLoading } = useQuery({
     queryKey: ["home-sections"],
     queryFn: async () => {
       const { data } = await supabase
@@ -71,47 +70,23 @@ const Index = () => {
     },
   });
 
-  const defaultNotices = useMemo(() => [
-    {
-      title: "Registration Open: 5th National Biomedical Hackathon 2026",
-      date: "2026-09-15",
-      category: "club",
-      content: "Teams from engineering and medical universities across Bangladesh are invited to participate in healthcare prototype development.",
-    },
-    {
-      title: "Lab Schedule Update: Bio-Signal Processing & Instrumentation Lab",
-      date: "2026-09-01",
-      category: "departmental",
-      content: "All undergraduate students must follow the revised schedule for fall semester practical sessions and bio-device testing.",
-    },
-    {
-      title: "Call for Papers: Annual Symposium on Medical Imaging & AI",
-      date: "2026-08-20",
-      category: "departmental",
-      content: "Submit your original abstracts by September 30 for peer review in diagnostic radiology and signal processing tracks.",
-    },
-  ], []);
-
   const portalNotices = useMemo(() => {
-    if (!siteSettings?.portal_notices_json) return defaultNotices;
+    if (!siteSettings?.portal_notices_json) return [];
     try {
-      const parsed = JSON.parse(siteSettings.portal_notices_json);
-      return Array.isArray(parsed) && parsed.length > 0 ? parsed : defaultNotices;
+      return JSON.parse(siteSettings.portal_notices_json);
     } catch (e) {
       console.error("Error parsing portal notices:", e);
-      return defaultNotices;
+      return [];
     }
-  }, [siteSettings, defaultNotices]);
+  }, [siteSettings]);
 
-  const deptNotices = useMemo(() => {
-    const list = portalNotices.filter((n: { category?: string }) => n.category === "departmental" || !n.category).slice(0, 3);
-    return list.length > 0 ? list : defaultNotices.slice(0, 2);
-  }, [portalNotices, defaultNotices]);
+  const deptNotices = useMemo(() => 
+    portalNotices.filter((n: { category?: string }) => n.category === "departmental" || !n.category).slice(0, 3),
+  [portalNotices]);
 
-  const clubNews = useMemo(() => {
-    const list = portalNotices.filter((n: { category?: string }) => n.category === "club").slice(0, 3);
-    return list.length > 0 ? list : defaultNotices.slice(0, 2);
-  }, [portalNotices, defaultNotices]);
+  const clubNews = useMemo(() => 
+    portalNotices.filter((n: { category?: string }) => n.category === "club").slice(0, 3),
+  [portalNotices]);
 
   const { data: recentEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ["home-recent-events"],
@@ -180,94 +155,28 @@ const Index = () => {
       button_link: siteSettings?.home_hero_button_link || sectionHero.button_link || "/portal?tab=membership",
     };
   }, [getSection, siteSettings]);
+  const quickLinks = getSection("quick_links");
+  const announcements = getSection("announcements");
+  const upcomingEvents = getSection("upcoming_events");
+  const recentAchievementsSection = getSection("recent_achievements");
+  const featuredProjectsSection = getSection("featured_projects");
+  const recentBlogSection = getSection("recent_blog");
+  const stats = getSection("stats");
+  const features = getSection("features");
+  const cta = getSection("cta");
 
-  const quickLinks = useMemo(() => {
-    const section = getSection("quick_links");
-    return {
-      links: section?.links && section.links.length > 0 ? section.links : [
-        { label: "Notice Board", url: "/notices" },
-        { label: "Academic Resources", url: "/academics" },
-        { label: "Events & Workshops", url: "/events" },
-        { label: "Member Directory", url: "/people" },
-      ],
-    };
-  }, [getSection]);
-
-  const announcements = useMemo(() => {
-    const section = getSection("announcements");
-    return {
-      dept_title: section?.dept_title || "Departmental Notices",
-      club_title: section?.club_title || "Society Updates",
-    };
-  }, [getSection]);
-
-  const upcomingEvents = useMemo(() => {
-    const section = getSection("upcoming_events");
-    return {
-      title: section?.title || "Upcoming Events & Workshops",
-      description: section?.description || "Participate in workshops, seminars, and networking sessions.",
-    };
-  }, [getSection]);
-
-  const recentAchievementsSection = useMemo(() => {
-    const section = getSection("recent_achievements");
-    return {
-      title: section?.title || "Recent Achievements",
-      description: section?.description || "Celebrating our faculty, student, and alumni milestones.",
-    };
-  }, [getSection]);
-
-  const featuredProjectsSection = useMemo(() => {
-    const section = getSection("featured_projects");
-    return {
-      title: section?.title || "Featured Projects",
-      description: section?.description || "Groundbreaking biomedical engineering innovations.",
-    };
-  }, [getSection]);
-
-  const recentBlogSection = useMemo(() => {
-    const section = getSection("recent_blog");
-    return {
-      title: section?.title || "Latest from the Blog",
-      description: section?.description || "Articles, technical updates, and student stories.",
-    };
-  }, [getSection]);
-
-  const stats = useMemo(() => {
-    const section = getSection("stats");
-    return {
-      items: section?.items && section.items.length > 0 ? section.items : [
-        { label: "Active Members", value: "350+" },
-        { label: "Published Papers", value: "60+" },
-        { label: "Workshops Conducted", value: "45+" },
-        { label: "Global Alumni", value: "180+" },
-      ],
-    };
-  }, [getSection]);
-
-  const features = useMemo(() => {
-    const section = getSection("features");
-    return {
-      badge: (section?.badge as string) || "Key Highlights",
-      title: (section?.title as string) || "Pioneering Biomedical Excellence",
-      description: (section?.description as string) || "Discover how CUET BMES bridges engineering innovation and clinical technology.",
-      items: section?.items && section.items.length > 0 ? section.items : [
-        { title: "Biomedical Innovation", desc: "Developing next-generation medical devices and diagnostics.", icon: "FlaskConical" },
-        { title: "Research & Labs", desc: "Collaborative biomedical and signal processing research.", icon: "Microscope" },
-        { title: "Workshops & Training", desc: "Hands-on medical equipment and bio-modeling bootcamps.", icon: "BookOpen" },
-      ],
-    };
-  }, [getSection]);
-
-  const cta = useMemo(() => {
-    const section = getSection("cta");
-    return {
-      title: section?.title || "Ready to Shape the Future of Healthcare?",
-      description: section?.description || "Join CUET BMES today and become part of a thriving biomedical engineering community.",
-      button_text: section?.button_text || "Join CUET BMES",
-      button_link: section?.button_link || "/portal?tab=membership",
-    };
-  }, [getSection]);
+  if (isLoading || isLoadingEvents || isLoadingAchievements) {
+    return (
+      <PageLayout>
+        <div className="container py-24 space-y-8">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          </div>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
     <PageLayout>
@@ -562,18 +471,18 @@ const Index = () => {
                 <motion.div key={event.id} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] min-w-0 snap-start" variants={itemVariants}>
                   <div className="group h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-2 flex flex-col">
                     <div className="relative h-48 w-full overflow-hidden">
-                      <LazyImage 
+                      <img 
                         src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
                         alt={event.title} 
                         className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110 p-2"
-                        containerClassName="h-full w-full bg-muted/20"
+                        referrerPolicy="no-referrer"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
-                      <div className="absolute bottom-4 left-4 text-white z-10">
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+                      <div className="absolute bottom-4 left-4 text-white">
                         <p className="text-xs font-bold bg-primary/90 px-2 py-0.5 rounded-full inline-block mb-1">{format(new Date(event.date), "MMM dd, yyyy")}</p>
                       </div>
                       {event.location && (
-                        <div className="absolute top-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm z-10">
+                        <div className="absolute top-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
                           {event.location}
                         </div>
                       )}
@@ -674,20 +583,20 @@ const Index = () => {
             {recentAchievements.map((achievement: Record<string, unknown>) => (
               <motion.div key={achievement.id as string} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                 <div className="relative h-48 overflow-hidden">
-                  <LazyImage 
+                  <img 
                     src={(achievement.image_url as string) || `https://picsum.photos/seed/${achievement.id}/800/600`} 
                     alt={achievement.title as string} 
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    containerClassName="h-full w-full bg-muted/20"
+                    referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-                  <div className="absolute bottom-4 left-4 text-white z-10">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                  <div className="absolute bottom-4 left-4 text-white">
                     <span className="inline-block rounded-full bg-primary/90 px-2 py-0.5 text-xs font-semibold text-primary-foreground capitalize backdrop-blur-sm">
                       {achievement.category as string}
                     </span>
                   </div>
                   {(achievement.year || achievement.date_text) && (
-                    <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm z-10">
+                    <div className="absolute bottom-4 right-4 rounded-lg bg-black/40 px-3 py-1 text-xs font-medium text-white backdrop-blur-sm">
                       {(achievement.year || achievement.date_text) as string}
                     </div>
                   )}

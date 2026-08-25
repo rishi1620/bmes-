@@ -1,5 +1,5 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope, Search } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
@@ -254,24 +254,10 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
             </div>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => window.dispatchEvent(new CustomEvent("bmes:open-search"))}
-              className="gap-2 h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground bg-background/50 border-border/60"
-              title="Search Portal (Cmd+K)"
-            >
-              <Search className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">Search...</span>
-              <kbd className="pointer-events-none hidden sm:inline-flex h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-                <span className="text-xs">⌘</span>K
-              </kbd>
-            </Button>
-
-            <Button variant="outline" size="sm" className="hidden md:flex gap-2 h-8 text-xs" asChild>
+          <div className="flex items-center gap-4">
+            <Button variant="outline" size="sm" className="hidden md:flex gap-2" asChild>
               <Link to="/" target="_blank">
-                <ExternalLink className="h-3.5 w-3.5" />
+                <ExternalLink className="h-4 w-4" />
                 View Site
               </Link>
             </Button>

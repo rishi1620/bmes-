@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, Search } from "lucide-react";
+import { Menu, X, LogOut } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -85,41 +85,18 @@ const Navbar = () => {
               </Link>
           ))}
           
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.dispatchEvent(new CustomEvent("bmes:open-search"))}
-            className="ml-2 gap-2 h-8 px-2.5 text-xs text-muted-foreground hover:text-foreground bg-background/50 border-border/60 hover:bg-muted/60"
-            title="Search website (Cmd+K)"
-          >
-            <Search className="h-3.5 w-3.5" />
-            <span className="hidden xl:inline">Search...</span>
-            <kbd className="pointer-events-none hidden sm:inline-flex h-4 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100">
-              <span className="text-xs">⌘</span>K
-            </kbd>
-          </Button>
-
           {user && (
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-1 gap-1.5 h-8 text-xs text-muted-foreground hover:text-foreground">
-              <LogOut className="h-3.5 w-3.5" />
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
+              <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
           )}
           <ThemeToggle />
         </nav>
 
-        <div className="flex items-center gap-1.5 lg:hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 text-muted-foreground"
-            onClick={() => window.dispatchEvent(new CustomEvent("bmes:open-search"))}
-            title="Search"
-          >
-            <Search className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center gap-2 lg:hidden">
           <ThemeToggle />
-          <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => setMobileOpen(!mobileOpen)}>
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>

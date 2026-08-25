@@ -20,20 +20,8 @@ class NotificationHub {
     if (this.wss) return;
 
     this.wss = new WebSocketServer({
-      noServer: true,
-    });
-
-    server.on("upgrade", (request, socket, head) => {
-      try {
-        const url = new URL(request.url || "", `http://${request.headers.host || "localhost"}`);
-        if (url.pathname === "/ws/notifications") {
-          this.wss?.handleUpgrade(request, socket, head, (ws) => {
-            this.wss?.emit("connection", ws, request);
-          });
-        }
-      } catch {
-        // ignore errors and do not abort socket for other listeners
-      }
+      server,
+      path: "/ws/notifications",
     });
 
     this.wss.on("connection", (ws: WebSocket) => {

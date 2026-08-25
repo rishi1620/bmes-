@@ -1,17 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
-import { DEFAULT_SEED_DATA } from './defaultSeedData';
 
 const envUrl = import.meta.env.VITE_SUPABASE_URL;
 const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Check if a token string is a valid Supabase API key (JWT or publishable key)
-function isValidApiKey(token?: string | null): boolean {
+// Check if a token string is a syntactically valid 3-part JWT
+function isValidJwt(token?: string | null): boolean {
   if (!token || typeof token !== 'string') return false;
-  const clean = token.trim();
-  if (clean.length < 15) return false;
-  if (clean.includes('placeholder-')) return false;
-  return true;
+  const parts = token.trim().split('.');
+  return parts.length === 3 && parts.every((p) => p.length > 0);
 }
 
 // Check whether a valid Supabase project URL is provided
@@ -22,8 +19,8 @@ const hasValidUrl = !!(
   !envUrl.includes('placeholder-project.supabase.co')
 );
 
-// Check whether a valid Supabase key is provided
-const hasValidKey = isValidApiKey(envKey);
+// Check whether a valid Supabase anon key (3-part JWT) is provided
+const hasValidKey = isValidJwt(envKey);
 
 // If either the URL is missing/placeholder or the key is not a valid 3-part JWT, operate in robust local/fallback mode
 export const isPlaceholder = !hasValidUrl || !hasValidKey;
@@ -36,29 +33,16 @@ const SUPABASE_URL = hasValidUrl ? envUrl.trim() : 'https://placeholder-project.
 const SUPABASE_PUBLISHABLE_KEY = hasValidKey ? (envKey as string).trim() : DEMO_JWT;
 
 if (isPlaceholder) {
-  console.info('Supabase running in local fallback mode (mock database enabled with seed data).');
+  console.info('Supabase running in local fallback mode (mock database enabled).');
 }
 
-// In-memory / localStorage mock database store with instant seed data fallback
+// In-memory / localStorage mock database store for seamless local operations
 const getMockTable = (tableName: string): Record<string, unknown>[] => {
   try {
     const raw = localStorage.getItem(`mock_sb_${tableName}`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
+    if (raw) return JSON.parse(raw);
   } catch {
     // ignore parsing errors
-  }
-  // Fall back to built-in seed data
-  const seed = DEFAULT_SEED_DATA[tableName];
-  if (seed && seed.length > 0) {
-    try {
-      localStorage.setItem(`mock_sb_${tableName}`, JSON.stringify(seed));
-    } catch {
-      // ignore storage quota
-    }
-    return [...seed];
   }
   return [];
 };
@@ -69,30 +53,6 @@ const setMockTable = (tableName: string, data: Record<string, unknown>[]) => {
   } catch {
     // ignore storage quota errors
   }
-};
-
-// Helper to get storage files for mock storage
-const getMockStorageFiles = (bucket: string): Array<{ name: string; id: string; size: number; mimetype: string; created_at: string; updated_at: string }> => {
-  try {
-    const raw = localStorage.getItem(`mock_storage_${bucket}`);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-    }
-  } catch {
-    // ignore
-  }
-  if (bucket === "media" && DEFAULT_SEED_DATA.media_library) {
-    return DEFAULT_SEED_DATA.media_library.map((m) => ({
-      name: String(m.file_name || "image.jpg"),
-      id: String(m.id || crypto.randomUUID()),
-      size: Number(m.file_size || 250000),
-      mimetype: String(m.file_type || "image/jpeg"),
-      created_at: String(m.created_at || new Date().toISOString()),
-      updated_at: String(m.created_at || new Date().toISOString()),
-    }));
-  }
-  return [];
 };
 
 // Custom fetch handler for placeholder / fallback mode
@@ -175,25 +135,13 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
 
   // Handle Storage Endpoints
   if (urlString.includes('/storage/v1/')) {
-    const bucketMatch = urlString.match(/\/storage\/v1\/(?:object\/list|object|bucket)\/([^/?#]+)/);
-    const bucket = bucketMatch ? bucketMatch[1] : 'media';
-
     if (urlString.includes('/object/list/')) {
-      const files = getMockStorageFiles(bucket);
-      return new Response(JSON.stringify(files), {
+      return new Response(JSON.stringify([]), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    if (method === 'DELETE') {
-      return new Response(JSON.stringify({ message: 'Successfully deleted' }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
-
-    return new Response(JSON.stringify({ Key: `${bucket}/file-${Date.now()}` }), {
+    return new Response(JSON.stringify({ Key: 'media/demo.png' }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -210,7 +158,7 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
 
     // Filter by columns (e.g., id=eq.xxx, setting_key=eq.xxx, user_id=eq.xxx, etc.)
     params.forEach((val, key) => {
-      if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset' || key === 'or') return;
+      if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset') return;
       if (val.startsWith('eq.')) {
         const targetVal = val.slice(3);
         items = items.filter((item) => String(item[key]) === targetVal);
@@ -219,14 +167,6 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
         items = items.filter((item) => inVals.includes(String(item[key])));
       }
     });
-
-    const limit = params.get('limit');
-    if (limit) {
-      const limitNum = parseInt(limit, 10);
-      if (!isNaN(limitNum) && limitNum > 0) {
-        items = items.slice(0, limitNum);
-      }
-    }
 
     if (method === 'GET' || method === 'HEAD') {
       const isHead = method === 'HEAD' || headers.get('Range-Unit') === 'items';
@@ -283,7 +223,7 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
       const updated = tableData.map((item) => {
         let matches = true;
         params.forEach((val, key) => {
-          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset' || key === 'or') return;
+          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset') return;
           if (val.startsWith('eq.') && String(item[key]) !== val.slice(3)) {
             matches = false;
           }
@@ -317,7 +257,7 @@ const handleMockFetch = async (input: RequestInfo | URL, init?: RequestInit): Pr
       const remaining = tableData.filter((item) => {
         let matches = true;
         params.forEach((val, key) => {
-          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset' || key === 'or') return;
+          if (key === 'select' || key === 'order' || key === 'limit' || key === 'offset') return;
           if (val.startsWith('eq.') && String(item[key]) !== val.slice(3)) {
             matches = false;
           }
