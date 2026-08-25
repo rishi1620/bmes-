@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Loader2, CheckCircle2, Clock, XCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Link } from "react-router-dom";
+import { notifyAdmins } from "@/lib/realtimeBroadcast";
 
 interface RegistrationStatus {
   status: string | null;
@@ -77,9 +78,18 @@ export function MembershipRegistrationForm() {
         user_id: user?.id || null
       };
 
-      const { error } = await supabase.from("membership_registrations").insert([payload]);
+      const { data: insertedData, error } = await supabase.from("membership_registrations").insert([payload]).select().maybeSingle();
 
       if (error) throw error;
+
+      // Broadcast real-time notification to all active admin dashboards
+      notifyAdmins({
+        id: insertedData?.id ? `mem-${insertedData.id}` : undefined,
+        type: "membership",
+        title: "New Membership Application Received",
+        description: `${formData.full_name} (${formData.email}) • Dept: ${formData.department || 'BME'}`,
+        metadata: { ...formData },
+      });
 
       // Send confirmation email
       try {
@@ -89,6 +99,8 @@ export function MembershipRegistrationForm() {
           body: JSON.stringify({
             email: formData.email,
             name: formData.full_name,
+            studentId: formData.student_id,
+            department: formData.department,
           }),
         });
         

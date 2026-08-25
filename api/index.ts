@@ -3,6 +3,8 @@ import cors from "cors";
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 import crypto from "crypto";
+import { generateSitemapRoutes, buildSitemapXml } from "../src/lib/sitemapGenerator.ts";
+import { notificationHub } from "./notificationHub.ts";
 
 dotenv.config();
 
@@ -19,6 +21,46 @@ const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Real-time Notification Endpoints for Admin
+app.get("/api/notifications/recent", (req, res) => {
+  res.json({ notifications: notificationHub.getRecent() });
+});
+
+app.post("/api/notifications/broadcast", (req, res) => {
+  const { type, title, description, metadata } = req.body;
+  if (!title || !type) {
+    return res.status(400).json({ error: "Missing required notification fields (title, type)" });
+  }
+
+  const notification = notificationHub.broadcast({
+    type,
+    title,
+    description: description || "",
+    metadata: metadata || {},
+  });
+
+  res.json({ success: true, notification });
+});
+
+// Dynamic Sitemap endpoint for search engines and SEO crawlers
+app.get(["/sitemap.xml", "/api/sitemap"], async (req, res) => {
+  try {
+    const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
+    const host = req.headers["x-forwarded-host"] || req.get("host");
+    const currentBaseUrl = host ? `${protocol}://${host}` : APP_URL;
+
+    const routes = await generateSitemapRoutes();
+    const xml = buildSitemapXml(routes, currentBaseUrl);
+
+    res.header("Content-Type", "application/xml; charset=utf-8");
+    res.header("Cache-Control", "public, max-age=3600, s-maxage=86400");
+    return res.send(xml);
+  } catch (err) {
+    console.error("Error generating dynamic sitemap:", err);
+    return res.status(500).send("Error generating sitemap");
+  }
+});
 
 // Health check
 app.get("/api/health", (req, res) => {
@@ -126,6 +168,14 @@ app.post("/api/send-confirmation", async (req, res) => {
       `,
     });
 
+    // Broadcast real-time notification to admin clients
+    notificationHub.broadcast({
+      type: "registration",
+      title: "New Event Registration",
+      description: `${name} registered for ${eventTitle}`,
+      metadata: { email, name, eventTitle },
+    });
+
     res.json({ success: true });
   } catch (err) {
     console.error("Detailed Nodemailer error in /api/send-confirmation:", err);
@@ -134,15 +184,23 @@ app.post("/api/send-confirmation", async (req, res) => {
 });
 
 app.post("/api/send-membership-confirmation", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("GMAIL credentials are not set");
-    return res.status(500).json({ error: "Email service is not configured on the server." });
-  }
-
-  const { email, name } = req.body;
+  const { email, name, studentId, department } = req.body;
 
   if (!email || !name) {
     return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // Broadcast real-time notification to admin clients
+  notificationHub.broadcast({
+    type: "membership",
+    title: "New Membership Application",
+    description: `${name} (${email}) submitted a new membership application.`,
+    metadata: { email, name, studentId, department },
+  });
+
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn("GMAIL credentials are not set; notification broadcasted without email.");
+    return res.json({ success: true, notice: "Notification sent (email service unconfigured)" });
   }
 
   try {

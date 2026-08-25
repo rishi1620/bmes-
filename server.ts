@@ -1,7 +1,9 @@
 import express from "express";
+import http from "http";
 import dotenv from "dotenv";
 import path from "path";
 import apiApp from "./api/index.ts";
+import { notificationHub } from "./api/notificationHub.ts";
 
 dotenv.config();
 
@@ -16,6 +18,10 @@ process.on('uncaughtException', (err) => {
 async function startServer() {
   const app = express();
   const PORT = 3000;
+  const httpServer = http.createServer(app);
+
+  // Initialize WebSocket notification hub
+  notificationHub.init(httpServer);
 
   // Mount the API routes from api/index.js
   app.use(apiApp);
@@ -24,7 +30,7 @@ async function startServer() {
   if (process.env.NODE_ENV !== "production") {
     const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
-      server: { middlewareMode: true },
+      server: { middlewareMode: true, hmr: { server: httpServer } },
       appType: "spa",
     });
     app.use(vite.middlewares);
@@ -36,7 +42,7 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  httpServer.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
 }

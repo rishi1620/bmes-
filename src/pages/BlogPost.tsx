@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { motion, useScroll, useSpring } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
 import PageLayout from "@/components/layout/PageLayout";
@@ -15,6 +16,13 @@ const BlogPost = () => {
   const { slug } = useParams();
   const [redirecting, setRedirecting] = useState(false);
 
+  const { scrollYProgress } = useScroll();
+  const scaleX = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 30,
+    restDelta: 0.001,
+  });
+
   const { data: post, isLoading } = useQuery({
     queryKey: ["blog-post", slug],
     queryFn: async () => {
@@ -28,6 +36,13 @@ const BlogPost = () => {
       return data as Tables<"blog_posts">;
     },
   });
+
+  const estimatedReadingTime = useMemo(() => {
+    if (!post?.content) return "1 min read";
+    const wordsCount = post.content.trim().split(/\s+/).filter(Boolean).length;
+    const minutes = Math.max(1, Math.ceil(wordsCount / 200));
+    return `${minutes} min read`;
+  }, [post?.content]);
 
   useEffect(() => {
     if (post?.external_url) {
@@ -69,6 +84,14 @@ const BlogPost = () => {
 
   return (
     <PageLayout>
+      {/* Smooth reading progress bar fixed at the top of the viewport */}
+      <motion.div
+        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary via-primary/90 to-accent origin-left z-[60] shadow-[0_1px_4px_rgba(0,0,0,0.15)]"
+        style={{ scaleX }}
+        aria-label="Reading progress"
+        role="progressbar"
+      />
+
       <article className="container py-16 max-w-4xl">
         <Button asChild variant="ghost" className="mb-8 pl-0 hover:bg-transparent hover:text-primary">
           <Link to="/blog" className="flex items-center gap-2">
@@ -100,12 +123,10 @@ const BlogPost = () => {
                 <span>{format(new Date(post.published_at), "MMMM d, yyyy")}</span>
               </div>
             )}
-            {post.excerpt && (
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                <span>{post.excerpt}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4" />
+              <span>{post.excerpt || estimatedReadingTime}</span>
+            </div>
           </div>
           <ShareButtons url={window.location.href} title={post.title} />
         </div>
