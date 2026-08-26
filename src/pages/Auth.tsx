@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { Navigate } from "react-router-dom";
-import { Dna } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { Dna, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,28 +10,64 @@ import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 
 const Auth = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signIn, signUp, resetPassword } = useAuth();
+  const location = useLocation();
   const [isLogin, setIsLogin] = useState(true);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const { signIn, signUp, resetPassword } = useAuth();
 
-  if (loading) return null;
-  if (user) return <Navigate to="/admin" replace />;
+  // Derive redirection target from navigation state if available
+  const redirectTarget = (location.state as { from?: { pathname?: string } })?.from?.pathname || "/admin";
+
+  useEffect(() => {
+    console.info(`[Auth Page] 📄 Auth route mounted. State:`, {
+      loading,
+      hasUser: !!user,
+      userId: user?.id,
+      email: user?.email,
+      targetAfterAuth: redirectTarget,
+      pathname: location.pathname
+    });
+  }, [loading, user, redirectTarget, location.pathname]);
+
+  if (loading) {
+    console.info("[Auth Page] ⏳ AuthProvider is loading session, rendering session check loader...");
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-muted p-4">
+        <div className="flex flex-col items-center gap-3 text-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary animate-pulse">
+            <Dna className="h-6 w-6" />
+          </div>
+          <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            <span>Verifying authentication session...</span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) {
+    console.info(`[Auth Page] 🔀 User is already authenticated (${user.email}). Redirecting to: ${redirectTarget}`);
+    return <Navigate to={redirectTarget} replace />;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     
     if (isForgotPassword) {
+      console.info(`[Auth Page] 🔑 Submitting password reset request for: ${email}`);
       const { error } = await resetPassword(email);
       setSubmitting(false);
       if (error) {
+        console.warn(`[Auth Page] ❌ Password reset request failed for ${email}:`, error);
         toast({ title: "Error", description: error.message, variant: "destructive" });
       } else {
+        console.info(`[Auth Page] ✅ Password reset email requested successfully for ${email}`);
         toast({ title: "Check your email", description: "We sent you a password reset link." });
         setIsForgotPassword(false);
         setIsLogin(true);
@@ -39,30 +75,41 @@ const Auth = () => {
       return;
     }
 
-    const { error } = isLogin
-      ? await signIn(email, password)
-      : await signUp(email, password, fullName);
-    setSubmitting(false);
+    if (isLogin) {
+      console.info(`[Auth Page] 🔐 Submitting Sign In for: ${email}`);
+      const { error } = await signIn(email, password);
+      setSubmitting(false);
 
-    if (error) {
-      console.error("Full error object:", error);
-      // Supabase often returns 400 or 422 for existing users during signup, but we'll catch 409 just in case
-      if (error.message.toLowerCase().includes("already registered") || 
-          error.message.includes("409") || 
-          error.message.toLowerCase().includes("already exists") ||
-          error.message.toLowerCase().includes("user already registered")) {
-        toast({ 
-          title: "Account exists", 
-          description: "This email is already registered. Please sign in instead.", 
-          variant: "destructive" 
-        });
-        // Automatically switch to login view to help the user
-        setIsLogin(true);
+      if (error) {
+        console.warn(`[Auth Page] ❌ Sign In failed for ${email}:`, error.message, error);
+        toast({ title: "Sign In Error", description: error.message, variant: "destructive" });
       } else {
-        toast({ title: "Error", description: error.message, variant: "destructive" });
+        console.info(`[Auth Page] ✅ Sign In successful for ${email}! Route will automatically redirect.`);
       }
-    } else if (!isLogin) {
-      toast({ title: "Check your email", description: "We sent you a confirmation link." });
+    } else {
+      console.info(`[Auth Page] 📝 Submitting Sign Up for: ${email} (${fullName})`);
+      const { error } = await signUp(email, password, fullName);
+      setSubmitting(false);
+
+      if (error) {
+        console.warn(`[Auth Page] ❌ Sign Up error for ${email}:`, error);
+        if (error.message.toLowerCase().includes("already registered") || 
+            error.message.includes("409") || 
+            error.message.toLowerCase().includes("already exists") ||
+            error.message.toLowerCase().includes("user already registered")) {
+          toast({ 
+            title: "Account exists", 
+            description: "This email is already registered. Please sign in instead.", 
+            variant: "destructive" 
+          });
+          setIsLogin(true);
+        } else {
+          toast({ title: "Sign Up Error", description: error.message, variant: "destructive" });
+        }
+      } else {
+        console.info(`[Auth Page] ✅ Sign Up successful for ${email}. Showing confirmation notice.`);
+        toast({ title: "Check your email", description: "We sent you a confirmation link." });
+      }
     }
   };
 
@@ -120,34 +167,63 @@ const Auth = () => {
                 {submitting ? "Please wait..." : isForgotPassword ? "Send Reset Link" : isLogin ? "Sign In" : "Sign Up"}
               </Button>
             </form>
-            <p className="mt-4 text-center text-sm text-muted-foreground">
+            <div className="mt-4 text-center text-sm text-muted-foreground">
               {isForgotPassword ? (
-                <button onClick={() => setIsForgotPassword(false)} className="font-medium text-primary hover:underline">
+                <button 
+                  type="button"
+                  onClick={() => {
+                    console.info("[Auth Page] 🔄 Switching back to Login view from Forgot Password.");
+                    setIsForgotPassword(false);
+                    setIsLogin(true);
+                  }} 
+                  className="font-medium text-primary hover:underline"
+                >
                   Back to Login
                 </button>
               ) : (
                 <>
                   {isLogin ? (
                     <>
-                      <button onClick={() => setIsForgotPassword(true)} className="block w-full mb-2 font-medium text-primary hover:underline">
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          console.info("[Auth Page] 🔄 Switching to Forgot Password view.");
+                          setIsForgotPassword(true);
+                        }} 
+                        className="block w-full mb-2 font-medium text-primary hover:underline"
+                      >
                         Forgot password?
                       </button>
-                      Don't have an account?{" "}
-                      <button onClick={() => setIsLogin(false)} className="font-medium text-primary hover:underline">
+                      <span>Don't have an account? </span>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          console.info("[Auth Page] 🔄 Switching to Sign Up view.");
+                          setIsLogin(false);
+                        }} 
+                        className="font-medium text-primary hover:underline"
+                      >
                         Sign Up
                       </button>
                     </>
                   ) : (
                     <>
-                      Already have an account?{" "}
-                      <button onClick={() => setIsLogin(true)} className="font-medium text-primary hover:underline">
+                      <span>Already have an account? </span>
+                      <button 
+                        type="button"
+                        onClick={() => {
+                          console.info("[Auth Page] 🔄 Switching to Sign In view.");
+                          setIsLogin(true);
+                        }} 
+                        className="font-medium text-primary hover:underline"
+                      >
                         Sign In
                       </button>
                     </>
                   )}
                 </>
               )}
-            </p>
+            </div>
           </CardContent>
         </Card>
       </motion.div>
