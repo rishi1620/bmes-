@@ -96,7 +96,12 @@ const About = () => {
                     </div>
                     <div className="mt-6 flex items-center gap-4">
                       {settings.about_hod_image ? (
-                        <img src={settings.about_hod_image} alt={settings.about_hod_name} className="h-12 w-12 rounded-full object-cover" />
+                        <img 
+                          src={settings.about_hod_image} 
+                          alt={settings.about_hod_name} 
+                          className="h-12 w-12 rounded-full object-cover"
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                        />
                       ) : (
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">HOD</div>
                       )}
@@ -117,7 +122,12 @@ const About = () => {
                     </div>
                     <div className="mt-6 flex items-center gap-4">
                       {settings.about_pres_image ? (
-                        <img src={settings.about_pres_image} alt={settings.about_pres_name} className="h-12 w-12 rounded-full object-cover" />
+                        <img 
+                          src={settings.about_pres_image} 
+                          alt={settings.about_pres_name} 
+                          className="h-12 w-12 rounded-full object-cover"
+                          onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                        />
                       ) : (
                         <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">PRES</div>
                       )}

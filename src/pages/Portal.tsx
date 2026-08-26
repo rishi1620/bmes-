@@ -290,10 +290,11 @@ const Portal = () => {
       <section className="hero-gradient py-16 md:py-24 relative overflow-hidden">
         <div className="absolute inset-0 z-0 opacity-20">
           <img 
-            src={settings.portal_hero_bg_image || "https://mtibdsxdjvxtmvuhvsev.supabase.co/storage/v1/object/public/media/dna-background.png"} 
+            src={settings.portal_hero_bg_image || "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80"} 
             alt="Background" 
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
+            onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
           />
         </div>
         <div className="container text-center relative z-10">

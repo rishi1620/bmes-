@@ -525,12 +525,15 @@ const Index = () => {
               {recentEvents.map((event: Tables<"events">) => (
                 <motion.div key={event.id} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] min-w-0 snap-start" variants={itemVariants}>
                   <div className="group h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-2 flex flex-col">
-                    <div className="relative h-48 w-full overflow-hidden">
+                    <div className="relative h-48 w-full overflow-hidden bg-muted/40">
                       <img 
-                        src={event.image_url || "https://picsum.photos/seed/event/800/600"} 
+                        src={event.image_url || "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80"} 
                         alt={event.title} 
                         className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-110 p-2"
                         referrerPolicy="no-referrer"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=800&q=80";
+                        }}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
                       <div className="absolute bottom-4 left-4 text-white">
@@ -637,12 +640,15 @@ const Index = () => {
           >
             {recentAchievements.map((achievement: Record<string, unknown>) => (
               <motion.div key={achievement.id as string} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative h-48 overflow-hidden bg-muted/40">
                   <img 
-                    src={(achievement.image_url as string) || `https://picsum.photos/seed/${achievement.id}/800/600`} 
+                    src={(achievement.image_url as string) || "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80"} 
                     alt={achievement.title as string} 
                     className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80";
+                    }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
                   <div className="absolute bottom-4 left-4 text-white">

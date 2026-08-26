@@ -85,11 +85,24 @@ const Navbar = () => {
               </Link>
           ))}
           
-          {user && (
-            <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
+          {user ? (
+            <div className="flex items-center gap-1 ml-2">
+              <Link to="/admin">
+                <Button variant="outline" size="sm" className="gap-1.5 text-xs font-semibold">
+                  Admin Panel
+                </Button>
+              </Link>
+              <Button variant="ghost" size="sm" onClick={handleSignOut} className="gap-2 text-muted-foreground hover:text-foreground">
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Link to="/auth" className="ml-2">
+              <Button size="sm" className="gap-1.5 text-xs font-semibold">
+                Sign In
+              </Button>
+            </Link>
           )}
           <ThemeToggle />
         </nav>
@@ -118,17 +131,36 @@ const Navbar = () => {
               </Link>
             )}
           
-          {user && (
-            <button
-              onClick={() => {
-                handleSignOut();
-                setMobileOpen(false);
-              }}
-              className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </button>
+          {user ? (
+            <div className="flex flex-col gap-1 pt-2 border-t border-border mt-2">
+              <Link
+                to="/admin"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-semibold text-primary hover:bg-primary/10"
+              >
+                Admin Panel
+              </Link>
+              <button
+                onClick={() => {
+                  handleSignOut();
+                  setMobileOpen(false);
+                }}
+                className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </button>
+            </div>
+          ) : (
+            <div className="pt-2 border-t border-border mt-2">
+              <Link
+                to="/auth"
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center justify-center rounded-md bg-primary text-primary-foreground px-3 py-2 text-sm font-semibold hover:bg-primary/90"
+              >
+                Sign In
+              </Link>
+            </div>
           )}
           </nav>
         </div>

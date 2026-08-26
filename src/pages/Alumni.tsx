@@ -36,7 +36,12 @@ const Alumni = () => {
                 <blockquote key={a.id} className="rounded-xl border border-border bg-card p-6 shadow-elevated">
                   <div className="flex items-center gap-3 mb-4">
                     {a.photo ? (
-                      <img src={a.photo} alt={a.name} className="h-12 w-12 rounded-full object-cover" />
+                      <img 
+                        src={a.photo} 
+                        alt={a.name} 
+                        className="h-12 w-12 rounded-full object-cover" 
+                        onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                      />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary font-bold">{a.name.charAt(0)}</div>
                     )}
@@ -67,7 +72,12 @@ const Alumni = () => {
               <div key={a.id} className="rounded-xl border border-border bg-card p-6 shadow-elevated transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="flex items-center gap-3 mb-3">
                   {a.photo ? (
-                    <img src={a.photo} alt={a.name} className="h-14 w-14 rounded-full object-cover" />
+                    <img 
+                      src={a.photo} 
+                      alt={a.name} 
+                      className="h-14 w-14 rounded-full object-cover" 
+                      onError={(e) => { (e.target as HTMLElement).style.display = 'none'; }}
+                    />
                   ) : (
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary font-bold text-lg">
                       {a.name.charAt(0)}

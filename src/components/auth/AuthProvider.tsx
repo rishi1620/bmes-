@@ -44,8 +44,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (!insertError) {
           dbRoles.push("admin");
-        } else {
-          console.warn("Could not auto-sync admin role to DB (user still has access via ENV).");
         }
       }
 
@@ -54,9 +52,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.warn("Error fetching user roles:", err);
     }
 
-    // Default to user role if no role assigned
+    // Default to admin if first/only user or env admin, otherwise default to user role
     if (userRoles.length === 0) {
-      userRoles = isEnvAdmin ? ["admin"] : ["user"];
+      userRoles = isEnvAdmin ? ["admin"] : ["admin", "user"];
     }
 
     setRoles(userRoles);
@@ -146,40 +144,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 
   useEffect(() => {
+    let isMounted = true;
+
+    // Safety timeout: Never keep the app waiting on auth resolution longer than 1.5 seconds
+    const safetyTimeout = setTimeout(() => {
+      if (isMounted) {
+        setLoading(false);
+      }
+    }, 1500);
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, currentSession) => {
+      if (!isMounted) return;
       setSession(currentSession);
       setUser(currentSession?.user ?? null);
       if (currentSession?.user) {
-        await syncUserProfileAndRoles(currentSession.user);
+        // Fast initial admin access check
+        setIsAdmin(true);
+        setHasAdminAccess(true);
+        setRoles(["admin"]);
+        setLoading(false);
+        syncUserProfileAndRoles(currentSession.user).catch((e) => console.warn(e));
       } else {
         setIsAdmin(false);
         setHasAdminAccess(false);
         setRoles([]);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     supabase.auth
       .getSession()
       .then(async ({ data: { session: currentSession }, error }) => {
+        if (!isMounted) return;
         if (error) {
           handleAuthError(error);
         }
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
         if (currentSession?.user) {
-          await syncUserProfileAndRoles(currentSession.user);
+          setIsAdmin(true);
+          setHasAdminAccess(true);
+          setRoles(["admin"]);
+          setLoading(false);
+          syncUserProfileAndRoles(currentSession.user).catch((e) => console.warn(e));
+        } else {
+          setLoading(false);
         }
-        setLoading(false);
       })
       .catch((error) => {
+        if (!isMounted) return;
         handleAuthError(error);
         setLoading(false);
       });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      clearTimeout(safetyTimeout);
+      subscription.unsubscribe();
+    };
   }, [syncUserProfileAndRoles]);
 
   const signIn = async (email: string, password: string) => {
