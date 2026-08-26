@@ -19,16 +19,7 @@ const Auth = () => {
   const [submitting, setSubmitting] = useState(false);
   const { signIn, signUp, resetPassword } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-10 w-10 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <p className="text-sm text-muted-foreground animate-pulse">Checking authentication session...</p>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return null;
   if (user) return <Navigate to="/admin" replace />;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -159,11 +150,6 @@ const Auth = () => {
             </p>
           </CardContent>
         </Card>
-        <div className="mt-4 text-center">
-          <a href="/" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-            ← Return to Home Website
-          </a>
-        </div>
       </motion.div>
     </div>
   );

@@ -1,4 +1,3 @@
-import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,50 +22,44 @@ interface Person {
   role_type?: string | null;
 }
 
-const PersonCard = ({ person }: { person: Person }) => {
-  const [imgError, setImgError] = useState(false);
-  const imageUrl = (!imgError && (person.image_url || person.photo)) ? (person.image_url || person.photo) : null;
-
-  return (
-    <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
-      <div className="aspect-square w-full overflow-hidden bg-muted relative group">
-        {imageUrl ? (
-          <img
-            src={imageUrl}
-            alt={person.name}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-            referrerPolicy="no-referrer"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
-            {person.name.charAt(0)}
-          </div>
-        )}
-        
-        {/* Overlay with social links */}
-        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-          {person.linkedin && (
-            <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-[#0077b5] hover:scale-110 transition-transform">
-              <Linkedin className="h-5 w-5" />
-            </a>
-          )}
-          {person.email && (
-            <a href={`mailto:${person.email}`} className="p-2 bg-white rounded-full text-primary hover:scale-110 transition-transform">
-              <Mail className="h-5 w-5" />
-            </a>
-          )}
+const PersonCard = ({ person }: { person: Person }) => (
+  <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
+    <div className="aspect-square w-full overflow-hidden bg-muted relative group">
+      {person.image_url || person.photo ? (
+        <img
+          src={person.image_url || person.photo}
+          alt={person.name}
+          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+          referrerPolicy="no-referrer"
+        />
+      ) : (
+        <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">
+          {person.name.charAt(0)}
         </div>
+      )}
+      
+      {/* Overlay with social links */}
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+        {person.linkedin && (
+          <a href={person.linkedin} target="_blank" rel="noopener noreferrer" className="p-2 bg-white rounded-full text-[#0077b5] hover:scale-110 transition-transform">
+            <Linkedin className="h-5 w-5" />
+          </a>
+        )}
+        {person.email && (
+          <a href={`mailto:${person.email}`} className="p-2 bg-white rounded-full text-primary hover:scale-110 transition-transform">
+            <Mail className="h-5 w-5" />
+          </a>
+        )}
       </div>
-      <CardContent className="p-5 text-center flex-1 flex flex-col">
-        <h3 className="font-bold text-lg line-clamp-1 mb-1">{person.name}</h3>
-        <p className="text-sm text-primary font-medium mb-2 line-clamp-1">{person.role || person.designation}</p>
-        {person.department && <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{person.department}</p>}
-        {person.bio && <p className="text-xs text-muted-foreground line-clamp-3 mt-auto">{person.bio}</p>}
-      </CardContent>
-    </Card>
-  );
-};
+    </div>
+    <CardContent className="p-5 text-center flex-1 flex flex-col">
+      <h3 className="font-bold text-lg line-clamp-1 mb-1">{person.name}</h3>
+      <p className="text-sm text-primary font-medium mb-2 line-clamp-1">{person.role || person.designation}</p>
+      {person.department && <p className="text-xs text-muted-foreground mb-3 line-clamp-1">{person.department}</p>}
+      {person.bio && <p className="text-xs text-muted-foreground line-clamp-3 mt-auto">{person.bio}</p>}
+    </CardContent>
+  </Card>
+);
 
 const People = () => {
   const { data: members, isLoading: isLoadingMembers } = useQuery({

@@ -125,12 +125,7 @@ const Achievements = () => {
                       <Card className="group overflow-hidden transition-all hover:shadow-glow hover:-translate-y-1 h-full">
                         {c.image_url && (
                           <div className="h-48 w-full overflow-hidden bg-muted">
-                            <img 
-                              src={c.image_url} 
-                              alt={c.title} 
-                              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                              onError={(e) => { (e.target as HTMLElement).parentElement!.style.display = 'none'; }}
-                            />
+                            <img src={c.image_url} alt={c.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
                           </div>
                         )}
                         <CardHeader className="pb-3">

@@ -1,96 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
-        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>daily</changefreq>
+    <loc>https://cuetbmes.vercel.app/</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/about</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/academics</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/people</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/research</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/activities</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/portal</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/notices</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/projects</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/events</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/blog</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/achievements</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/alumni</loc>
-    <lastmod>2026-08-26</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/contact</loc>
-    <lastmod>2026-08-26</lastmod>
+    <loc>https://cuetbmes.vercel.app/about</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ais-dev-wbk2rjsujabb3wffhb4nm6-331737499297.asia-southeast1.run.app/auth</loc>
-    <lastmod>2026-08-26</lastmod>
+    <loc>https://cuetbmes.vercel.app/academics</loc>
+    <lastmod>2026-03-26</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuetbmes.vercel.app/activities</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://cuetbmes.vercel.app/portal</loc>
+    <lastmod>2026-03-26</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>

@@ -50,18 +50,10 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
       
       setVerificationToken(data.verificationToken);
       setShowOtpInput(true);
-      if (data.demoCode) {
-        setOtp(data.demoCode);
-        toast({
-          title: "Verification Code (Demo Mode)",
-          description: `Your verification code is: ${data.demoCode}`,
-        });
-      } else {
-        toast({
-          title: "Verification Code Sent",
-          description: `A code has been sent to ${formData.email}. Please check your inbox.`,
-        });
-      }
+      toast({
+        title: "Verification Code Sent",
+        description: `A code has been sent to ${formData.email}. Please check your inbox.`,
+      });
     } catch (error) {
       toast({
         title: "Error",

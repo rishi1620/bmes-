@@ -8,7 +8,6 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { notifyAdmins } from "@/lib/realtimeBroadcast";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -42,13 +41,12 @@ const Contact = () => {
     }
 
     setLoading(true);
-    const { data: insertedData, error } = await supabase.from("contact_submissions").insert({
+    const { error } = await supabase.from("contact_submissions").insert({
       name,
       email,
       subject,
       message,
-    }).select().maybeSingle();
-
+    });
     setLoading(false);
     if (error) {
       toast({ title: "Error", description: "Failed to send message. Try again.", variant: "destructive" });
@@ -56,15 +54,6 @@ const Contact = () => {
       toast({ title: "Message sent!", description: "We'll get back to you soon." });
       (e.target as HTMLFormElement).reset();
       setIsSubmitted(true);
-
-      // Trigger real-time alert to administrators
-      notifyAdmins({
-        id: insertedData?.id ? `sub-${insertedData.id}` : undefined,
-        type: "submission",
-        title: "New Contact Message Received",
-        description: `From ${name} (${email}): "${subject}"`,
-        metadata: { name, email, subject, message },
-      });
     }
   };
 

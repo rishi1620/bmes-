@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw, ArrowRight, Layout } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
-import { RealtimeActivityFeed } from "@/components/admin/RealtimeActivityFeed";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0, membershipApps: 0, notices: 0 });
@@ -22,7 +21,7 @@ const AdminDashboard = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const results = await Promise.allSettled([
+      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem, recentRegsData, pendingAppsData, noticesData] = await Promise.all([
         supabase.from("members").select("id", { count: "exact", head: true }),
         supabase.from("events").select("id", { count: "exact", head: true }),
         supabase.from("projects").select("id", { count: "exact", head: true }),
@@ -40,17 +39,14 @@ const AdminDashboard = () => {
         supabase.from("site_settings").select("setting_value").eq("setting_key", "portal_notices_json").maybeSingle(),
       ]);
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem, recentRegsData, pendingAppsData, noticesData] = results.map(r => r.status === "fulfilled" ? (r.value as any) : { count: 0, data: null });
-
       let noticesCount = 0;
       let parsedNotices: Record<string, unknown>[] = [];
       try {
-        if (noticesData?.data?.setting_value) {
+        if (noticesData.data?.setting_value) {
           const parsed = JSON.parse(noticesData.data.setting_value);
           if (Array.isArray(parsed)) {
             noticesCount = parsed.length;
-            parsed.sort((a: { date?: string }, b: { date?: string }) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+            parsed.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
             parsedNotices = parsed.slice(0, 5);
           }
         }
@@ -60,24 +56,22 @@ const AdminDashboard = () => {
 
       setRecentNotices(parsedNotices);
       setCounts({
-        members: m?.count ?? 0,
-        events: e?.count ?? 0,
-        projects: p?.count ?? 0,
-        achievements: a?.count ?? 0,
-        blog: b?.count ?? 0,
-        submissions: s?.count ?? 0,
-        unread: u?.count ?? 0,
-        media: media?.data?.filter((f: { name?: string }) => f.name !== ".emptyFolderPlaceholder")?.length ?? 0,
-        advisors: adv?.count ?? 0,
-        alumni: alum?.count ?? 0,
-        registrations: reg?.count ?? 0,
-        membershipApps: mem?.count ?? 0,
+        members: m.count ?? 0,
+        events: e.count ?? 0,
+        projects: p.count ?? 0,
+        achievements: a.count ?? 0,
+        blog: b.count ?? 0,
+        submissions: s.count ?? 0,
+        unread: u.count ?? 0,
+        media: media.data?.filter((f) => f.name !== ".emptyFolderPlaceholder").length ?? 0,
+        advisors: adv.count ?? 0,
+        alumni: alum.count ?? 0,
+        registrations: reg.count ?? 0,
+        membershipApps: mem.count ?? 0,
         notices: noticesCount,
       });
-      setRecentRegistrations(recentRegsData?.data || []);
-      setPendingApps(pendingAppsData?.data || []);
-    } catch (err) {
-      console.warn("Dashboard data load warning:", err);
+      setRecentRegistrations(recentRegsData.data || []);
+      setPendingApps(pendingAppsData.data || []);
     } finally {
       setLoading(false);
     }
@@ -85,16 +79,6 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     load();
-
-    // Auto-reload counts when live notification is received
-    const handleDataUpdated = () => {
-      load();
-    };
-    window.addEventListener("bmes:data-updated", handleDataUpdated);
-
-    return () => {
-      window.removeEventListener("bmes:data-updated", handleDataUpdated);
-    };
   }, [load]);
 
   return (
@@ -126,11 +110,6 @@ const AdminDashboard = () => {
         <StatCard value="Manage" label="Portal Page" icon={Layout} to="/admin/portal" />
         <StatCard value={String(counts.membershipApps)} label="Pending Apps" icon={UserCheck} className="border-purple-500/20 bg-purple-500/5" to="/admin/membership" />
         <StatCard value={String(counts.unread)} label="Unread Messages" icon={Bell} className="border-primary/20 bg-primary/5" to="/admin/submissions" />
-      </div>
-
-      {/* Real-Time Live Activity & Alerts Feed */}
-      <div className="mt-8">
-        <RealtimeActivityFeed />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mt-8 items-start">

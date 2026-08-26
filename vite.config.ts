@@ -20,10 +20,6 @@ export default defineConfig(() => ({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
-      workbox: {
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024, // 6 MB limit for service worker precaching
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,jpg,jpeg,webp}"],
-      },
       manifest: {
         name: "CUET BMES Portal",
         short_name: "BMES",
@@ -44,22 +40,15 @@ export default defineConfig(() => ({
       },
     }),
   ].filter(Boolean),
+  define: {
+    "process.env.GEMINI_API_KEY": JSON.stringify(process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || ""),
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
   },
   build: {
-    outDir: "dist",
-    chunkSizeWarningLimit: 2000,
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router-dom"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu", "@radix-ui/react-select", "@radix-ui/react-tabs", "@radix-ui/react-popover"],
-          icons: ["lucide-react"],
-        },
-      },
-    },
+    chunkSizeWarningLimit: 1600,
   },
 }));

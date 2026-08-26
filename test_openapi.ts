@@ -1,0 +1,1 @@
+fetch(import.meta.env.VITE_SUPABASE_URL + '/rest/v1/?apikey=' + import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY).then(r=>r.json()).then(d=>console.log(Object.keys(d.paths).filter(p => p.startsWith('/rpc/')).join('\n')))

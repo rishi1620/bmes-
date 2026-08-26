@@ -49,49 +49,17 @@ const AdminMedia = () => {
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
-    try {
-      // 1. Fetch from media_library table
-      const { data: dbData } = await supabase
-        .from("media_library")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      // 2. Fetch directly from Supabase Storage bucket to find any unsynced files
-      const { data: storageData } = await supabase.storage.from("media").list("", {
-        limit: 100,
-        sortBy: { column: "created_at", order: "desc" },
-      });
-
-      const dbFiles: MediaFile[] = (dbData as MediaFile[]) ?? [];
-      const dbFileNames = new Set(dbFiles.map(f => f.file_name));
-
-      if (storageData && storageData.length > 0) {
-        for (const item of storageData) {
-          if (item.name && item.name !== ".emptyFolderPlaceholder" && !dbFileNames.has(item.name)) {
-            const { data: urlData } = supabase.storage.from("media").getPublicUrl(item.name);
-            const isPdf = item.name.toLowerCase().endsWith(".pdf");
-            const isVideo = item.name.toLowerCase().match(/\.(mp4|webm|mov|avi)$/);
-            const fileType = isPdf ? "application/pdf" : isVideo ? "video/mp4" : "image/jpeg";
-
-            dbFiles.push({
-              id: item.id || item.name,
-              file_name: item.name,
-              file_url: urlData.publicUrl,
-              file_size: item.metadata?.size || null,
-              file_type: fileType,
-              created_at: item.created_at || new Date().toISOString(),
-              alt_text: item.name,
-            });
-          }
-        }
-      }
-
-      setFiles(dbFiles);
-    } catch (err) {
-      console.warn("Error fetching files:", err);
-    } finally {
-      setLoading(false);
+    const { data, error } = await supabase
+      .from("media_library")
+      .select("*")
+      .order("created_at", { ascending: false });
+    
+    if (error) {
+      toast({ title: "Error fetching files", description: error.message, variant: "destructive" });
+    } else {
+      setFiles((data as MediaFile[]) ?? []);
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
