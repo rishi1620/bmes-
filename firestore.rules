@@ -1,0 +1,101 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check authentication
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['admin', 'super_admin']);
+    }
+
+    // Helper function to check if user has admin access
+    function hasStaffAccess() {
+      return isAuthenticated() && 
+        (exists(/databases/$(database)/documents/user_roles/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/user_roles/$(request.auth.uid)).data.role in ['admin', 'super_admin', 'editor', 'content_manager']);
+    }
+
+    // User Roles collection
+    match /user_roles/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || (isAuthenticated() && request.auth.uid == userId);
+    }
+
+    // Profiles collection
+    match /profiles/{userId} {
+      allow read: if true;
+      allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Public Read Collections, Staff write
+    match /achievements/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /advisors/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /alumni/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /blog_posts/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /events/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /home_sections/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /media_library/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /members/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /pages/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /projects/{id} {
+      allow read: if true;
+      allow write: if hasStaffAccess();
+    }
+    match /site_settings/{id} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Form Submissions & Registrations
+    match /contact_submissions/{id} {
+      allow create: if true;
+      allow read, update, delete: if hasStaffAccess();
+    }
+    match /event_registrations/{id} {
+      allow create: if true;
+      allow read, update, delete: if hasStaffAccess();
+    }
+    match /membership_registrations/{id} {
+      allow create: if true;
+      allow read, update, delete: if hasStaffAccess();
+    }
+
+    // Default fallback
+    match /{document=**} {
+      allow read, write: if isAuthenticated();
+    }
+  }
+}

@@ -1,12 +1,13 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import AdminNotifications from "@/components/admin/AdminNotifications";
+import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,6 +43,7 @@ const linkGroups: LinkGroup[] = [
       { label: "Home Sections", path: "/admin/home", icon: Home, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Media Library", path: "/admin/media", icon: Image, roles: ["admin", "super_admin", "editor", "content_manager"] },
       { label: "Site Settings", path: "/admin/settings", icon: Settings, roles: ["admin", "super_admin"] },
+      { label: "User Roles & Access", path: "/admin/users", icon: Users, roles: ["admin", "super_admin"] },
     ],
     defaultOpen: false
   },
@@ -83,13 +85,31 @@ const linkGroups: LinkGroup[] = [
   }
 ];
 
-const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { pathname: string, search: string, signOut: () => void, logoUrl: string, onLinkClick?: () => void }) => {
+const SidebarContent = ({ 
+  pathname, 
+  search, 
+  signOut, 
+  logoUrl, 
+  onLinkClick,
+  onOpenSearch
+}: { 
+  pathname: string; 
+  search: string; 
+  signOut: () => void; 
+  logoUrl: string; 
+  onLinkClick?: () => void;
+  onOpenSearch?: () => void;
+}) => {
   const { hasRole } = useAuth();
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>(() => {
     const defaults: Record<string, boolean> = {};
     linkGroups.forEach(g => defaults[g.title] = g.defaultOpen || false);
     return defaults;
   });
+
+  const isMac = useMemo(() => {
+    return typeof window !== "undefined" && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
+  }, []);
 
   const toggleGroup = (title: string) => {
     setOpenGroups(prev => ({ ...prev, [title]: !prev[title] }));
@@ -101,7 +121,26 @@ const SidebarContent = ({ pathname, search, signOut, logoUrl, onLinkClick }: { p
         <img alt="BMES" className="h-8 w-8 rounded-lg object-contain bg-white p-1" src={logoUrl || defaultLogo} />
         <span className="text-lg font-bold tracking-tight">BMES Admin</span>
       </div>
-      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-6">
+
+      {onOpenSearch && (
+        <div className="px-4 pt-4 pb-1">
+          <button
+            type="button"
+            onClick={onOpenSearch}
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-sidebar-border bg-sidebar-accent/20 px-3 py-2 text-xs text-sidebar-foreground/70 transition-all hover:bg-sidebar-accent/50 hover:text-sidebar-foreground shadow-sm"
+          >
+            <div className="flex items-center gap-2">
+              <Search className="h-3.5 w-3.5 text-muted-foreground" />
+              <span>Search Pages...</span>
+            </div>
+            <kbd className="rounded border border-sidebar-border bg-sidebar-accent/40 px-1.5 py-0.5 text-[10px] font-mono">
+              {isMac ? "⌘K" : "Ctrl+K"}
+            </kbd>
+          </button>
+        </div>
+      )}
+
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
         {linkGroups.map((group) => {
           // Filter links based on user roles
           const visibleLinks = group.links.filter(link => {
@@ -187,6 +226,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   const { user, hasAdminAccess, loading, signOut } = useAuth();
   const location = useLocation();
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
 
   useEffect(() => {
@@ -230,7 +270,13 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
     <div className="flex min-h-screen bg-transparent">
       {/* Desktop Sidebar */}
       <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md md:flex fixed inset-y-0 left-0 z-50">
-        <SidebarContent pathname={location.pathname} search={location.search} signOut={signOut} logoUrl={logoUrl} />
+        <SidebarContent 
+          pathname={location.pathname} 
+          search={location.search} 
+          signOut={signOut} 
+          logoUrl={logoUrl} 
+          onOpenSearch={() => setPaletteOpen(true)}
+        />
       </aside>
 
       {/* Mobile Sidebar */}
@@ -239,33 +285,51 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           <div className="sr-only">
             <SheetTitle>Admin Navigation</SheetTitle>
           </div>
-          <SidebarContent pathname={location.pathname} search={location.search} signOut={signOut} logoUrl={logoUrl} onLinkClick={() => setSheetOpen(false)} />
+          <SidebarContent 
+            pathname={location.pathname} 
+            search={location.search} 
+            signOut={signOut} 
+            logoUrl={logoUrl} 
+            onLinkClick={() => setSheetOpen(false)} 
+            onOpenSearch={() => {
+              setSheetOpen(false);
+              setPaletteOpen(true);
+            }}
+          />
         </SheetContent>
       </Sheet>
 
       <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/40 px-6 backdrop-blur-md">
-          <div className="flex items-center gap-4">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/60 px-4 md:px-6 backdrop-blur-md gap-2 md:gap-4">
+          <div className="flex items-center gap-3 shrink-0">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSheetOpen(true)}>
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <Breadcrumbs />
             </div>
           </div>
+
+          {/* Central / Prominent Command Palette Search Trigger */}
+          <div className="flex-1 max-w-xs sm:max-w-sm md:max-w-md mx-auto flex justify-center">
+            <AdminCommandPalette 
+              open={paletteOpen} 
+              onOpenChange={setPaletteOpen} 
+            />
+          </div>
           
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" className="hidden md:flex gap-2" asChild>
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Button variant="outline" size="sm" className="hidden sm:flex gap-2 text-xs" asChild>
               <Link to="/" target="_blank">
-                <ExternalLink className="h-4 w-4" />
-                View Site
+                <ExternalLink className="h-3.5 w-3.5" />
+                <span>View Site</span>
               </Link>
             </Button>
             <AdminNotifications />
             <div className="flex items-center gap-2">
               <div className="hidden flex-col items-end text-sm md:flex">
-                <span className="font-medium text-foreground">{user.email?.split('@')[0]}</span>
-                <span className="text-xs text-muted-foreground">Admin</span>
+                <span className="font-medium text-foreground text-xs leading-tight">{user.email?.split('@')[0]}</span>
+                <span className="text-[10px] text-muted-foreground">Admin</span>
               </div>
               <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                 {user.email?.charAt(0).toUpperCase()}
@@ -274,8 +338,8 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           </div>
         </header>
 
-        <main className="flex-1 p-6 md:p-8 max-w-7xl mx-auto w-full animate-fade-up">
-          <div className="md:hidden mb-6">
+        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full animate-fade-up">
+          <div className="lg:hidden mb-4">
             <Breadcrumbs />
           </div>
           {children}

@@ -1,12 +1,22 @@
 import { createContext } from "react";
-import { User, Session } from "@supabase/supabase-js";
-import { Database } from "@/integrations/supabase/types";
+import type { User as FirebaseUser } from "firebase/auth";
 
-export type AppRole = Database["public"]["Enums"]["app_role"];
+export type AppRole = "admin" | "user" | "super_admin" | "editor" | "content_manager";
+
+export interface AuthUser {
+  id: string;
+  uid: string;
+  email: string | null;
+  displayName?: string | null;
+  user_metadata?: {
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
 
 export interface AuthContextType {
-  user: User | null;
-  session: Session | null;
+  user: AuthUser | null;
+  firebaseUser: FirebaseUser | null;
   isAdmin: boolean;
   hasAdminAccess: boolean;
   roles: AppRole[];
