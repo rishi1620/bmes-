@@ -1,7 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw } from "lucide-react";
+import { Upload, Trash2, Copy, Image as ImageIcon, FileText, Film, Loader2, CheckSquare, Square, RefreshCw, Activity } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { storageService } from "@/services/storageService";
+import { SafeImage } from "@/components/ui/SafeImage";
+import { StorageDiagnosticsDialog } from "@/components/admin/StorageDiagnosticsDialog";
 import AdminLayout from "../../components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +49,7 @@ const AdminMedia = () => {
   const [fileToDelete, setFileToDelete] = useState<MediaFile | null>(null);
   const [isDeleteAllOpen, setIsDeleteAllOpen] = useState(false);
   const [editingAlt, setEditingAlt] = useState<{ id: string, text: string } | null>(null);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -73,16 +77,20 @@ const AdminMedia = () => {
     for (const file of acceptedFiles) {
       const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
       
-      // 1. Upload to Storage
-      const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
+      // 1. Upload to Storage via storageService layer with logging
+      const uploadResult = await storageService.upload("media", fileName, file);
       
-      if (uploadError) {
-        toast({ title: `Failed to upload ${file.name}`, description: uploadError.message, variant: "destructive" });
+      if (uploadResult.error || !uploadResult.data) {
+        toast({ 
+          title: `Failed to upload ${file.name}`, 
+          description: uploadResult.error?.message || "Storage upload failed. Check Supabase Storage permissions.", 
+          variant: "destructive" 
+        });
         continue;
       }
 
       // 2. Get Public URL
-      const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
+      const { publicUrl } = uploadResult.data;
       
       // 3. Create Database Record
       const { data: userData } = await supabase.auth.getUser();
@@ -93,7 +101,7 @@ const AdminMedia = () => {
       }
       const { error: dbError } = await supabase.from("media_library").insert({
         file_name: fileName,
-        file_url: urlData.publicUrl,
+        file_url: publicUrl,
         file_size: file.size,
         file_type: file.type,
         uploaded_by: userData.user.id,
@@ -101,8 +109,8 @@ const AdminMedia = () => {
 
       if (dbError) {
         toast({ title: `Failed to register ${file.name} in database`, description: dbError.message, variant: "destructive" });
-        // Cleanup storage if DB fails? Maybe not strictly necessary but good practice
-        await supabase.storage.from("media").remove([fileName]);
+        // Cleanup storage if DB fails
+        await storageService.remove("media", [fileName]);
       } else {
         successCount++;
       }
@@ -145,8 +153,8 @@ const AdminMedia = () => {
     const filesToDelete = files.filter(f => idsToDelete.includes(f.id));
     const storageNames = filesToDelete.map(f => f.file_name);
 
-    // 1. Delete from Storage
-    const { error: storageError } = await supabase.storage.from("media").remove(storageNames);
+    // 1. Delete from Storage via storageService
+    const { error: storageError } = await storageService.remove("media", storageNames);
     
     if (storageError) {
       toast({ title: "Storage delete failed", description: storageError.message, variant: "destructive" });
@@ -167,8 +175,8 @@ const AdminMedia = () => {
   };
 
   const remove = async (file: MediaFile) => {
-    // 1. Delete from Storage
-    const { error: storageError } = await supabase.storage.from("media").remove([file.file_name]);
+    // 1. Delete from Storage via storageService
+    const { error: storageError } = await storageService.remove("media", [file.file_name]);
     
     if (storageError) {
       toast({ title: "Storage delete failed", description: storageError.message, variant: "destructive" });
@@ -246,10 +254,22 @@ const AdminMedia = () => {
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="mb-6 flex items-center justify-between"
+        className="mb-6 flex items-center justify-between flex-wrap gap-3"
       >
-        <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
-        <div className="flex gap-2">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Media Library</h1>
+          <p className="text-xs text-muted-foreground mt-0.5">Manage and trace Supabase storage assets, public buckets, and CDN URLs.</p>
+        </div>
+        <div className="flex gap-2 flex-wrap items-center">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setIsDiagnosticsOpen(true)} 
+            className="gap-1.5 text-xs border-primary/30 hover:bg-primary/10 text-primary"
+          >
+            <Activity className="h-4 w-4" />
+            <span>Storage Diagnostics</span>
+          </Button>
           <Button variant="outline" size="sm" onClick={fetchFiles} disabled={loading || uploading} className="gap-2">
             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
@@ -334,7 +354,13 @@ const AdminMedia = () => {
               </div>
               <div className="aspect-square flex items-center justify-center bg-muted/50">
                 {isImage(file.file_name) ? (
-                  <img src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" loading="lazy" />
+                  <SafeImage 
+                    src={file.file_url} 
+                    alt={file.alt_text || file.file_name} 
+                    className="h-full w-full object-cover" 
+                    loading="lazy"
+                    componentName="AdminMediaLibrary"
+                  />
                 ) : isVideo(file.file_name) ? (
                   <Film className="h-10 w-10 text-muted-foreground" />
                 ) : (
@@ -409,6 +435,12 @@ const AdminMedia = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <StorageDiagnosticsDialog 
+        open={isDiagnosticsOpen} 
+        onOpenChange={setIsDiagnosticsOpen} 
+        defaultBucket="media"
+      />
     </AdminLayout>
   );
 };

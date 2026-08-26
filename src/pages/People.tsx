@@ -6,6 +6,7 @@ import { Users, UserCheck, GraduationCap, Briefcase, Linkedin, Mail } from "luci
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SafeImage } from "@/components/ui/SafeImage";
 
 interface Person {
   id: string;
@@ -26,11 +27,11 @@ const PersonCard = ({ person }: { person: Person }) => (
   <Card className="overflow-hidden transition-all hover:shadow-md h-full flex flex-col">
     <div className="aspect-square w-full overflow-hidden bg-muted relative group">
       {person.image_url || person.photo ? (
-        <img
-          src={person.image_url || person.photo}
+        <SafeImage
+          src={(person.image_url || person.photo)!}
           alt={person.name}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-          referrerPolicy="no-referrer"
+          componentName="PeopleCard"
         />
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-primary/10 text-4xl font-bold text-primary">

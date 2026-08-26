@@ -2,6 +2,8 @@ import { useEffect, useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { FileText, Film, Loader2, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { storageService } from "@/services/storageService";
+import { SafeImage } from "@/components/ui/SafeImage";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
 
@@ -49,16 +51,16 @@ const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
     for (const file of acceptedFiles) {
       const fileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
       
-      // 1. Upload to Storage
-      const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
+      // 1. Upload to Storage via storageService with logging
+      const uploadResult = await storageService.upload("media", fileName, file);
       
-      if (uploadError) {
-        toast({ title: `Failed to upload ${file.name}`, description: uploadError.message, variant: "destructive" });
+      if (uploadResult.error || !uploadResult.data) {
+        toast({ title: `Failed to upload ${file.name}`, description: uploadResult.error?.message || "Upload failed", variant: "destructive" });
         continue;
       }
 
       // 2. Get Public URL
-      const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
+      const { publicUrl } = uploadResult.data;
       
       // 3. Create Database Record
       const { data: userData } = await supabase.auth.getUser();
@@ -69,7 +71,7 @@ const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
       }
       const { error: dbError } = await supabase.from("media_library").insert({
         file_name: fileName,
-        file_url: urlData.publicUrl,
+        file_url: publicUrl,
         file_size: file.size,
         file_type: file.type,
         uploaded_by: userData.user.id,
@@ -77,7 +79,7 @@ const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
 
       if (dbError) {
         toast({ title: `Failed to register ${file.name} in database`, description: dbError.message, variant: "destructive" });
-        await supabase.storage.from("media").remove([fileName]);
+        await storageService.remove("media", [fileName]);
       }
     }
     setUploading(false);
@@ -111,7 +113,13 @@ const MediaSelector = ({ onSelect }: MediaSelectorProps) => {
           {filtered.map((file) => (
             <button key={file.id} onClick={() => onSelect(file.file_url)} className="group relative aspect-square flex items-center justify-center bg-muted/50 rounded overflow-hidden border border-border hover:ring-2 hover:ring-primary">
               {isImage(file.file_name) ? (
-                <img src={file.file_url} alt={file.alt_text || file.file_name} className="h-full w-full object-cover" loading="lazy" />
+                <SafeImage 
+                  src={file.file_url} 
+                  alt={file.alt_text || file.file_name} 
+                  className="h-full w-full object-cover" 
+                  loading="lazy" 
+                  componentName="MediaSelector"
+                />
               ) : isVideo(file.file_name) ? (
                 <Film className="h-8 w-8 text-muted-foreground" />
               ) : (

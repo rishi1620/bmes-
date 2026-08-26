@@ -53,35 +53,58 @@ export const supabase =
                     const clone = response.clone();
                     const data = await clone.json();
                     const errorDesc = data?.error_description || data?.msg || data?.message || data?.error || "";
-                    const lowerError = errorDesc.toLowerCase();
-                      if (
-                        lowerError.includes("refresh token") ||
-                        lowerError.includes("invalid_grant") ||
-                        lowerError.includes("invalid grant") ||
-                        lowerError.includes("session_not_found") ||
-                        lowerError.includes("invalid_refresh_token") ||
-                        lowerError.includes("refresh token not found")
-                      ) {
-                        console.warn("Intercepted invalid refresh token error, clearing session:", errorDesc);
-                        
-                        // Clear storage
-                        const keysToRemove: string[] = [];
-                        for (let j = 0; j < localStorage.length; j++) {
-                          const key = localStorage.key(j);
-                          if (key && (key.includes('supabase') || key.includes('sb-'))) {
-                            keysToRemove.push(key);
-                          }
-                        }
-                        keysToRemove.forEach(key => localStorage.removeItem(key));
-                        sessionStorage.clear();
-                        
-                        // Small delay to ensure storage is cleared before redirect or state update
-                        setTimeout(() => {
-                          if (window.location.pathname !== '/auth') {
-                            window.location.href = '/auth';
-                          }
-                        }, 100);
+                    const lowerError = String(errorDesc).toLowerCase();
+
+                    // Storage-specific request diagnostics
+                    const urlStr = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
+                    if (urlStr.includes('/storage/v1/')) {
+                      console.warn(
+                        `[Supabase Storage Service] HTTP ${response.status} on storage endpoint: ${urlStr}\n` +
+                        `Error payload:`, data
+                      );
+                      if (response.status === 403 || response.status === 401) {
+                        console.error(
+                          `[Supabase Storage Diagnostic] 🔒 Storage access denied (HTTP ${response.status}). ` +
+                          `Possible causes:\n` +
+                          `1. Bucket is private instead of public (Dashboard -> Storage -> Buckets -> Edit Bucket -> Make Public).\n` +
+                          `2. Missing RLS SELECT/INSERT policy on 'storage.objects' for anon/authenticated users.`
+                        );
+                      } else if (response.status === 404) {
+                        console.error(
+                          `[Supabase Storage Diagnostic] 🔍 Storage resource not found (HTTP 404). ` +
+                          `Verify that the bucket and object path exist in Supabase Dashboard -> Storage -> Buckets.`
+                        );
                       }
+                    }
+
+                    if (
+                      lowerError.includes("refresh token") ||
+                      lowerError.includes("invalid_grant") ||
+                      lowerError.includes("invalid grant") ||
+                      lowerError.includes("session_not_found") ||
+                      lowerError.includes("invalid_refresh_token") ||
+                      lowerError.includes("refresh token not found")
+                    ) {
+                      console.warn("Intercepted invalid refresh token error, clearing session:", errorDesc);
+                      
+                      // Clear storage
+                      const keysToRemove: string[] = [];
+                      for (let j = 0; j < localStorage.length; j++) {
+                        const key = localStorage.key(j);
+                        if (key && (key.includes('supabase') || key.includes('sb-'))) {
+                          keysToRemove.push(key);
+                        }
+                      }
+                      keysToRemove.forEach(key => localStorage.removeItem(key));
+                      sessionStorage.clear();
+                      
+                      // Small delay to ensure storage is cleared before redirect or state update
+                      setTimeout(() => {
+                        if (window.location.pathname !== '/auth') {
+                          window.location.href = '/auth';
+                        }
+                      }, 100);
+                    }
                   } catch {
                     // ignore JSON parse errors
                   }
