@@ -23,6 +23,46 @@ const iconMap: Record<string, React.ElementType> = {
   FlaskConical, Users, Calendar, BookOpen, Award, Microscope,
 };
 
+const DEFAULT_QUICK_LINKS = {
+  links: [
+    { label: "Latest Notices", url: "/notices" },
+    { label: "Academic Resources", url: "/academics" },
+    { label: "Upcoming Events", url: "/events" },
+    { label: "Executive Committee", url: "/people" },
+  ],
+};
+
+const DEFAULT_ANNOUNCEMENTS = {
+  dept_title: "Departmental Notices",
+  club_title: "Club News",
+};
+
+const DEFAULT_STATS = {
+  items: [
+    { label: "Active Members", value: "250+" },
+    { label: "Published Papers", value: "45+" },
+    { label: "Completed Projects", value: "30+" },
+    { label: "Annual Events", value: "15+" },
+  ],
+};
+
+const DEFAULT_FEATURES = {
+  badge: "Why Join Us",
+  title: "Empowering Future Biomedical Engineers",
+  description: "Join a vibrant community dedicated to advancing medical technology and healthcare innovation.",
+  items: [
+    { title: "Cutting-edge Research", icon: "Microscope", desc: "Collaborate on groundbreaking research in biomaterials, biomechanics, and medical imaging." },
+    { title: "Skill Development", icon: "BookOpen", desc: "Participate in hands-on workshops, seminars, and technical training sessions." },
+    { title: "Industry Network", icon: "Users", desc: "Connect with alumni, industry leaders, and healthcare professionals worldwide." },
+  ],
+};
+
+const DEFAULT_CTA = {
+  title: "Ready to Make an Impact?",
+  description: "Join CUET BMES today and be part of the future of healthcare technology.",
+  button_text: "Get in Touch",
+};
+
 const containerVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -48,7 +88,7 @@ const Index = () => {
   const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
   const [isRegOpen, setIsRegOpen] = useState(false);
 
-  const { data: sections, isLoading } = useQuery({
+  const { data: sections } = useQuery({
     queryKey: ["home-sections"],
     queryFn: async () => {
       const { data } = await supabase
@@ -155,28 +195,43 @@ const Index = () => {
       button_link: siteSettings?.home_hero_button_link || sectionHero.button_link || "/portal?tab=membership",
     };
   }, [getSection, siteSettings]);
-  const quickLinks = getSection("quick_links");
-  const announcements = getSection("announcements");
+
+  const quickLinks = useMemo(() => {
+    const custom = getSection("quick_links");
+    return custom?.links ? custom : DEFAULT_QUICK_LINKS;
+  }, [getSection]);
+
+  const announcements = useMemo(() => {
+    const custom = getSection("announcements");
+    return {
+      dept_title: custom?.dept_title || DEFAULT_ANNOUNCEMENTS.dept_title,
+      club_title: custom?.club_title || DEFAULT_ANNOUNCEMENTS.club_title,
+    };
+  }, [getSection]);
+
   const upcomingEvents = getSection("upcoming_events");
   const recentAchievementsSection = getSection("recent_achievements");
   const featuredProjectsSection = getSection("featured_projects");
   const recentBlogSection = getSection("recent_blog");
-  const stats = getSection("stats");
-  const features = getSection("features");
-  const cta = getSection("cta");
 
-  if (isLoading || isLoadingEvents || isLoadingAchievements) {
-    return (
-      <PageLayout>
-        <div className="container py-24 space-y-8">
-          <Skeleton className="h-48 w-full rounded-xl" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
+  const stats = useMemo(() => {
+    const custom = getSection("stats");
+    return custom?.items ? custom : DEFAULT_STATS;
+  }, [getSection]);
+
+  const features = useMemo(() => {
+    const custom = getSection("features");
+    return custom?.items ? custom : DEFAULT_FEATURES;
+  }, [getSection]);
+
+  const cta = useMemo(() => {
+    const custom = getSection("cta");
+    return {
+      title: custom?.title || DEFAULT_CTA.title,
+      description: custom?.description || DEFAULT_CTA.description,
+      button_text: custom?.button_text || DEFAULT_CTA.button_text,
+    };
+  }, [getSection]);
 
   return (
     <PageLayout>

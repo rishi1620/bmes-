@@ -6,4 +6,9 @@ coverage/
 *.log
 .env*
 !.env.example
+out.txt
+*.out
+test_*.js
+test_*.ts
+test-*.ts
 firebase-applet-config.json
