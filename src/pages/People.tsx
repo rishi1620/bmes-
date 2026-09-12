@@ -87,10 +87,10 @@ const People = () => {
     },
   });
 
-  const faculty = advisors?.filter(p => p.role_type === "Faculty") || [];
-  const staff = members?.filter(p => p.team === "Staff") || [];
-  const ecMembers = members?.filter(p => p.team !== "Staff") || [];
-  const advisory = advisors?.filter(p => p.role_type === "Advisor" || p.role_type === "Moderator" || p.role_type === "Counselor") || [];
+  const faculty = advisors?.filter(p => p.role_type?.toLowerCase().includes("faculty")) || [];
+  const staff = members?.filter(p => p.team?.toLowerCase().includes("staff")) || [];
+  const ecMembers = members?.filter(p => !p.team?.toLowerCase().includes("staff")) || [];
+  const advisory = advisors?.filter(p => !p.role_type?.toLowerCase().includes("faculty")) || [];
 
   const isLoading = isLoadingMembers || isLoadingAdvisors;
 

@@ -9,9 +9,11 @@ import AdminCommandPalette from "@/components/admin/AdminCommandPalette";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect, useMemo } from "react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isPlaceholder } from "@/integrations/supabase/client";
+import { AlertTriangle, Activity } from "lucide-react";
+import { SupabaseConnectivityDiagnostics } from "@/components/admin/SupabaseConnectivityDiagnostics";
 
-import { Database } from "@/integrations/supabase/types";
+import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -127,10 +129,11 @@ const SidebarContent = ({
           <button
             type="button"
             onClick={onOpenSearch}
-            className="flex w-full items-center justify-between gap-2 rounded-lg border border-sidebar-border bg-sidebar-accent/20 px-3 py-2 text-xs text-sidebar-foreground/70 transition-all hover:bg-sidebar-accent/50 hover:text-sidebar-foreground shadow-sm"
+            aria-label="Search admin pages (Ctrl+K or Cmd+K)"
+            className="flex w-full items-center justify-between gap-2 rounded-lg border border-sidebar-border bg-sidebar-accent/20 px-3 py-2 text-xs text-sidebar-foreground/70 transition-all hover:bg-sidebar-accent/50 hover:text-sidebar-foreground shadow-sm focus:outline-none focus:ring-2 focus:ring-primary"
           >
             <div className="flex items-center gap-2">
-              <Search className="h-3.5 w-3.5 text-muted-foreground" />
+              <Search className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
               <span>Search Pages...</span>
             </div>
             <kbd className="rounded border border-sidebar-border bg-sidebar-accent/40 px-1.5 py-0.5 text-[10px] font-mono">
@@ -140,7 +143,7 @@ const SidebarContent = ({
         </div>
       )}
 
-      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4">
+      <nav className="flex-1 space-y-2 overflow-y-auto px-4 py-4" aria-label="Admin Navigation Sections">
         {linkGroups.map((group) => {
           // Filter links based on user roles
           const visibleLinks = group.links.filter(link => {
@@ -151,24 +154,28 @@ const SidebarContent = ({
           if (visibleLinks.length === 0) return null;
 
           const isOpen = openGroups[group.title];
+          const groupId = `admin-group-${group.title.toLowerCase().replace(/\s+/g, '-')}`;
 
           return (
             <div key={group.title}>
               <button
                 onClick={() => toggleGroup(group.title)}
-                className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors"
+                aria-expanded={isOpen}
+                aria-controls={groupId}
+                className="flex w-full items-center justify-between rounded-lg px-2 py-2 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
               >
-                {group.title}
-                {isOpen ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                <span>{group.title}</span>
+                {isOpen ? <ChevronUp className="h-3 w-3" aria-hidden="true" /> : <ChevronDown className="h-3 w-3" aria-hidden="true" />}
               </button>
               <div 
+                id={groupId}
                 className={cn(
                   "grid transition-all duration-200 ease-in-out", 
                   isOpen ? "grid-rows-[1fr] opacity-100 mt-1" : "grid-rows-[0fr] opacity-0 mt-0"
                 )}
               >
                 <div className="overflow-hidden">
-                  <div className="flex flex-col gap-1">
+                  <div className="flex flex-col gap-1" role="list">
                     {visibleLinks.map((l) => {
                       const isActive = pathname === l.path || pathname + search === l.path;
                       return (
@@ -176,6 +183,7 @@ const SidebarContent = ({
                           key={l.path}
                           to={l.path}
                           onClick={onLinkClick}
+                          aria-current={isActive ? "page" : undefined}
                           className={cn(
                             "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                             isActive
@@ -183,8 +191,8 @@ const SidebarContent = ({
                               : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                           )}
                         >
-                          <l.icon className="h-4 w-4" />
-                          {l.label}
+                          <l.icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span>{l.label}</span>
                         </Link>
                       );
                     })}
@@ -203,8 +211,8 @@ const SidebarContent = ({
           asChild
           onClick={onLinkClick}
         >
-          <Link to="/">
-            <ExternalLink className="h-4 w-4" /> 
+          <Link to="/" aria-label="Return to Main Website">
+            <ExternalLink className="h-4 w-4" aria-hidden="true" /> 
             Main Page
           </Link>
         </Button>
@@ -213,8 +221,9 @@ const SidebarContent = ({
           size="sm" 
           className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground" 
           onClick={signOut}
+          aria-label="Sign out of Admin Dashboard"
         >
-          <LogOut className="h-4 w-4" /> 
+          <LogOut className="h-4 w-4" aria-hidden="true" /> 
           Sign Out
         </Button>
       </div>
@@ -227,6 +236,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   const location = useLocation();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [diagOpen, setDiagOpen] = useState(false);
   const [logoUrl, setLogoUrl] = useState("");
 
   useEffect(() => {
@@ -269,7 +279,10 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
   return (
     <div className="flex min-h-screen bg-transparent">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md md:flex fixed inset-y-0 left-0 z-50">
+      <aside 
+        aria-label="Admin Sidebar Navigation"
+        className="hidden w-64 flex-col border-r border-sidebar-border bg-sidebar/80 backdrop-blur-md md:flex fixed inset-y-0 left-0 z-50"
+      >
         <SidebarContent 
           pathname={location.pathname} 
           search={location.search} 
@@ -300,9 +313,16 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
       </Sheet>
 
       <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/60 px-4 md:px-6 backdrop-blur-md gap-2 md:gap-4">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/60 px-4 md:px-6 backdrop-blur-md gap-2 md:gap-4" aria-label="Admin Header">
           <div className="flex items-center gap-3 shrink-0">
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSheetOpen(true)}>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="md:hidden" 
+              onClick={() => setSheetOpen(true)}
+              aria-label="Open sidebar navigation menu"
+              aria-expanded={sheetOpen}
+            >
               <Menu className="h-5 w-5" />
             </Button>
             <div className="hidden lg:block">
@@ -319,31 +339,75 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           </div>
           
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setDiagOpen(true)}
+              className="hidden sm:flex gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted"
+              title="Check Supabase Connection & Diagnostics"
+            >
+              <Activity className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+              <span>Diagnostics</span>
+            </Button>
             <Button variant="outline" size="sm" className="hidden sm:flex gap-2 text-xs" asChild>
-              <Link to="/" target="_blank">
-                <ExternalLink className="h-3.5 w-3.5" />
+              <Link to="/" target="_blank" aria-label="View live public website (opens in new tab)">
+                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
                 <span>View Site</span>
               </Link>
             </Button>
             <AdminNotifications />
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" role="region" aria-label={`Current user: ${user.email}`}>
               <div className="hidden flex-col items-end text-sm md:flex">
                 <span className="font-medium text-foreground text-xs leading-tight">{user.email?.split('@')[0]}</span>
                 <span className="text-[10px] text-muted-foreground">Admin</span>
               </div>
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+              <div 
+                className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs"
+                aria-hidden="true"
+              >
                 {user.email?.charAt(0).toUpperCase()}
               </div>
             </div>
           </div>
         </header>
 
-        <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full animate-fade-up">
+        <main id="admin-main-content" className="flex-1 p-4 sm:p-6 md:p-8 max-w-7xl mx-auto w-full animate-fade-up">
           <div className="lg:hidden mb-4">
             <Breadcrumbs />
           </div>
+
+          {isPlaceholder && (
+            <div className="mb-6 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-amber-900 dark:text-amber-200">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-semibold">Supabase Environment Variables Missing</h4>
+                    <p className="text-xs text-muted-foreground">
+                      Supabase is currently running in placeholder mode. To fetch real database records, ensure <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-[11px]">VITE_SUPABASE_URL</code> and <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-[11px]">VITE_SUPABASE_ANON_KEY</code> (or <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-[11px]">VITE_SUPABASE_PUBLISHABLE_KEY</code>) are configured in your environment or project settings.
+                    </p>
+                  </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setDiagOpen(true)}
+                  className="shrink-0 text-xs border-amber-500/40 text-amber-800 dark:text-amber-200 hover:bg-amber-500/20"
+                >
+                  <Activity className="h-3.5 w-3.5 mr-1.5 text-amber-600" />
+                  Run Diagnostics
+                </Button>
+              </div>
+            </div>
+          )}
+
           {children}
         </main>
+
+        <SupabaseConnectivityDiagnostics 
+          open={diagOpen} 
+          onOpenChange={setDiagOpen} 
+        />
       </div>
     </div>
   );

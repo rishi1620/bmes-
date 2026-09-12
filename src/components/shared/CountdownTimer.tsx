@@ -54,20 +54,24 @@ export function CountdownTimer({ targetDate, onComplete }: CountdownTimerProps) 
   };
 
   return (
-    <div className="flex flex-wrap gap-1.5 sm:gap-2 justify-center sm:justify-start">
-      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all">
+    <div 
+      role="timer"
+      aria-label={`Countdown: ${timeLeft.days} days, ${timeLeft.hours} hours, ${timeLeft.minutes} minutes, and ${timeLeft.seconds} seconds remaining`}
+      className="flex flex-wrap gap-1.5 sm:gap-2 justify-center sm:justify-start"
+    >
+      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all" aria-hidden="true">
         <span className="text-lg sm:text-xl font-black tracking-tighter leading-none">{formatTime(timeLeft.days)}</span>
         <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider opacity-70 mt-0.5">Days</span>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all">
+      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all" aria-hidden="true">
         <span className="text-lg sm:text-xl font-black tracking-tighter leading-none">{formatTime(timeLeft.hours)}</span>
         <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider opacity-70 mt-0.5">Hours</span>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all">
+      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all" aria-hidden="true">
         <span className="text-lg sm:text-xl font-black tracking-tighter leading-none">{formatTime(timeLeft.minutes)}</span>
         <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider opacity-70 mt-0.5">Mins</span>
       </div>
-      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all">
+      <div className="flex flex-col items-center justify-center rounded-lg bg-white/10 backdrop-blur-md p-1.5 sm:p-2 min-w-[45px] sm:min-w-[55px] border border-white/20 shadow-sm transition-all" aria-hidden="true">
         <span className="text-lg sm:text-xl font-black tracking-tighter leading-none">{formatTime(timeLeft.seconds)}</span>
         <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-wider opacity-70 mt-0.5">Secs</span>
       </div>

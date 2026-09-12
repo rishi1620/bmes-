@@ -4,12 +4,14 @@ import AdminLayout from "@/components/layout/AdminLayout";
 import StatCard from "@/components/shared/StatCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw, ArrowRight, Layout } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, FileText, Image, GraduationCap, UserCheck, Bell, CalendarDays, RefreshCw, ArrowRight, Layout, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import { format } from "date-fns";
+import { SupabaseConnectivityDiagnostics } from "@/components/admin/SupabaseConnectivityDiagnostics";
 
 const AdminDashboard = () => {
   const [counts, setCounts] = useState({ members: 0, events: 0, projects: 0, achievements: 0, blog: 0, submissions: 0, unread: 0, media: 0, advisors: 0, alumni: 0, registrations: 0, membershipApps: 0, notices: 0 });
+  const [diagOpen, setDiagOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [recentRegistrations, setRecentRegistrations] = useState<any[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -21,7 +23,7 @@ const AdminDashboard = () => {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [m, e, p, a, b, s, u, media, adv, alum, reg, mem, recentRegsData, pendingAppsData, noticesData] = await Promise.all([
+      const results = await Promise.allSettled([
         supabase.from("members").select("id", { count: "exact", head: true }),
         supabase.from("events").select("id", { count: "exact", head: true }),
         supabase.from("projects").select("id", { count: "exact", head: true }),
@@ -34,10 +36,34 @@ const AdminDashboard = () => {
         supabase.from("alumni").select("id", { count: "exact", head: true }),
         supabase.from("event_registrations").select("id", { count: "exact", head: true }),
         supabase.from("membership_registrations").select("id", { count: "exact", head: true }).eq("status", "pending"),
-        supabase.from("event_registrations").select("id, name, email, created_at, events(title)").order("created_at", { ascending: false }).limit(5),
+        supabase.from("event_registrations").select("id, name, email, created_at").order("created_at", { ascending: false }).limit(5),
         supabase.from("membership_registrations").select("id, full_name, email, created_at").eq("status", "pending").order("created_at", { ascending: false }).limit(5),
         supabase.from("site_settings").select("setting_value").eq("setting_key", "portal_notices_json").maybeSingle(),
       ]);
+
+      const getVal = <T,>(idx: number, fallback: T): T => {
+        const item = results[idx];
+        if (item.status === "fulfilled") {
+          return item.value as unknown as T;
+        }
+        return fallback;
+      };
+
+      const m = getVal<{ count: number | null }>(0, { count: 0 });
+      const e = getVal<{ count: number | null }>(1, { count: 0 });
+      const p = getVal<{ count: number | null }>(2, { count: 0 });
+      const a = getVal<{ count: number | null }>(3, { count: 0 });
+      const b = getVal<{ count: number | null }>(4, { count: 0 });
+      const s = getVal<{ count: number | null }>(5, { count: 0 });
+      const u = getVal<{ count: number | null }>(6, { count: 0 });
+      const media = getVal<{ data: { name: string }[] | null }>(7, { data: [] });
+      const adv = getVal<{ count: number | null }>(8, { count: 0 });
+      const alum = getVal<{ count: number | null }>(9, { count: 0 });
+      const reg = getVal<{ count: number | null }>(10, { count: 0 });
+      const mem = getVal<{ count: number | null }>(11, { count: 0 });
+      const recentRegsData = getVal<{ data: Record<string, unknown>[] | null }>(12, { data: [] });
+      const pendingAppsData = getVal<{ data: Record<string, unknown>[] | null }>(13, { data: [] });
+      const noticesData = getVal<{ data: { setting_value?: string } | null }>(14, { data: null });
 
       let noticesCount = 0;
       let parsedNotices: Record<string, unknown>[] = [];
@@ -72,6 +98,8 @@ const AdminDashboard = () => {
       });
       setRecentRegistrations(recentRegsData.data || []);
       setPendingApps(pendingAppsData.data || []);
+    } catch (err) {
+      console.error("[AdminDashboard] Error loading metrics:", err);
     } finally {
       setLoading(false);
     }
@@ -83,15 +111,26 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h1>
           <p className="text-muted-foreground mt-1">Overview of your system statistics and activity.</p>
         </div>
-        <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2">
-          <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => setDiagOpen(true)}
+            className="gap-2 text-xs"
+          >
+            <Activity className="h-4 w-4 text-primary" />
+            Supabase Diagnostics
+          </Button>
+          <Button variant="outline" size="sm" onClick={load} disabled={loading} className="gap-2 text-xs">
+            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -234,6 +273,11 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
       </div>
+
+      <SupabaseConnectivityDiagnostics 
+        open={diagOpen} 
+        onOpenChange={setDiagOpen} 
+      />
     </AdminLayout>
   );
 };

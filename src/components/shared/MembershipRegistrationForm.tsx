@@ -233,55 +233,59 @@ export function MembershipRegistrationForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
+    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto" aria-label="Membership Application Form">
       <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-2">
-          <Label htmlFor="full_name">Full Name</Label>
+          <Label htmlFor="mem_full_name">Full Name</Label>
           <Input 
-            id="full_name" 
+            id="mem_full_name" 
             required 
+            aria-required="true"
             value={formData.full_name} 
             onChange={e => setFormData({...formData, full_name: e.target.value})} 
             placeholder="Enter your full name"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="email">University Email Address</Label>
+          <Label htmlFor="mem_email">University Email Address</Label>
           <Input 
-            id="email" 
+            id="mem_email" 
             type="email" 
             required 
+            aria-required="true"
+            aria-describedby="mem_email_hint"
             value={formData.email} 
             onChange={e => setFormData({...formData, email: e.target.value})} 
             placeholder="student_id@student.cuet.ac.bd"
           />
-          <p className="text-[10px] text-muted-foreground">
+          <p id="mem_email_hint" className="text-[10px] text-muted-foreground">
             Must be your official <strong>@student.cuet.ac.bd</strong> email.
           </p>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="student_id">Student ID</Label>
+          <Label htmlFor="mem_student_id">Student ID</Label>
           <Input 
-            id="student_id" 
+            id="mem_student_id" 
             required 
+            aria-required="true"
             value={formData.student_id} 
             onChange={e => setFormData({...formData, student_id: e.target.value})} 
             placeholder="e.g. 1901001"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="phone_number">Phone Number</Label>
+          <Label htmlFor="mem_phone_number">Phone Number</Label>
           <Input 
-            id="phone_number" 
+            id="mem_phone_number" 
             value={formData.phone_number} 
             onChange={e => setFormData({...formData, phone_number: e.target.value})} 
             placeholder="e.g. +8801XXXXXXXXX"
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="department">Department</Label>
+          <Label htmlFor="mem_department">Department</Label>
           <Select onValueChange={v => setFormData({...formData, department: v})} required>
-            <SelectTrigger>
+            <SelectTrigger id="mem_department" aria-label="Select Department">
               <SelectValue placeholder="Select Department" />
             </SelectTrigger>
             <SelectContent>
@@ -295,9 +299,9 @@ export function MembershipRegistrationForm() {
           </Select>
         </div>
         <div className="space-y-2">
-          <Label htmlFor="year_semester">Year & Semester</Label>
+          <Label htmlFor="mem_year_semester">Year & Semester</Label>
           <Select onValueChange={v => setFormData({...formData, year_semester: v})} required>
-            <SelectTrigger>
+            <SelectTrigger id="mem_year_semester" aria-label="Select Year and Semester">
               <SelectValue placeholder="Select Year/Semester" />
             </SelectTrigger>
             <SelectContent>
@@ -312,14 +316,15 @@ export function MembershipRegistrationForm() {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="transaction_id">Payment Transaction ID (Optional)</Label>
+        <Label htmlFor="mem_transaction_id">Payment Transaction ID (Optional)</Label>
         <Input 
-          id="transaction_id" 
+          id="mem_transaction_id" 
           value={formData.transaction_id} 
           onChange={e => setFormData({...formData, transaction_id: e.target.value})} 
           placeholder="Enter the transaction ID if you have already paid"
+          aria-describedby="mem_fee_note"
         />
-        <p className="text-[10px] text-muted-foreground italic">
+        <p id="mem_fee_note" className="text-[10px] text-muted-foreground italic">
           Note: Membership requires a one-time registration fee. Please follow the instructions provided by the EC members.
         </p>
       </div>

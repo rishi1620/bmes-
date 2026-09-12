@@ -12,6 +12,7 @@ import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { ShareButtons } from "@/components/shared/ShareButtons";
 import { isRegistrationOpen, getRegistrationMessage } from "@/lib/utils";
+import { defaultEvents } from "@/data/defaultData";
 
 import { Tables } from "@/integrations/supabase/types";
 
@@ -31,14 +32,16 @@ const Events = () => {
     },
   });
 
+  const allEvents = (events && events.length > 0) ? events : defaultEvents;
+
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const upcoming = events
+  const upcoming = allEvents
     .filter((e) => new Date(e.date) >= today || e.is_upcoming)
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     
-  const past = events
+  const past = allEvents
     .filter((e) => new Date(e.date) < today && !e.is_upcoming)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
@@ -106,6 +109,7 @@ const Events = () => {
                       <div className="w-full flex flex-col gap-2">
                         <Button 
                           className="w-full rounded-xl py-6 font-semibold"
+                          aria-label={`Register for ${e.title}`}
                           disabled={!isRegistrationOpen(e.registration_start_date, e.registration_end_date)}
                         >
                           Register Now

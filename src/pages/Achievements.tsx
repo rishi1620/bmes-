@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { defaultAchievements } from "@/data/defaultData";
 
 const placeColor = (place: string) => {
   if (place?.includes("1st")) return "default";
@@ -28,19 +29,21 @@ const Achievements = () => {
     },
   });
 
-  const competitions = achievements.filter((a) => {
+  const allAchievements = (achievements && achievements.length > 0) ? achievements : defaultAchievements;
+
+  const competitions = allAchievements.filter((a) => {
     const cat = a.category?.toLowerCase() || "";
     return cat === "competition" || cat === "competitions" || cat === "award" || cat === "awards";
   });
-  const publications = achievements.filter((a) => {
+  const publications = allAchievements.filter((a) => {
     const cat = a.category?.toLowerCase() || "";
     return cat === "publication" || cat === "publications";
   });
-  const grants = achievements.filter((a) => {
+  const grants = allAchievements.filter((a) => {
     const cat = a.category?.toLowerCase() || "";
     return cat === "grant" || cat === "grants";
   });
-  const media = achievements.filter((a) => {
+  const media = allAchievements.filter((a) => {
     const cat = a.category?.toLowerCase() || "";
     return cat === "media" || cat === "news" || cat === "event" || cat === "events";
   });

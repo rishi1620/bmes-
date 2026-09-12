@@ -6,15 +6,22 @@ import crypto from "crypto";
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+let transporterInstance: nodemailer.Transporter | null = null;
+function getTransporter() {
+  if (!transporterInstance && process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    transporterInstance = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_APP_PASSWORD,
+      }
+    });
   }
-});
-const FROM_EMAIL = process.env.GMAIL_USER;
-const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
+  return transporterInstance;
+}
+
+const getFromEmail = () => process.env.GMAIL_USER || "cuetbmes@gmail.com";
+const getAppUrl = () => process.env.APP_URL || "https://cuetbmes.vercel.app";
 
 const app = express();
 app.use(cors());
@@ -43,8 +50,11 @@ app.post("/api/send-otp", async (req, res) => {
   const verificationToken = `${expiresAt}.${hash}`;
 
   try {
-    await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+    const mailer = getTransporter();
+    if (!mailer) throw new Error("Email transporter unavailable");
+
+    await mailer.sendMail({
+      from: `CUET BMES <${getFromEmail()}>`,
       to: email,
       subject: "Your Event Registration Verification Code",
       html: `
@@ -109,8 +119,11 @@ app.post("/api/send-confirmation", async (req, res) => {
   }
 
   try {
-    await transporter.sendMail({
-      from: `BMES Society <${FROM_EMAIL}>`,
+    const mailer = getTransporter();
+    if (!mailer) throw new Error("Email transporter unavailable");
+
+    await mailer.sendMail({
+      from: `BMES Society <${getFromEmail()}>`,
       to: email,
       subject: `Registration Confirmed: ${eventTitle}`,
       html: `
@@ -146,8 +159,11 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
   }
 
   try {
-    await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+    const mailer = getTransporter();
+    if (!mailer) throw new Error("Email transporter unavailable");
+
+    await mailer.sendMail({
+      from: `CUET BMES <${getFromEmail()}>`,
       to: email,
       subject: "Membership Application Received",
       html: `
@@ -196,7 +212,7 @@ app.post("/api/send-membership-status", async (req, res) => {
       ${isApproved ? `
         <p>Congratulations! You are now an official member. You can now access exclusive resources and features in the student portal.</p>
         <div style="margin: 30px 0;">
-          <a href="${APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+          <a href="${getAppUrl()}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
         </div>
       ` : `
         <p>We regret to inform you that your application was not approved at this time.</p>
@@ -211,8 +227,11 @@ app.post("/api/send-membership-status", async (req, res) => {
   `;
 
   try {
-    await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+    const mailer = getTransporter();
+    if (!mailer) throw new Error("Email transporter unavailable");
+
+    await mailer.sendMail({
+      from: `CUET BMES <${getFromEmail()}>`,
       to: email,
       subject: subject,
       html: html,
@@ -238,8 +257,11 @@ app.post("/api/send-welcome", async (req, res) => {
   }
 
   try {
-    await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+    const mailer = getTransporter();
+    if (!mailer) throw new Error("Email transporter unavailable");
+
+    await mailer.sendMail({
+      from: `CUET BMES <${getFromEmail()}>`,
       to: email,
       subject: "Welcome to CUET BMES Society!",
       html: `
@@ -250,7 +272,7 @@ app.post("/api/send-welcome", async (req, res) => {
           <p>We're excited to have you as part of our community!</p>
           <p>You can now explore our events, projects, and research activities. If you haven't already, consider applying for official membership through the student portal.</p>
           <div style="margin: 30px 0;">
-            <a href="${APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+            <a href="${getAppUrl()}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
           </div>
           <br/>
           <p>Best regards,</p>

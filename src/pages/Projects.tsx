@@ -4,9 +4,10 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { defaultProjects } from "@/data/defaultData";
 
 const Projects = () => {
   const { data: projects = [], isLoading } = useQuery({
@@ -21,12 +22,17 @@ const Projects = () => {
     },
   });
 
+  const allProjects = (projects && projects.length > 0) ? projects : defaultProjects;
+
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
 
-  const categories = ["All", "Web", "CLI", "UI"];
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(allProjects.map((p) => p.category).filter(Boolean))) as string[];
+    return ["All", ...cats];
+  }, [allProjects]);
 
-  const filteredProjects = projects.filter((p) => {
+  const filteredProjects = allProjects.filter((p) => {
     const matchesCategory = filter === "All" || p.category === filter;
     const matchesSearch = p.title.toLowerCase().includes(search.toLowerCase());
     return matchesCategory && matchesSearch;

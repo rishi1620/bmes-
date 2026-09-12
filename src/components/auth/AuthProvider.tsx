@@ -1,6 +1,6 @@
 import { useEffect, useState, ReactNode, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, isPlaceholder } from "@/integrations/supabase/client";
 import { AuthContext, AppRole } from "@/context/AuthContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -109,29 +109,37 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.error("[AuthProvider] ❌ Error during signOut cleanup:", e);
       }
       
-      if (!window.location.pathname.includes('/auth')) {
-        console.info("[AuthProvider] 🔀 Redirecting to /auth due to expired session.");
+      if (window.location.pathname.startsWith('/admin')) {
+        console.info("[AuthProvider] 🔀 Redirecting to /auth due to expired session on protected admin route.");
         window.location.href = '/auth';
       }
     }
   };
 
   useEffect(() => {
-    console.info("[AuthProvider] 🚀 Initializing AuthProvider subscription and session check...");
     let isMounted = true;
+
+    // Fast-path: if running in placeholder mode without stored keys, complete loading immediately
+    if (isPlaceholder) {
+      console.info("[AuthProvider] ⚡ Initializing in placeholder mode — resolving session immediately.");
+      setLoading(false);
+      return;
+    }
+
+    console.info("[AuthProvider] 🚀 Initializing AuthProvider subscription and session check...");
 
     // Safety timeout to prevent loading state from getting permanently stuck
     const safetyTimeout = setTimeout(() => {
       if (isMounted) {
         setLoading(prev => {
           if (prev) {
-            console.warn("[AuthProvider] ⏱️ Auth initial loading timeout reached (5000ms). Forcing loading to false.");
+            console.info("[AuthProvider] ⏱️ Auth initial loading completed via fallback timer.");
             return false;
           }
           return prev;
         });
       }
-    }, 5000);
+    }, 2000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
       console.info(`[AuthProvider] ⚡ onAuthStateChange event: "${event}"`, {
@@ -191,13 +199,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Initial getSession check
     supabase.auth.getSession().then(async ({ data: { session: initialSession }, error }) => {
-      console.info("[AuthProvider] 🔑 supabase.auth.getSession() returned:", {
-        hasSession: !!initialSession,
-        userId: initialSession?.user?.id,
-        email: initialSession?.user?.email,
-        error: error?.message || null
-      });
-
       if (!isMounted) return;
 
       if (error) {
@@ -223,7 +224,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       isMounted = false;
       clearTimeout(safetyTimeout);
-      console.info("[AuthProvider] 🧹 Cleaning up AuthProvider subscription.");
       subscription.unsubscribe();
     };
   }, [checkRoles]);

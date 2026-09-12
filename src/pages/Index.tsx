@@ -18,6 +18,13 @@ import { isRegistrationOpen } from "@/lib/utils";
 import { Tables } from "@/integrations/supabase/types";
 import heroBg from "@/assets/hero-bg.jpg";
 import { motion } from "framer-motion";
+import { 
+  defaultNotices, 
+  defaultEvents, 
+  defaultProjects, 
+  defaultAchievements, 
+  defaultBlogPosts 
+} from "@/data/defaultData";
 
 const iconMap: Record<string, React.ElementType> = {
   FlaskConical, Users, Calendar, BookOpen, Award, Microscope,
@@ -48,7 +55,7 @@ const Index = () => {
   const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
   const [isRegOpen, setIsRegOpen] = useState(false);
 
-  const { data: sections, isLoading } = useQuery({
+  const { data: sections } = useQuery({
     queryKey: ["home-sections"],
     queryFn: async () => {
       const { data } = await supabase
@@ -73,20 +80,23 @@ const Index = () => {
   const portalNotices = useMemo(() => {
     if (!siteSettings?.portal_notices_json) return [];
     try {
-      return JSON.parse(siteSettings.portal_notices_json);
+      const parsed = JSON.parse(siteSettings.portal_notices_json);
+      return Array.isArray(parsed) && parsed.length > 0 ? parsed : [];
     } catch (e) {
       console.error("Error parsing portal notices:", e);
       return [];
     }
   }, [siteSettings]);
 
+  const effectiveNotices = portalNotices.length > 0 ? portalNotices : defaultNotices;
+
   const deptNotices = useMemo(() => 
-    portalNotices.filter((n: { category?: string }) => n.category === "departmental" || !n.category).slice(0, 3),
-  [portalNotices]);
+    effectiveNotices.filter((n: { category?: string }) => n.category === "departmental" || !n.category).slice(0, 3),
+  [effectiveNotices]);
 
   const clubNews = useMemo(() => 
-    portalNotices.filter((n: { category?: string }) => n.category === "club").slice(0, 3),
-  [portalNotices]);
+    effectiveNotices.filter((n: { category?: string }) => n.category === "club").slice(0, 3),
+  [effectiveNotices]);
 
   const { data: recentEvents, isLoading: isLoadingEvents } = useQuery({
     queryKey: ["home-recent-events"],
@@ -104,6 +114,10 @@ const Index = () => {
     },
   });
 
+  const effectiveEvents = useMemo(() => {
+    return (recentEvents && recentEvents.length > 0) ? recentEvents : defaultEvents;
+  }, [recentEvents]);
+
   const { data: recentAchievements, isLoading: isLoadingAchievements } = useQuery({
     queryKey: ["home-recent-achievements"],
     queryFn: async () => {
@@ -115,6 +129,10 @@ const Index = () => {
       return data ?? [];
     },
   });
+
+  const effectiveAchievements = useMemo(() => {
+    return (recentAchievements && recentAchievements.length > 0) ? recentAchievements : defaultAchievements;
+  }, [recentAchievements]);
 
   const { data: featuredProjects, isLoading: isLoadingProjects } = useQuery({
     queryKey: ["home-featured-projects"],
@@ -128,6 +146,10 @@ const Index = () => {
     },
   });
 
+  const effectiveProjects = useMemo(() => {
+    return (featuredProjects && featuredProjects.length > 0) ? featuredProjects : defaultProjects;
+  }, [featuredProjects]);
+
   const { data: recentBlogPosts, isLoading: isLoadingBlog } = useQuery({
     queryKey: ["home-recent-blog"],
     queryFn: async () => {
@@ -140,6 +162,10 @@ const Index = () => {
       return data ?? [];
     },
   });
+
+  const effectiveBlogPosts = useMemo(() => {
+    return (recentBlogPosts && recentBlogPosts.length > 0) ? recentBlogPosts : defaultBlogPosts;
+  }, [recentBlogPosts]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getSection = useCallback((key: string) => (sections?.find((s) => s.section_key === key)?.section_data || {}) as Record<string, any>, [sections]);
@@ -155,28 +181,97 @@ const Index = () => {
       button_link: siteSettings?.home_hero_button_link || sectionHero.button_link || "/portal?tab=membership",
     };
   }, [getSection, siteSettings]);
-  const quickLinks = getSection("quick_links");
+
+  const rawQuickLinks = getSection("quick_links");
+  const quickLinks = useMemo(() => {
+    if (rawQuickLinks?.links && Array.isArray(rawQuickLinks.links) && rawQuickLinks.links.length > 0) {
+      return rawQuickLinks;
+    }
+    return {
+      links: [
+        { label: "Notices", url: "/notices" },
+        { label: "Academic Resources", url: "/academics" },
+        { label: "Academic Hub", url: "/portal" },
+        { label: "Activities", url: "/activities" },
+      ],
+    };
+  }, [rawQuickLinks]);
+
   const announcements = getSection("announcements");
   const upcomingEvents = getSection("upcoming_events");
   const recentAchievementsSection = getSection("recent_achievements");
   const featuredProjectsSection = getSection("featured_projects");
   const recentBlogSection = getSection("recent_blog");
-  const stats = getSection("stats");
-  const features = getSection("features");
-  const cta = getSection("cta");
 
-  if (isLoading || isLoadingEvents || isLoadingAchievements) {
-    return (
-      <PageLayout>
-        <div className="container py-24 space-y-8">
-          <Skeleton className="h-48 w-full rounded-xl" />
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[1,2,3,4].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
-          </div>
-        </div>
-      </PageLayout>
-    );
-  }
+  const rawStats = getSection("stats");
+  const stats = useMemo(() => {
+    if (rawStats?.items && Array.isArray(rawStats.items) && rawStats.items.length > 0) {
+      return rawStats;
+    }
+    return {
+      items: [
+        { label: "Active Members", value: "120+" },
+        { label: "Alumni Network", value: "80+" },
+        { label: "Ongoing Projects", value: "15+" },
+        { label: "Events Hosted", value: "25+" },
+      ],
+    };
+  }, [rawStats]);
+
+  const rawFeatures = getSection("features");
+  const features = useMemo(() => {
+    if (rawFeatures?.items && Array.isArray(rawFeatures.items) && rawFeatures.items.length > 0) {
+      return rawFeatures;
+    }
+    return {
+      badge: "What We Do",
+      title: "Empowering Future Biomedical Engineers",
+      description: "From hands-on research to industry mentorship, BMES provides the tools and community to help you excel.",
+      items: [
+        {
+          title: "Research Projects",
+          icon: "FlaskConical",
+          desc: "Collaborative research in biomedical signal processing, biomechanics, and medical imaging.",
+        },
+        {
+          title: "Mentorship",
+          icon: "Users",
+          desc: "Connect with alumni mentors working in top healthcare and engineering firms worldwide.",
+        },
+        {
+          title: "Events & Workshops",
+          icon: "Calendar",
+          desc: "Hands-on workshops, seminars, and competitions to sharpen your engineering skills.",
+        },
+        {
+          title: "Publications",
+          icon: "BookOpen",
+          desc: "Platform to publish and showcase undergraduate research papers and case studies.",
+        },
+        {
+          title: "Achievements",
+          icon: "Award",
+          desc: "Celebrating competition wins, grants, and media coverage of our society impact.",
+        },
+        {
+          title: "Lab Access",
+          icon: "Microscope",
+          desc: "Access to society-maintained lab resources and collaborative project tools.",
+        },
+      ],
+    };
+  }, [rawFeatures]);
+
+  const rawCta = getSection("cta");
+  const cta = useMemo(() => {
+    if (rawCta?.title) return rawCta;
+    return {
+      title: "Ready to Make an Impact?",
+      description: "Join CUET BMES and be part of the next generation of biomedical innovators.",
+      button_text: "Get in Touch",
+      button_link: "/contact",
+    };
+  }, [rawCta]);
 
   return (
     <PageLayout>
@@ -191,6 +286,7 @@ const Index = () => {
               src={(hero.background_image as string) || heroBg} 
               alt="" 
               className="h-full w-full object-cover" 
+              onError={(e) => { (e.currentTarget as HTMLImageElement).src = heroBg; }}
             />
             <div className="absolute inset-0 hero-gradient opacity-85" />
           </div>
@@ -274,14 +370,13 @@ const Index = () => {
       )}
 
       {/* Latest Announcements */}
-      {sections && (
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="container py-8"
-        >
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="container py-8"
+      >
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-primary animate-pulse" />
@@ -315,11 +410,14 @@ const Index = () => {
                     <Dialog key={i}>
                       <DialogTrigger asChild>
                         <motion.div 
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Read notice: ${notice.title}`}
                           initial={{ opacity: 0, x: -10 }}
                           whileInView={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.1 }}
                           whileHover={{ y: -2, scale: 1.02 }}
-                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer"
+                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-300 cursor-pointer"
                         >
                           <div className="block">
                             <div className="flex items-start justify-between gap-4">
@@ -328,7 +426,7 @@ const Index = () => {
                                   {notice.title}
                                 </h4>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Calendar className="h-3 w-3" />
+                                  <Calendar className="h-3 w-3" aria-hidden="true" />
                                   {notice.date}
                                 </div>
                               </div>
@@ -340,7 +438,7 @@ const Index = () => {
                         <DialogHeader>
                           <DialogTitle className="text-2xl font-bold text-primary">{notice.title}</DialogTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                            <Calendar className="h-4 w-4" />
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
                             {notice.date}
                           </div>
                         </DialogHeader>
@@ -352,7 +450,7 @@ const Index = () => {
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Bell className="h-8 w-8 opacity-20 mb-2" />
+                    <Bell className="h-8 w-8 opacity-20 mb-2" aria-hidden="true" />
                     <p className="text-sm italic">No recent departmental notices.</p>
                   </div>
                 )}
@@ -369,12 +467,12 @@ const Index = () => {
               <div className="flex items-center justify-between mb-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="rounded-xl bg-primary/10 p-3 text-primary shadow-inner">
-                    <Users className="h-6 w-6" />
+                    <Users className="h-6 w-6" aria-hidden="true" />
                   </div>
                   <h3 className="text-xl font-bold tracking-tight">{announcements.club_title || "Club News"}</h3>
                 </div>
                 <Link to="/notices" className="text-xs font-medium text-primary hover:underline flex items-center gap-1">
-                  View All <ChevronRight className="h-3 w-3" />
+                  View All <ChevronRight className="h-3 w-3" aria-hidden="true" />
                 </Link>
               </div>
 
@@ -384,11 +482,14 @@ const Index = () => {
                     <Dialog key={i}>
                       <DialogTrigger asChild>
                         <motion.div 
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Read club news: ${news.title}`}
                           initial={{ opacity: 0, x: -10 }}
                           whileInView={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.1 }}
                           whileHover={{ y: -2, scale: 1.02 }}
-                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 transition-all duration-300 cursor-pointer"
+                          className="group/item bg-card/50 p-3 rounded-xl border border-border/50 hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-all duration-300 cursor-pointer"
                         >
                           <div className="block">
                             <div className="flex items-start justify-between gap-4">
@@ -397,7 +498,7 @@ const Index = () => {
                                   {news.title}
                                 </h4>
                                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  <Calendar className="h-3 w-3" />
+                                  <Calendar className="h-3 w-3" aria-hidden="true" />
                                   {news.date}
                                 </div>
                               </div>
@@ -409,7 +510,7 @@ const Index = () => {
                         <DialogHeader>
                           <DialogTitle className="text-2xl font-bold text-primary">{news.title}</DialogTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
-                            <Calendar className="h-4 w-4" />
+                            <Calendar className="h-4 w-4" aria-hidden="true" />
                             {news.date}
                           </div>
                         </DialogHeader>
@@ -421,7 +522,7 @@ const Index = () => {
                   ))
                 ) : (
                   <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Bell className="h-8 w-8 opacity-20 mb-2" />
+                    <Bell className="h-8 w-8 opacity-20 mb-2" aria-hidden="true" />
                     <p className="text-sm italic">No recent club news.</p>
                   </div>
                 )}
@@ -429,7 +530,6 @@ const Index = () => {
             </motion.div>
           </div>
         </motion.section>
-      )}
 
       {/* Dynamic Upcoming Events */}
       <motion.section 
@@ -465,9 +565,9 @@ const Index = () => {
               </div>
             ))}
           </div>
-        ) : recentEvents && recentEvents.length > 0 ? (
+        ) : effectiveEvents.length > 0 ? (
           <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x">
-              {recentEvents.map((event: Tables<"events">) => (
+              {effectiveEvents.map((event: Tables<"events">) => (
                 <motion.div key={event.id} className="flex-[0_0_100%] sm:flex-[0_0_50%] lg:flex-[0_0_33.33%] min-w-0 snap-start" variants={itemVariants}>
                   <div className="group h-full overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all duration-300 hover:shadow-xl hover:border-primary/20 hover:-translate-y-2 flex flex-col">
                     <div className="relative h-48 w-full overflow-hidden">
@@ -572,7 +672,7 @@ const Index = () => {
               </div>
             ))}
           </div>
-        ) : recentAchievements && recentAchievements.length > 0 ? (
+        ) : effectiveAchievements.length > 0 ? (
           <motion.div 
             variants={containerVariants}
             initial="hidden"
@@ -580,7 +680,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="mt-10 grid gap-6 md:grid-cols-3"
           >
-            {recentAchievements.map((achievement: Record<string, unknown>) => (
+            {effectiveAchievements.map((achievement: Record<string, unknown>) => (
               <motion.div key={achievement.id as string} variants={itemVariants} className="group overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-all hover:shadow-md">
                 <div className="relative h-48 overflow-hidden">
                   <img 
@@ -656,7 +756,7 @@ const Index = () => {
               </div>
             ))}
           </div>
-        ) : featuredProjects && featuredProjects.length > 0 ? (
+        ) : effectiveProjects.length > 0 ? (
           <motion.div 
             variants={containerVariants}
             initial="hidden"
@@ -664,7 +764,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="mt-10 grid gap-6 md:grid-cols-3"
           >
-            {featuredProjects.map((project: Record<string, unknown>) => (
+            {effectiveProjects.map((project: Record<string, unknown>) => (
               <motion.div key={project.id as string} variants={itemVariants} className="rounded-xl border border-border bg-card p-6 shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
                 <div className="mb-2 flex items-center justify-between">
                   <span className="inline-block rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{project.category as string}</span>
@@ -738,7 +838,7 @@ const Index = () => {
               </div>
             ))}
           </div>
-        ) : recentBlogPosts && recentBlogPosts.length > 0 ? (
+        ) : effectiveBlogPosts.length > 0 ? (
           <motion.div 
             variants={containerVariants}
             initial="hidden"
@@ -746,7 +846,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="mt-10 grid gap-6 md:grid-cols-3"
           >
-            {recentBlogPosts.map((post: Record<string, unknown>) => (
+            {effectiveBlogPosts.map((post: Record<string, unknown>) => (
               <motion.div key={post.id as string} variants={itemVariants} className="rounded-xl border border-border bg-card overflow-hidden shadow-sm flex flex-col transition-all hover:shadow-glow hover:-translate-y-1">
                 {post.featured_image && (
                   <div className="aspect-video w-full overflow-hidden border-b">
@@ -787,7 +887,7 @@ const Index = () => {
 
       {/* Stats */}
       {stats?.items && (
-        <section className="container -mt-12 relative z-20">
+        <section className="container py-10 relative z-20">
           <motion.div 
             variants={containerVariants}
             initial="hidden"

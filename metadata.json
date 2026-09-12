@@ -1,5 +1,8 @@
 {
   "name": "CUET BMES Portal",
   "description": "A comprehensive portal for the CUET Biomedical Engineering Society with a secure admin dashboard.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

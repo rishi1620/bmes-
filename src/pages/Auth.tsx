@@ -137,7 +137,7 @@ const Auth = () => {
             <CardDescription>CUET Biomedical Engineering Society</CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4" aria-label={isForgotPassword ? "Password Reset Form" : isLogin ? "Sign In Form" : "Sign Up Form"}>
               <AnimatePresence mode="wait">
                 {!isLogin && !isForgotPassword && (
                   <motion.div 
@@ -148,22 +148,22 @@ const Auth = () => {
                     transition={{ duration: 0.2 }}
                     className="space-y-2 overflow-hidden"
                   >
-                    <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" value={fullName} onChange={(e) => setFullName(e.target.value)} required />
+                    <Label htmlFor="auth-full-name">Full Name</Label>
+                    <Input id="auth-full-name" value={fullName} onChange={(e) => setFullName(e.target.value)} required aria-required="true" />
                   </motion.div>
                 )}
               </AnimatePresence>
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                <Label htmlFor="auth-email">Email</Label>
+                <Input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required aria-required="true" />
               </div>
               {!isForgotPassword && (
                 <div className="space-y-2">
-                  <Label htmlFor="password">Password</Label>
-                  <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} />
+                  <Label htmlFor="auth-password">Password</Label>
+                  <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required aria-required="true" minLength={6} />
                 </div>
               )}
-              <Button type="submit" className="w-full" disabled={submitting}>
+              <Button type="submit" className="w-full" disabled={submitting} aria-label={submitting ? "Processing..." : isForgotPassword ? "Send Password Reset Link" : isLogin ? "Sign In to Account" : "Create Account"}>
                 {submitting ? "Please wait..." : isForgotPassword ? "Send Reset Link" : isLogin ? "Sign In" : "Sign Up"}
               </Button>
             </form>

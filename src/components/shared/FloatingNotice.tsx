@@ -19,14 +19,21 @@ export const FloatingNotice = ({ notice }: { notice: Notice }) => {
         initial={{ opacity: 0, y: 50, scale: 0.9 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 50, scale: 0.9 }}
+        role="region"
+        aria-label="Latest Notice Announcement"
+        aria-live="polite"
         className="fixed bottom-6 right-6 z-50 w-80 rounded-2xl border border-border bg-card p-4 shadow-lg"
       >
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2 text-primary">
-            <Bell className="h-5 w-5" />
+            <Bell className="h-5 w-5" aria-hidden="true" />
             <span className="font-bold">Latest Notice</span>
           </div>
-          <button onClick={() => setIsVisible(false)} className="text-muted-foreground hover:text-foreground">
+          <button 
+            onClick={() => setIsVisible(false)} 
+            aria-label="Dismiss notice"
+            className="text-muted-foreground hover:text-foreground p-1 rounded focus:outline-none focus:ring-2 focus:ring-primary"
+          >
             <X className="h-4 w-4" />
           </button>
         </div>
