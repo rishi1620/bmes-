@@ -11,8 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Check, X, Trash2, Download, Search, RefreshCw } from "lucide-react";
+import { Check, X, Trash2, Download, Search, RefreshCw, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
+import { MemberIdCardModal } from "@/components/admin/MemberIdCardModal";
+import { extractBatchInfo, generateMembershipId } from "@/utils/membership";
 
 interface Registration {
   id: string;
@@ -35,6 +37,8 @@ function AdminMembershipRegistrations() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [deleteBulk, setDeleteBulk] = useState(false);
+  const [selectedMemberForCard, setSelectedMemberForCard] = useState<Registration | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string>("");
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
@@ -56,6 +60,18 @@ function AdminMembershipRegistrations() {
 
   useEffect(() => {
     fetchRegistrations();
+    // Fetch site logo for ID cards
+    async function loadLogo() {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "logo_url")
+        .single();
+      if (data?.setting_value) {
+        setLogoUrl(data.setting_value);
+      }
+    }
+    loadLogo();
   }, [fetchRegistrations]);
 
   const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
@@ -133,20 +149,26 @@ function AdminMembershipRegistrations() {
   });
 
   const exportCSV = () => {
-    const headers = ["Full Name", "Email", "Student ID", "Department", "Year/Semester", "Phone", "Transaction ID", "Status", "Date"];
+    const headers = ["Full Name", "Membership ID", "Batch Tag", "Student ID", "Department", "Year/Semester", "Email", "Phone", "Transaction ID", "Status", "Date"];
     const csvContent = [
       headers.join(","),
-      ...filteredRegistrations.map(r => [
-        `"${r.full_name}"`,
-        `"${r.email}"`,
-        `"${r.student_id}"`,
-        `"${r.department}"`,
-        `"${r.year_semester}"`,
-        `"${r.phone_number || ""}"`,
-        `"${r.transaction_id || ""}"`,
-        `"${r.status}"`,
-        `"${format(new Date(r.created_at), "yyyy-MM-dd HH:mm")}"`
-      ].join(","))
+      ...filteredRegistrations.map(r => {
+        const batch = extractBatchInfo(r.student_id, r.year_semester, r.created_at);
+        const memId = generateMembershipId(r.student_id, r.id, r.year_semester, r.created_at);
+        return [
+          `"${r.full_name}"`,
+          `"${memId}"`,
+          `"${batch.batchTag}"`,
+          `"${r.student_id}"`,
+          `"${r.department}"`,
+          `"${r.year_semester}"`,
+          `"${r.email}"`,
+          `"${r.phone_number || ""}"`,
+          `"${r.transaction_id || ""}"`,
+          `"${r.status}"`,
+          `"${format(new Date(r.created_at), "yyyy-MM-dd HH:mm")}"`
+        ].join(",");
+      })
     ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
@@ -315,6 +337,17 @@ function AdminMembershipRegistrations() {
             <Button 
               size="sm" 
               variant="outline" 
+              className="h-8 text-emerald-700 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 gap-1.5 font-semibold"
+              onClick={() => {
+                const first = registrations.find(r => selectedIds.includes(r.id));
+                if (first) setSelectedMemberForCard(first);
+              }}
+            >
+              <CreditCard className="h-3.5 w-3.5 text-emerald-600" /> Virtual ID Card
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
               className="h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50 gap-1"
               onClick={() => bulkUpdateStatus('approved')}
               disabled={loading}
@@ -357,8 +390,8 @@ function AdminMembershipRegistrations() {
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
-              <TableHead>Student Info</TableHead>
-              <TableHead>Academic Info</TableHead>
+              <TableHead>Student & Membership ID</TableHead>
+              <TableHead>Academic & Batch</TableHead>
               <TableHead>Payment</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Date</TableHead>
@@ -375,74 +408,113 @@ function AdminMembershipRegistrations() {
                 <TableCell colSpan={7} className="h-32 text-center text-muted-foreground">No applications found.</TableCell>
               </TableRow>
             ) : (
-              filteredRegistrations.map((reg) => (
-                <TableRow key={reg.id} className={selectedIds.includes(reg.id) ? "bg-primary/5" : ""}>
-                  <TableCell>
-                    <Checkbox 
-                      checked={selectedIds.includes(reg.id)}
-                      onCheckedChange={() => toggleSelect(reg.id)}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{reg.full_name}</span>
-                      <span className="text-xs text-muted-foreground">{reg.email}</span>
-                      <span className="text-xs text-muted-foreground">{reg.phone_number}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="text-sm">{reg.student_id}</span>
-                      <span className="text-xs text-muted-foreground">{reg.department} | {reg.year_semester}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
-                      {reg.transaction_id || "N/A"}
-                    </span>
-                  </TableCell>
-                  <TableCell>{getStatusBadge(reg.status)}</TableCell>
-                  <TableCell className="text-xs text-muted-foreground">
-                    {format(new Date(reg.created_at), "MMM d, yyyy")}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {reg.status === 'pending' && (
-                        <>
-                          <Button 
-                            size="icon" 
-                            variant="outline" 
-                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                            onClick={() => updateStatus(reg.id, 'approved')}
-                          >
-                            <Check className="h-4 w-4" />
-                          </Button>
-                          <Button 
-                            size="icon" 
-                            variant="outline" 
-                            className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => updateStatus(reg.id, 'rejected')}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
-                      <Button 
-                        size="icon" 
-                        variant="ghost" 
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        onClick={() => setDeleteId(reg.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))
+              filteredRegistrations.map((reg) => {
+                const batch = extractBatchInfo(reg.student_id, reg.year_semester, reg.created_at);
+                const membershipId = generateMembershipId(reg.student_id, reg.id, reg.year_semester, reg.created_at);
+
+                return (
+                  <TableRow key={reg.id} className={selectedIds.includes(reg.id) ? "bg-primary/5" : ""}>
+                    <TableCell>
+                      <Checkbox 
+                        checked={selectedIds.includes(reg.id)}
+                        onCheckedChange={() => toggleSelect(reg.id)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="font-semibold text-foreground text-sm">{reg.full_name}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-mono text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-800 w-fit">
+                            {membershipId}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{reg.email}</span>
+                        {reg.phone_number && (
+                          <span className="text-xs text-muted-foreground">{reg.phone_number}</span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-mono font-bold text-foreground">{reg.student_id}</span>
+                          <Badge className="bg-amber-400 hover:bg-amber-400 text-emerald-950 font-black text-[10px] px-2 py-0.5 border border-amber-300 shadow-2xs">
+                            {batch.batchTag}
+                          </Badge>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{reg.department}</span>
+                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{reg.year_semester}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">
+                        {reg.transaction_id || "N/A"}
+                      </span>
+                    </TableCell>
+                    <TableCell>{getStatusBadge(reg.status)}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">
+                      {format(new Date(reg.created_at), "MMM d, yyyy")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end items-center gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 px-2.5 gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
+                          onClick={() => setSelectedMemberForCard(reg)}
+                          title="Generate Virtual ID Card & Member Profile"
+                        >
+                          <CreditCard className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <span className="hidden sm:inline">Virtual ID</span>
+                        </Button>
+                        {reg.status === 'pending' && (
+                          <>
+                            <Button 
+                              size="icon" 
+                              variant="outline" 
+                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                              onClick={() => updateStatus(reg.id, 'approved')}
+                              title="Approve Member"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="outline" 
+                              className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={() => updateStatus(reg.id, 'rejected')}
+                              title="Reject Member"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                        <Button 
+                          size="icon" 
+                          variant="ghost" 
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          onClick={() => setDeleteId(reg.id)}
+                          title="Delete Registration"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </motion.div>
+
+      {/* Member Virtual ID Card & Profile Modal */}
+      <MemberIdCardModal
+        member={selectedMemberForCard}
+        isOpen={!!selectedMemberForCard}
+        onClose={() => setSelectedMemberForCard(null)}
+        logoUrl={logoUrl}
+      />
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

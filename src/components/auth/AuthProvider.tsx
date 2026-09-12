@@ -1,6 +1,6 @@
 import { useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase, clearSupabaseStorage } from "@/integrations/supabase/client";
 import { AuthContext, AppRole } from "@/context/AuthContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -61,52 +61,57 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleAuthError = async (error: unknown) => {
-    console.error("Auth error:", error);
-    const err = error as { message?: string } | string | null;
+    const err = error as { message?: string; name?: string } | string | null;
     const message = (typeof err === 'object' ? err?.message : (typeof err === 'string' ? err : "")) || "";
+    const name = typeof err === 'object' ? err?.name : "";
     
-    // Log the full error to help debug
-    console.log("Auth error message:", message);
-    
-    if (message.toLowerCase().includes("refresh token") || 
-        message.toLowerCase().includes("session_not_found") ||
-        message.toLowerCase().includes("invalid_refresh_token") ||
-        message.toLowerCase().includes("refresh token not found") ||
-        message.toLowerCase().includes("invalid grant") ||
-        message.toLowerCase().includes("session expired")) {
-      console.warn("Invalid refresh token or session detected, signing out and clearing storage...");
-      
-      const keysToRemove: string[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.includes('supabase') || key.includes('sb-'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      sessionStorage.clear();
-      
-      try {
-        await supabase.auth.signOut();
-      } catch (e) {
-        console.error("Error during signOut:", e);
-      }
-      
-      if (!window.location.pathname.includes('/auth')) {
-        window.location.href = '/auth';
-      }
+    // Ignore lock contention or abort errors cleanly without logging as critical errors
+    if (
+      name === "AbortError" ||
+      message.toLowerCase().includes("lock broken") ||
+      message.toLowerCase().includes("steal") ||
+      message.toLowerCase().includes("aborted")
+    ) {
+      console.warn("Ignored transient auth lock or abort event:", message || name);
+      return;
     }
+
+    if (
+      message.toLowerCase().includes("refresh token") || 
+      message.toLowerCase().includes("session_not_found") ||
+      message.toLowerCase().includes("invalid_refresh_token") ||
+      message.toLowerCase().includes("refresh token not found") ||
+      message.toLowerCase().includes("invalid grant") ||
+      message.toLowerCase().includes("session expired") ||
+      message.toLowerCase().includes("failed to fetch")
+    ) {
+      console.warn("Stale or expired session encountered during auth initialization. Resetting session.");
+      clearSupabaseStorage();
+      setUser(null);
+      setSession(null);
+      setIsAdmin(false);
+      setHasAdminAccess(false);
+      setRoles([]);
+      setLoading(false);
+      return;
+    }
+
+    console.warn("Supabase auth event:", message);
   };
 
   useEffect(() => {
+    let isMounted = true;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!isMounted) return;
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
         // Ensure profile exists on login
         supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle().then(({ data, error }) => {
+          if (!isMounted) return;
           if (error) {
-            console.error("Error checking profile:", error);
+            console.warn("Notice checking profile:", error.message);
           }
           if (!data) {
             console.log("Creating missing profile for user:", session.user.id);
@@ -117,8 +122,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               user_id: session.user.id,
               full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User"
             }).then(({ error: insertError }) => {
+              if (!isMounted) return;
               if (insertError && insertError.code !== '23505') {
-                console.error("Error creating profile:", insertError);
+                console.warn("Notice creating profile:", insertError.message);
               }
               checkRoles(session.user.id, session.user.email);
             });
@@ -135,21 +141,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     });
 
     supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!isMounted) return;
       if (error) {
         handleAuthError(error);
-      }
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        checkRoles(session.user.id, session.user.email);
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          checkRoles(session.user.id, session.user.email);
+        }
       }
       setLoading(false);
     }).catch((error) => {
+      if (!isMounted) return;
       handleAuthError(error);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

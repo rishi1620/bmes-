@@ -266,4 +266,300 @@ app.post("/api/send-welcome", async (req, res) => {
   }
 });
 
+// Helper to generate professional bulk announcement/reminder emails
+function generateBulkEmailHtml({
+  recipientName,
+  subject,
+  message,
+  emailType = "announcement",
+  actionButtonText,
+  actionButtonUrl,
+  appUrl,
+}: {
+  recipientName: string;
+  subject: string;
+  message: string;
+  emailType?: string;
+  actionButtonText?: string;
+  actionButtonUrl?: string;
+  appUrl: string;
+}) {
+  let accentColor = "#10b981"; // emerald
+  let badgeText = "OFFICIAL ANNOUNCEMENT";
+  let badgeBg = "#ecfdf5";
+  let badgeBorder = "#a7f3d0";
+  let badgeTextColor = "#065f46";
+
+  if (emailType === "reminder") {
+    accentColor = "#f59e0b"; // amber
+    badgeText = "IMPORTANT REMINDER";
+    badgeBg = "#fffbeb";
+    badgeBorder = "#fde68a";
+    badgeTextColor = "#92400e";
+  } else if (emailType === "urgent") {
+    accentColor = "#ef4444"; // rose/red
+    badgeText = "URGENT NOTICE";
+    badgeBg = "#fef2f2";
+    badgeBorder = "#fecaca";
+    badgeTextColor = "#991b1b";
+  } else if (emailType === "general") {
+    accentColor = "#3b82f6"; // blue
+    badgeText = "GENERAL UPDATE";
+    badgeBg = "#eff6ff";
+    badgeBorder = "#bfdbfe";
+    badgeTextColor = "#1e40af";
+  }
+
+  const cleanName = recipientName ? recipientName.trim() : "Member";
+  const personalizedMessage = message.replace(/\{name\}/gi, cleanName);
+
+  const formattedParagraphs = personalizedMessage
+    .split(/\n\s*\n/)
+    .map((para) => `<p style="margin: 0 0 16px 0; font-size: 15px; line-height: 1.65; color: #334155;">${para.replace(/\n/g, "<br/>")}</p>`)
+    .join("");
+
+  const buttonHtml = (actionButtonText && actionButtonUrl) ? `
+    <div style="margin: 28px 0; text-align: center;">
+      <a href="${actionButtonUrl}" target="_blank" style="display: inline-block; background-color: ${accentColor}; color: #ffffff; padding: 13px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 15px; letter-spacing: 0.2px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        ${actionButtonText} &rarr;
+      </a>
+    </div>
+  ` : "";
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed; background-color: #f8fafc; padding: 30px 15px;">
+        <tr>
+          <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+              <tr>
+                <td style="background-color: ${accentColor}; height: 5px;"></td>
+              </tr>
+              <tr>
+                <td style="padding: 24px 32px 18px 32px; border-bottom: 1px solid #f1f5f9; background-color: #ffffff;">
+                  <table border="0" cellpadding="0" cellspacing="0" width="100%">
+                    <tr>
+                      <td>
+                        <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a; letter-spacing: -0.2px;">
+                          CUET Biomedical Engineering Society
+                        </h3>
+                        <p style="margin: 2px 0 0 0; font-size: 12px; color: #64748b;">
+                          Chittagong University of Engineering & Technology
+                        </p>
+                      </td>
+                      <td align="right">
+                        <span style="display: inline-block; background-color: ${badgeBg}; color: ${badgeTextColor}; border: 1px solid ${badgeBorder}; font-size: 10px; font-weight: 700; padding: 4px 10px; border-radius: 20px; letter-spacing: 0.5px;">
+                          ${badgeText}
+                        </span>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 32px 32px 24px 32px;">
+                  <h1 style="margin: 0 0 20px 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.35;">
+                    ${subject}
+                  </h1>
+                  
+                  <p style="margin: 0 0 16px 0; font-size: 15px; font-weight: 600; color: #1e293b;">
+                    Dear ${cleanName},
+                  </p>
+
+                  <div style="color: #334155;">
+                    ${formattedParagraphs}
+                  </div>
+
+                  ${buttonHtml}
+
+                  <div style="margin-top: 32px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+                    <p style="margin: 0; font-size: 14px; font-weight: 600; color: #334155;">
+                      Best regards,
+                    </p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #64748b;">
+                      Executive Committee & Administration<br/>
+                      <strong>CUET Biomedical Engineering Society</strong>
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 20px 32px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+                  <p style="margin: 0; font-size: 12px; color: #64748b; line-height: 1.5;">
+                    You are receiving this official communication as a registered student or member of the CUET Biomedical Engineering Society.
+                  </p>
+                  <p style="margin: 8px 0 0 0; font-size: 12px; color: #94a3b8;">
+                    <a href="${appUrl}" style="color: ${accentColor}; text-decoration: underline;">Visit Society Website</a> &bull;
+                    <a href="${appUrl}/portal" style="color: ${accentColor}; text-decoration: underline;">Student Portal</a> &bull;
+                    <a href="${appUrl}/events" style="color: ${accentColor}; text-decoration: underline;">Events</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+}
+
+// Bulk email endpoint for announcements, reminders, and updates
+app.post("/api/send-bulk-email", async (req, res) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error("GMAIL credentials are not configured in environment.");
+    return res.status(500).json({ 
+      error: "Email service is not configured. Please ensure GMAIL_USER and GMAIL_APP_PASSWORD are set." 
+    });
+  }
+
+  const {
+    recipients,
+    subject,
+    message,
+    emailType = "announcement",
+    actionButtonText,
+    actionButtonUrl
+  } = req.body;
+
+  if (!subject || !subject.trim()) {
+    return res.status(400).json({ error: "Email subject is required." });
+  }
+
+  if (!message || !message.trim()) {
+    return res.status(400).json({ error: "Email message content is required." });
+  }
+
+  if (!recipients || !Array.isArray(recipients) || recipients.length === 0) {
+    return res.status(400).json({ error: "At least one recipient is required." });
+  }
+
+  // Deduplicate and validate email addresses
+  const validRecipients: { email: string; name: string }[] = [];
+  const seenEmails = new Set<string>();
+
+  for (const item of recipients) {
+    const email = (typeof item === "string" ? item : item?.email || "").trim().toLowerCase();
+    const name = (typeof item === "object" ? item?.name || item?.full_name : "") || "";
+    
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && !seenEmails.has(email)) {
+      seenEmails.add(email);
+      validRecipients.push({ email, name: name.trim() });
+    }
+  }
+
+  if (validRecipients.length === 0) {
+    return res.status(400).json({ error: "No valid email addresses found in the recipient list." });
+  }
+
+  const results = {
+    total: validRecipients.length,
+    sent: 0,
+    failed: 0,
+    errors: [] as { email: string; error: string }[],
+  };
+
+  // Send in controlled batches of 4 with a 150ms delay between batches to stay within Gmail limits
+  const BATCH_SIZE = 4;
+  for (let i = 0; i < validRecipients.length; i += BATCH_SIZE) {
+    const batch = validRecipients.slice(i, i + BATCH_SIZE);
+    
+    await Promise.all(
+      batch.map(async (recipient) => {
+        try {
+          const htmlContent = generateBulkEmailHtml({
+            recipientName: recipient.name,
+            subject: subject.trim(),
+            message: message.trim(),
+            emailType,
+            actionButtonText: actionButtonText?.trim() || undefined,
+            actionButtonUrl: actionButtonUrl?.trim() || undefined,
+            appUrl: APP_URL,
+          });
+
+          await transporter.sendMail({
+            from: `CUET BMES <${FROM_EMAIL}>`,
+            to: recipient.email,
+            subject: subject.trim(),
+            html: htmlContent,
+          });
+
+          results.sent++;
+        } catch (err: unknown) {
+          results.failed++;
+          const errorMessage = err instanceof Error ? err.message : "Failed to send";
+          console.error(`Failed to send email to ${recipient.email}:`, errorMessage);
+          results.errors.push({ email: recipient.email, error: errorMessage });
+        }
+      })
+    );
+
+    // Brief cooldown between batches
+    if (i + BATCH_SIZE < validRecipients.length) {
+      await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+  }
+
+  return res.json({
+    success: true,
+    summary: results,
+    message: `Dispatched ${results.sent} of ${results.total} emails successfully.${results.failed > 0 ? ` (${results.failed} failed)` : ""}`
+  });
+});
+
+// Single test email endpoint so admins can test formatting before sending to all users
+app.post("/api/send-test-email", async (req, res) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    return res.status(500).json({ 
+      error: "Email service is not configured. Please ensure GMAIL_USER and GMAIL_APP_PASSWORD are set." 
+    });
+  }
+
+  const {
+    testEmail,
+    testName = "Admin Preview",
+    subject = "Test Announcement",
+    message = "This is a preview test of the announcement.",
+    emailType = "announcement",
+    actionButtonText,
+    actionButtonUrl
+  } = req.body;
+
+  if (!testEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(testEmail.trim())) {
+    return res.status(400).json({ error: "Please provide a valid test email address." });
+  }
+
+  try {
+    const htmlContent = generateBulkEmailHtml({
+      recipientName: testName,
+      subject: `[TEST PREVIEW] ${subject.trim()}`,
+      message: message.trim(),
+      emailType,
+      actionButtonText: actionButtonText?.trim() || undefined,
+      actionButtonUrl: actionButtonUrl?.trim() || undefined,
+      appUrl: APP_URL,
+    });
+
+    await transporter.sendMail({
+      from: `CUET BMES <${FROM_EMAIL}>`,
+      to: testEmail.trim(),
+      subject: `[TEST PREVIEW] ${subject.trim()}`,
+      html: htmlContent,
+    });
+
+    return res.json({ success: true, message: `Test email sent to ${testEmail.trim()}` });
+  } catch (err: unknown) {
+    const errorMessage = err instanceof Error ? err.message : "Failed to send test email";
+    console.error("Test email send error:", errorMessage);
+    return res.status(500).json({ error: errorMessage });
+  }
+});
+
 export default app;

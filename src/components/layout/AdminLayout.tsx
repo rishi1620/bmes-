@@ -1,10 +1,11 @@
 import { Link, useLocation, Navigate } from "react-router-dom";
-import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope } from "lucide-react";
+import { Users, Calendar, FolderOpen, Trophy, LayoutDashboard, LogOut, FileText, Image, Settings, Inbox, Home, GraduationCap, Navigation, Bell, CalendarDays, HelpCircle, Menu, ExternalLink, UserCheck, ChevronDown, ChevronUp, Microscope, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import AdminNotifications from "@/components/admin/AdminNotifications";
+import AdminGlobalSearch from "@/components/admin/AdminGlobalSearch";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -79,6 +80,8 @@ const linkGroups: LinkGroup[] = [
       { label: "Contact Submissions", path: "/admin/submissions", icon: Inbox, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
       { label: "Event Registrations", path: "/admin/registrations", icon: CalendarDays, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
       { label: "Membership Apps", path: "/admin/membership", icon: UserCheck, roles: ["admin", "super_admin", "user", "editor", "content_manager"] },
+      { label: "Bulk Email", path: "/admin/bulk-email", icon: Mail, roles: ["admin", "super_admin"] },
+      { label: "User Roles", path: "/admin/users", icon: Users, roles: ["admin", "super_admin"] },
     ]
   }
 ];
@@ -244,18 +247,23 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
       </Sheet>
 
       <div className="flex flex-1 flex-col md:pl-64 transition-all duration-300">
-        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/40 px-6 backdrop-blur-md">
-          <div className="flex items-center gap-4">
+        <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b border-border bg-background/80 px-4 md:px-6 backdrop-blur-md gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSheetOpen(true)}>
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <Breadcrumbs />
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" className="hidden md:flex gap-2" asChild>
+          {/* Global Search Bar */}
+          <div className="flex-1 max-w-sm md:max-w-md mx-auto flex items-center justify-center">
+            <AdminGlobalSearch />
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-3 shrink-0">
+            <Button variant="outline" size="sm" className="hidden xl:flex gap-2" asChild>
               <Link to="/" target="_blank">
                 <ExternalLink className="h-4 w-4" />
                 View Site
@@ -263,11 +271,11 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
             </Button>
             <AdminNotifications />
             <div className="flex items-center gap-2">
-              <div className="hidden flex-col items-end text-sm md:flex">
+              <div className="hidden sm:flex flex-col items-end text-sm">
                 <span className="font-medium text-foreground">{user.email?.split('@')[0]}</span>
-                <span className="text-xs text-muted-foreground">Admin</span>
+                <span className="text-[11px] text-muted-foreground leading-tight">Admin</span>
               </div>
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
                 {user.email?.charAt(0).toUpperCase()}
               </div>
             </div>

@@ -17,8 +17,53 @@ if (SUPABASE_URL === "https://placeholder-project.supabase.co") {
 
 const isPlaceholder = SUPABASE_URL === "https://placeholder-project.supabase.co";
 
-// Cache the client instance to prevent "Lock broken by another request with the 'steal' option."
-// during Vite HMR.
+/**
+ * Safely removes any cached Supabase session or keys from localStorage and sessionStorage.
+ */
+export function clearSupabaseStorage(): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes("supabase") || key.includes("sb-"))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    if (typeof sessionStorage !== "undefined") {
+      sessionStorage.clear();
+    }
+  } catch {
+    // Storage access might be restricted in some iframe or sandbox environments
+  }
+}
+
+// In-process lock implementation to eliminate Web Locks API contention
+// ("Lock broken by another request with the 'steal' option.")
+// which occurs when navigator.locks is used in iframes and React 18 StrictMode mounts.
+const inProcessLocks: Record<string, Promise<unknown>> = {};
+
+const safeInProcessLock = async <R>(
+  name: string,
+  _acquireTimeout: number,
+  fn: () => Promise<R>
+): Promise<R> => {
+  const previous = inProcessLocks[name] ?? Promise.resolve();
+  let release: () => void;
+  inProcessLocks[name] = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+
+  try {
+    await previous.catch(() => {});
+    return await fn();
+  } finally {
+    release!();
+  }
+};
+
+// Cache the client instance to prevent duplicate client initialization
 const globalForSupabase = globalThis as unknown as {
   supabase: ReturnType<typeof createClient<Database>> | undefined;
 };
@@ -31,12 +76,13 @@ export const supabase =
       persistSession: !isPlaceholder,
       autoRefreshToken: !isPlaceholder,
       detectSessionInUrl: !isPlaceholder,
+      lock: safeInProcessLock,
     },
     global: {
       fetch: isPlaceholder
         ? async (url) => {
             console.warn("Supabase is using a placeholder URL. Mocking response.");
-            const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : url.url;
+            const urlString = typeof url === 'string' ? url : url instanceof URL ? url.toString() : (url as Request)?.url || '';
             const isRest = urlString.includes('/rest/v1/');
             return new Response(JSON.stringify(isRest ? [] : {}), {
               status: 200,
@@ -44,56 +90,70 @@ export const supabase =
             });
           }
         : async (input, init) => {
-            let lastError;
-            for (let i = 0; i < 3; i++) {
+            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : (input as Request)?.url || '';
+            const isRefreshTokenRequest = url.includes("grant_type=refresh_token") || url.includes("/auth/v1/token");
+
+            // Handle auth refresh token requests with specialized resilience
+            if (isRefreshTokenRequest) {
               try {
                 const response = await fetch(input, init);
                 if (!response.ok) {
                   try {
                     const clone = response.clone();
                     const data = await clone.json();
-                    const errorDesc = data?.error_description || data?.msg || data?.message || data?.error || "";
-                    const lowerError = errorDesc.toLowerCase();
-                      if (
-                        lowerError.includes("refresh token") ||
-                        lowerError.includes("invalid_grant") ||
-                        lowerError.includes("invalid grant") ||
-                        lowerError.includes("session_not_found") ||
-                        lowerError.includes("invalid_refresh_token") ||
-                        lowerError.includes("refresh token not found")
-                      ) {
-                        console.warn("Intercepted invalid refresh token error, clearing session:", errorDesc);
-                        
-                        // Clear storage
-                        const keysToRemove: string[] = [];
-                        for (let j = 0; j < localStorage.length; j++) {
-                          const key = localStorage.key(j);
-                          if (key && (key.includes('supabase') || key.includes('sb-'))) {
-                            keysToRemove.push(key);
-                          }
-                        }
-                        keysToRemove.forEach(key => localStorage.removeItem(key));
-                        sessionStorage.clear();
-                        
-                        // Small delay to ensure storage is cleared before redirect or state update
-                        setTimeout(() => {
-                          if (window.location.pathname !== '/auth') {
-                            window.location.href = '/auth';
-                          }
-                        }, 100);
-                      }
+                    const errorDesc = (data?.error_description || data?.msg || data?.message || data?.error || "").toLowerCase();
+                    if (
+                      errorDesc.includes("refresh token") ||
+                      errorDesc.includes("invalid_grant") ||
+                      errorDesc.includes("invalid grant") ||
+                      errorDesc.includes("session_not_found") ||
+                      errorDesc.includes("invalid_refresh_token") ||
+                      errorDesc.includes("refresh token not found")
+                    ) {
+                      console.warn("Stale refresh token detected. Clearing local session storage.");
+                      clearSupabaseStorage();
+                    }
                   } catch {
-                    // ignore JSON parse errors
+                    // Ignore JSON parse error
                   }
                 }
                 return response;
-              } catch (err) {
-                lastError = err;
-                await new Promise(resolve => setTimeout(resolve, 500 * (i + 1)));
+              } catch {
+                // If the refresh token network call failed (offline, CORS, ad-blocker, or network glitch):
+                // Clear the stale stored session so subsequent calls or page refreshes don't repeatedly fail
+                console.warn("Supabase token refresh network request failed. Clearing stale local session.");
+                clearSupabaseStorage();
+                // Return a synthetic 400 response so GoTrue transitions cleanly to signed-out state
+                // without throwing an unhandled TypeError: Failed to fetch.
+                return new Response(
+                  JSON.stringify({
+                    error: "invalid_grant",
+                    error_description: "Failed to refresh token",
+                  }),
+                  {
+                    status: 400,
+                    headers: { "Content-Type": "application/json" },
+                  }
+                );
               }
             }
-            const url = typeof input === 'string' ? input : input instanceof URL ? input.toString() : input.url;
-            console.error("Supabase network error for URL:", url, "Error:", lastError);
+
+            // Standard requests (REST queries, storage, etc.)
+            let lastError: unknown;
+            for (let i = 0; i < 3; i++) {
+              try {
+                const response = await fetch(input, init);
+                return response;
+              } catch (err: unknown) {
+                lastError = err;
+                const errorName = (err as { name?: string })?.name;
+                if (errorName === "AbortError") {
+                  throw err;
+                }
+                await new Promise((resolve) => setTimeout(resolve, 300 * (i + 1)));
+              }
+            }
+            console.warn("Supabase network request failed for URL:", url, lastError);
             throw lastError;
           },
     },

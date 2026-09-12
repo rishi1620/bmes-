@@ -141,18 +141,77 @@ const Index = () => {
     },
   });
 
+  const { data: approvedMembersCount } = useQuery({
+    queryKey: ["home-approved-members-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("membership_registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("status", "approved");
+      return count ?? 0;
+    },
+  });
+
+  const { data: alumniCount } = useQuery({
+    queryKey: ["home-alumni-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("alumni")
+        .select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+
+  const { data: projectsCount } = useQuery({
+    queryKey: ["home-projects-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("projects")
+        .select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+
+  const { data: eventsCount } = useQuery({
+    queryKey: ["home-events-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("events")
+        .select("id", { count: "exact", head: true });
+      return count ?? 0;
+    },
+  });
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const getSection = useCallback((key: string) => (sections?.find((s) => s.section_key === key)?.section_data || {}) as Record<string, any>, [sections]);
 
   const hero = useMemo(() => {
     const sectionHero = getSection("hero");
+    const rawButtonText = siteSettings?.home_hero_button_text || sectionHero.button_text || "Join BMES";
+    let rawButtonLink = siteSettings?.home_hero_button_link || sectionHero.button_link;
+
+    // Connect Join BMES or legacy button to the membership portal
+    if (
+      !rawButtonLink || 
+      rawButtonLink === "/members" || 
+      rawButtonLink === "#" ||
+      rawButtonText.toLowerCase().includes("join")
+    ) {
+      rawButtonLink = "/portal?tab=membership";
+    }
+
+    const button2Text = sectionHero.button2_text || "Explore Projects";
+    const button2Link = sectionHero.button2_link || "/projects";
+
     return {
       title: siteSettings?.home_hero_title || sectionHero.title || "Biomedical Engineering Society",
       subtitle: siteSettings?.home_hero_subtitle || sectionHero.subtitle || "CUET BMES",
       description: siteSettings?.home_hero_description || sectionHero.description || "Advancing healthcare through engineering innovation and research excellence.",
       background_image: siteSettings?.home_hero_bg_image || sectionHero.background_image || heroBg,
-      button_text: siteSettings?.home_hero_button_text || sectionHero.button_text || "Join Society",
-      button_link: siteSettings?.home_hero_button_link || sectionHero.button_link || "/portal?tab=membership",
+      button_text: rawButtonText,
+      button_link: rawButtonLink,
+      button2_text: button2Text,
+      button2_link: button2Link,
     };
   }, [getSection, siteSettings]);
   const quickLinks = getSection("quick_links");
@@ -226,8 +285,17 @@ const Index = () => {
               className="mt-8 flex flex-wrap gap-4 justify-center"
             >
               {hero.button_text && (
-                <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                  <Link to={hero.button_link as string}>{hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+                <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-md">
+                  <Link to={hero.button_link as string}>
+                    {hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" />
+                  </Link>
+                </Button>
+              )}
+              {hero.button2_text && (
+                <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 font-semibold backdrop-blur-xs">
+                  <Link to={hero.button2_link as string}>
+                    {hero.button2_text as string}
+                  </Link>
                 </Button>
               )}
             </motion.div>
@@ -795,11 +863,45 @@ const Index = () => {
             viewport={{ once: true }}
             className="grid grid-cols-2 gap-4 md:grid-cols-4"
           >
-            {stats.items.map((s: { label: string; value: string }) => (
-              <motion.div key={s.label} variants={itemVariants}>
-                <StatCard value={s.value} label={s.label} />
-              </motion.div>
-            ))}
+            {stats.items.map((s: { label: string; value: string }) => {
+              const labelLower = (s.label || "").toLowerCase();
+              const isMember = labelLower.includes("member");
+              const isAlumni = labelLower.includes("alumni");
+              const isProject = labelLower.includes("project");
+              const isEvent = labelLower.includes("event");
+
+              let displayValue = s.value;
+              let linkTo: string | undefined = undefined;
+
+              if (isMember) {
+                // Strictly sync with approved members who took membership
+                displayValue = approvedMembersCount !== undefined 
+                  ? String(approvedMembersCount) 
+                  : (s.value === "00" ? "0" : s.value);
+                linkTo = "/portal?tab=membership";
+              } else if (isAlumni) {
+                displayValue = (alumniCount !== undefined && s.value === "00")
+                  ? String(alumniCount)
+                  : s.value;
+                linkTo = "/alumni";
+              } else if (isProject) {
+                displayValue = (projectsCount !== undefined && s.value === "00")
+                  ? String(projectsCount)
+                  : s.value;
+                linkTo = "/projects";
+              } else if (isEvent) {
+                displayValue = (eventsCount !== undefined && s.value === "00")
+                  ? String(eventsCount)
+                  : s.value;
+                linkTo = "/events";
+              }
+
+              return (
+                <motion.div key={s.label} variants={itemVariants}>
+                  <StatCard value={displayValue} label={s.label} to={linkTo} />
+                </motion.div>
+              );
+            })}
           </motion.div>
         </section>
       )}
@@ -846,8 +948,14 @@ const Index = () => {
             <h2 className="text-3xl font-bold text-primary-foreground">{cta.title}</h2>
             <p className="mt-3 text-primary-foreground/80">{cta.description}</p>
             {cta.button_text && (
-              <Button asChild size="lg" className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold">
-                <Link to="/contact">{cta.button_text} <ArrowRight className="ml-2 h-4 w-4" /></Link>
+              <Button asChild size="lg" className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-md">
+                <Link to={
+                  (cta.button_text?.toLowerCase().includes("join") || cta.button_link === "/portal?tab=membership" || cta.button_link === "/members")
+                    ? "/portal?tab=membership"
+                    : (cta.button_link || "/portal?tab=membership")
+                }>
+                  {cta.button_text} <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
             )}
           </div>

@@ -34,6 +34,7 @@ import AdminSettings from "./pages/admin/AdminSettings";
 import AdminSubmissions from "./pages/admin/AdminSubmissions";
 import AdminRegistrations from "./pages/admin/AdminRegistrations";
 import AdminMembershipRegistrations from "./pages/admin/AdminMembershipRegistrations";
+import AdminMemberPrintView from "./pages/admin/AdminMemberPrintView";
 import ErrorBoundary from "@/components/shared/ErrorBoundary";
 import AdminAlumni from "./pages/admin/AdminAlumni";
 import AdminFAQ from "./pages/admin/AdminFAQ";
@@ -47,6 +48,7 @@ import AdminResearch from "./pages/admin/AdminResearch";
 import Notices from "./pages/Notices";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBulkEmail from "./pages/admin/AdminBulkEmail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -72,6 +74,8 @@ const App = () => (
                   <Route path="/research" element={<Research />} />
                   <Route path="/activities" element={<Activities />} />
                   <Route path="/portal" element={<Portal />} />
+                  <Route path="/membership" element={<Navigate to="/portal?tab=membership" replace />} />
+                  <Route path="/join" element={<Navigate to="/portal?tab=membership" replace />} />
                   <Route path="/notices" element={<Notices />} />
                   <Route path="/projects" element={<Projects />} />
                   <Route path="/events" element={<Events />} />
@@ -105,7 +109,10 @@ const App = () => (
                   <Route path="/admin/submissions" element={<ProtectedRoute requireAdmin><AdminSubmissions /></ProtectedRoute>} />
                   <Route path="/admin/registrations" element={<ProtectedRoute requireAdmin><AdminRegistrations /></ProtectedRoute>} />
                   <Route path="/admin/membership" element={<ProtectedRoute requireAdmin><ErrorBoundary><AdminMembershipRegistrations /></ErrorBoundary></ProtectedRoute>} />
+                  <Route path="/admin/membership/id-card/:id" element={<ProtectedRoute requireAdmin><ErrorBoundary><AdminMemberPrintView /></ErrorBoundary></ProtectedRoute>} />
+                  <Route path="/admin/membership/print/:id" element={<ProtectedRoute requireAdmin><ErrorBoundary><AdminMemberPrintView /></ErrorBoundary></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
+                  <Route path="/admin/bulk-email" element={<ProtectedRoute requireAdmin><AdminBulkEmail /></ProtectedRoute>} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>

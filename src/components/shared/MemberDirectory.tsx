@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Search, Users, GraduationCap, Building2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { extractBatchInfo, generateMembershipId } from "@/utils/membership";
 
 interface Member {
   id: string;
@@ -77,32 +78,48 @@ export function MemberDirectory() {
             No members found matching your search.
           </div>
         ) : (
-          filteredMembers.map((member) => (
-            <Card key={member.id} className="group hover:border-emerald-500/50 transition-all duration-300 hover:shadow-md bg-card/50 backdrop-blur-sm">
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <h4 className="font-bold text-lg group-hover:text-emerald-600 transition-colors">{member.full_name}</h4>
-                    <p className="text-xs font-mono text-muted-foreground">{member.student_id}</p>
+          filteredMembers.map((member) => {
+            const batch = extractBatchInfo(member.student_id, member.year_semester);
+            const memId = generateMembershipId(member.student_id, member.id, member.year_semester);
+
+            return (
+              <Card key={member.id} className="group hover:border-emerald-500/50 transition-all duration-300 hover:shadow-md bg-card/50 backdrop-blur-sm">
+                <CardContent className="p-5 space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="space-y-1 min-w-0">
+                      <h4 className="font-bold text-lg group-hover:text-emerald-600 transition-colors truncate">{member.full_name}</h4>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="text-xs font-mono font-medium text-muted-foreground">{member.student_id}</span>
+                        <span className="text-muted-foreground/40">•</span>
+                        <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800/60">
+                          {memId}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end gap-1 shrink-0">
+                      <Badge className="bg-amber-400 text-emerald-950 hover:bg-amber-400 font-black text-[10px] uppercase tracking-wider border border-amber-300 shadow-2xs">
+                        {batch.batchTag}
+                      </Badge>
+                      <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[9.5px] uppercase tracking-wider">
+                        Official Member
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[10px] uppercase tracking-wider">
-                    Member
-                  </Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <Building2 className="h-3 w-3 text-emerald-500" />
-                    <span>{member.department}</span>
+                  
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Building2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                      <span className="truncate">{member.department}</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <GraduationCap className="h-3 w-3 text-emerald-500 shrink-0" />
+                      <span className="truncate">{member.year_semester}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <GraduationCap className="h-3 w-3 text-emerald-500" />
-                    <span>{member.year_semester}</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            );
+          })
         )}
       </div>
       

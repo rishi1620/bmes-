@@ -2,10 +2,11 @@ import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCheck, GraduationCap, Briefcase, Linkedin, Mail } from "lucide-react";
+import { Users, UserCheck, GraduationCap, Briefcase, Linkedin, Mail, ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 interface Person {
   id: string;
@@ -118,7 +119,7 @@ const People = () => {
                 <Briefcase className="h-4 w-4" /> Staff
               </TabsTrigger>
               <TabsTrigger value="ec" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
-                <Users className="h-4 w-4" /> BMES Executive Committee & Members
+                <Users className="h-4 w-4" /> Executive Committee
               </TabsTrigger>
               <TabsTrigger value="advisory" className="rounded-xl px-6 py-2.5 data-[state=active]:bg-emerald-500 data-[state=active]:text-white text-slate-600 dark:text-slate-400 gap-1.5 text-xs md:text-sm">
                 <UserCheck className="h-4 w-4" /> Advisory
@@ -161,7 +162,15 @@ const People = () => {
           </TabsContent>
 
           <TabsContent value="ec">
-            <SectionHeading title="BMES Executive Committee & Members" description="Photos and roles of the current student panel and members." />
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
+              <SectionHeading title="Executive Committee" description="Official executive panel and student leadership of the CUET Biomedical Engineering Society." />
+              <Link 
+                to="/portal?tab=membership" 
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:underline bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/20 w-fit"
+              >
+                View Registered Society Members <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
             {isLoading ? (
               <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-80 rounded-xl" />)}

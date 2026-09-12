@@ -196,3 +196,102 @@
     background-attachment: fixed;
   }
 }
+
+/* ==========================================================================
+   Printer-Friendly Styles for Member Profiles & Virtual ID Cards
+   ========================================================================== */
+@media print {
+  @page {
+    margin: 12mm;
+    size: auto;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    background-image: none !important;
+  }
+
+  /* Hide navigation, sidebars, buttons and modals chrome */
+  .no-print,
+  nav,
+  aside,
+  header.no-print,
+  button,
+  .dialog-overlay,
+  [data-radix-popper-content-wrapper],
+  .sonner-toaster {
+    display: none !important;
+  }
+
+  /* Ensure background colors, gradients and graphics print properly */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Virtual ID Card specific print rules */
+  .id-card-front,
+  .id-card-back {
+    box-shadow: none !important;
+    border: 1px solid #10b981 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    margin: 10px auto !important;
+  }
+
+  #printable-id-card-area {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 24px !important;
+    margin: 20px auto !important;
+  }
+
+  /* When printing from dialog/modal */
+  body.printing-id-cards [role="dialog"] {
+    position: static !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
+
+  body.printing-id-cards #printable-id-card-area {
+    display: flex !important;
+  }
+
+  body.printing-id-cards [role="tablist"],
+  body.printing-id-cards .id-card-wrapper + .mt-8,
+  body.printing-id-cards [role="dialog"] > div:first-child {
+    display: none !important;
+  }
+
+  /* When printing profile dossier */
+  .member-profile-dossier {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    page-break-after: auto !important;
+  }
+
+  body.printing-member-profile [role="dialog"] {
+    position: static !important;
+    max-width: 100% !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+
+  body.printing-member-profile [role="tablist"] {
+    display: none !important;
+  }
+}
