@@ -8,15 +8,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   BookOpen, 
   Download, 
   UserPlus, 
   ExternalLink, 
+  Sparkles, 
   FileText, 
   Image as ImageIcon,
+  Loader2,
+  Upload,
   Search,
-  Film
+  Film,
+  History,
+  Copy,
+  Check,
+  Brain,
+  ListChecks,
+  CalendarDays,
+  HelpCircle,
+  X
 } from "lucide-react";
 import {
   Accordion,
@@ -29,6 +41,12 @@ import { toast } from "sonner";
 import { MembershipRegistrationForm } from "@/components/shared/MembershipRegistrationForm";
 import { MemberDirectory } from "@/components/shared/MemberDirectory";
 import Markdown from "react-markdown";
+import { generateStudyMaterial, StudyMode } from "@/services/geminiService";
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Set up PDF worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+
 import { motion } from "framer-motion";
 
 interface SoftwareLink {
@@ -54,11 +72,37 @@ const Portal = () => {
   }, [queryParams, activeTab]);
 
   const [, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiResult, setAiResult] = useState("");
+  const [studyMode, setStudyMode] = useState<StudyMode>("general");
+  const [aiHistory, setAiHistory] = useState<{id: string, title: string, content: string, date: string, chatHistory?: { role: string, parts: { text: string }[] }[]}[]>([]);
+  const [chatHistory, setChatHistory] = useState<{ role: string, parts: { text: string }[] }[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const [copied, setCopied] = useState(false);
   const [selectedSemesterId, setSelectedSemesterId] = useState<string>("");
   const [selectedCourseId, setSelectedCourseId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState<string>("All");
+  const [fileContent, setFileContent] = useState("");
+  const [fileName, setFileName] = useState("");
   const contentRef = useRef<HTMLDivElement>(null);
+
+  const clearChat = () => {
+    setAiResult("");
+    setChatHistory([]);
+    setAiPrompt("");
+    setFileContent("");
+    setFileName("");
+    toast.success("Chat cleared!");
+  };
+
+  const clearSavedHistory = () => {
+    setAiHistory([]);
+    localStorage.removeItem("ai_study_history");
+    toast.success("Saved history cleared!");
+  };
 
   const scrollToContent = () => {
     setTimeout(() => {
@@ -68,6 +112,38 @@ const Portal = () => {
         window.scrollTo({ top: y, behavior: 'smooth' });
       }
     }, 100);
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || file.type !== 'application/pdf') {
+      toast.error("Please upload a valid PDF file.");
+      return;
+    }
+    setUploading(true);
+    setFileName(file.name);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map((item: unknown) => {
+          if (typeof item === 'object' && item !== null && 'str' in item) {
+            return (item as { str: string }).str;
+          }
+          return '';
+        }).join(' ');
+      }
+      setFileContent(text);
+      toast.success("PDF uploaded and parsed successfully!");
+    } catch (error) {
+      console.error("Error parsing PDF:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to parse PDF. Please ensure it's a readable document.");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const fetchResources = useCallback(async () => {
@@ -97,6 +173,77 @@ const Portal = () => {
     };
     load();
   }, [fetchResources, location]);
+
+  useEffect(() => {
+    const savedHistory = localStorage.getItem("ai_study_history");
+    if (savedHistory) {
+      try {
+        setAiHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Failed to parse AI history", e);
+      }
+    }
+  }, []);
+
+  const saveToHistory = (title: string, content: string, currentChatHistory?: { role: string, parts: { text: string }[] }[]) => {
+    const newItem = {
+      id: Date.now().toString(),
+      title: title || "Study Material",
+      content,
+      date: new Date().toISOString(),
+      chatHistory: currentChatHistory
+    };
+    const updatedHistory = [newItem, ...aiHistory].slice(0, 10);
+    setAiHistory(updatedHistory);
+    localStorage.setItem("ai_study_history", JSON.stringify(updatedHistory));
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(aiResult);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+    toast.success("Copied to clipboard!");
+  };
+
+  const handleGenerate = async (overrideMode?: StudyMode) => {
+    const mode = overrideMode || studyMode;
+    if (!aiPrompt.trim() && !fileContent) {
+      toast.error("Please enter a topic or upload a PDF.");
+      return;
+    }
+
+    setGenerating(true);
+    try {
+      const promptText = aiPrompt || "Summarize this material";
+      const result = await generateStudyMaterial(promptText, fileContent, mode, chatHistory);
+      
+      const newHistory = [
+        ...chatHistory,
+        { role: "user", parts: [{ text: promptText }] },
+        { role: "model", parts: [{ text: result || "No content generated." }] }
+      ];
+      setChatHistory(newHistory);
+      
+      const newResult = aiResult 
+        ? `${aiResult}\n\n---\n\n**You:** ${promptText}\n\n**AI:** ${result}`
+        : result;
+        
+      setAiResult(newResult || "No content generated.");
+      saveToHistory(promptText.substring(0, 30) || `${mode.charAt(0).toUpperCase() + mode.slice(1)} Summary`, newResult || "", newHistory);
+      
+      setAiPrompt(""); // Clear prompt after sending
+      setFileContent(""); // Clear file content so it's not sent again
+      setFileName(""); // Clear file name from UI
+      toast.success("Study material generated!");
+      scrollToContent();
+    } catch (error) {
+      console.error("AI Generation error:", error);
+      const errorMessage = error instanceof Error ? error.message : "The AI service might be temporarily unavailable.";
+      toast.error(`Failed to generate content: ${errorMessage}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const softwareLinks = useMemo(() => {
     try {
@@ -162,7 +309,7 @@ const Portal = () => {
               {settings.portal_hero_title || "Academic Hub"}
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-primary-foreground/80 leading-relaxed">
-              {settings.portal_hero_subtitle || "Your central destination for lecture notes, software, and academic resources."}
+              {settings.portal_hero_subtitle || "Your central destination for lecture notes, software, and AI-powered study assistance."}
             </p>
           </motion.div>
         </div>
@@ -186,6 +333,12 @@ const Portal = () => {
                 <BookOpen className="mr-2 h-4 w-4" /> Library
               </TabsTrigger>
               <TabsTrigger 
+                value="generate" 
+                className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400"
+              >
+                <Sparkles className="mr-2 h-4 w-4" /> AI Assistant
+              </TabsTrigger>
+              <TabsTrigger 
                 value="software" 
                 className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400"
               >
@@ -204,18 +357,16 @@ const Portal = () => {
             <TabsContent value="library" className="space-y-8">
               <div className="space-y-6">
                 <div className="flex flex-col md:flex-row gap-4">
-                  <div className="flex-1 relative" role="search">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input 
-                      id="portal-resource-search"
-                      aria-label="Search academic resources"
                       placeholder="Search resources..." 
                       className="pl-10"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
-                  <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar" role="group" aria-label="Resource filter tags">
+                  <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 no-scrollbar">
                     {allTags.map(tag => (
                       <Button
                         key={tag}
@@ -223,7 +374,6 @@ const Portal = () => {
                         size="sm"
                         onClick={() => setSelectedTag(tag)}
                         className="whitespace-nowrap rounded-full"
-                        aria-pressed={selectedTag === tag}
                       >
                         {tag}
                       </Button>
@@ -390,6 +540,234 @@ const Portal = () => {
                           </div>
                         )}
                       </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="generate">
+              <div className="mx-auto max-w-5xl space-y-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <SectionHeading 
+                    title="AI Study Assistant" 
+                    description="Advanced academic support powered by Gemini AI." 
+                  />
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-full"
+                      onClick={() => setShowHistory(!showHistory)}
+                    >
+                      <History className="mr-2 h-4 w-4" />
+                      {showHistory ? "Hide History" : "View History"}
+                    </Button>
+                    {aiResult && (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="rounded-full text-emerald-500 border-emerald-500/20"
+                        onClick={copyToClipboard}
+                      >
+                        {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                        {copied ? "Copied" : "Copy Result"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                  <div className="lg:col-span-2 space-y-6">
+                    <Card className="border-emerald-500/20 shadow-xl shadow-emerald-500/5 overflow-hidden">
+                      <div className="h-1.5 bg-gradient-to-r from-emerald-400 to-teal-500" />
+                      <CardContent className="p-6 md:p-8">
+                        <div className="space-y-6">
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-4">
+                                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">Study Goal</label>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className={`h-7 px-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${showHistory ? 'bg-emerald-500 text-white' : 'text-slate-400 hover:text-emerald-500'}`}
+                                  onClick={() => setShowHistory(!showHistory)}
+                                >
+                                  <History className="h-3 w-3 mr-1" />
+                                  History
+                                </Button>
+                              </div>
+                              <span className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-tighter">Powered by Gemini 3</span>
+                            </div>
+                            <Textarea 
+                              placeholder="Describe what you're studying or paste a specific question..."
+                              className="min-h-[140px] resize-none border-slate-200 dark:border-slate-800 focus:ring-emerald-500 rounded-2xl p-4 text-base leading-relaxed"
+                              value={aiPrompt}
+                              onChange={(e) => setAiPrompt(e.target.value)}
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Context (Optional)</label>
+                              <Button 
+                                variant="outline" 
+                                className={`w-full h-12 rounded-xl border-dashed ${fileName ? 'border-emerald-500 bg-emerald-50/30 text-emerald-600' : 'border-slate-300'}`}
+                                onClick={() => document.getElementById('pdf-upload')?.click()}
+                                disabled={uploading}
+                              >
+                                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                                <span className="truncate max-w-[180px]">{fileName ? fileName : "Upload Lecture PDF"}</span>
+                                {fileName && <X className="ml-2 h-3 w-3 hover:text-red-500" onClick={(e) => { e.stopPropagation(); setFileName(""); setFileContent(""); }} />}
+                              </Button>
+                              <input 
+                                id="pdf-upload" 
+                                type="file" 
+                                accept="application/pdf" 
+                                className="hidden" 
+                                onChange={handleFileUpload} 
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Study Mode</label>
+                              <select 
+                                className="w-full h-12 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 text-sm font-medium focus:ring-2 focus:ring-emerald-500 outline-none"
+                                value={studyMode}
+                                onChange={(e) => setStudyMode(e.target.value as StudyMode)}
+                              >
+                                <option value="general">General Assistance</option>
+                                <option value="summary">Concise Summary</option>
+                                <option value="quiz">Practice Quiz</option>
+                                <option value="concepts">Core Concepts</option>
+                                <option value="plan">Study Schedule</option>
+                                <option value="explain">Simplified Explanation</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          <Button 
+                            onClick={() => handleGenerate()} 
+                            disabled={generating || uploading}
+                            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white h-14 text-lg font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all active:scale-[0.98]"
+                          >
+                            {generating ? (
+                              <>
+                                <Loader2 className="mr-2 h-6 w-6 animate-spin" />
+                                Analyzing & Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Sparkles className="mr-2 h-6 w-6" />
+                                Generate Study Material
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {aiResult && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                      >
+                        <Card className="border-none shadow-2xl overflow-hidden rounded-3xl">
+                          <CardHeader className="bg-slate-50 dark:bg-slate-900/50 border-b border-slate-100 dark:border-slate-800 px-8 py-6">
+                            <div className="flex items-center justify-between">
+                              <CardTitle className="flex items-center gap-3 text-emerald-500 font-black tracking-tight">
+                                <div className="p-2 rounded-xl bg-emerald-500/10">
+                                  <Sparkles className="h-5 w-5" />
+                                </div>
+                                YOUR STUDY MATERIAL
+                              </CardTitle>
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="sm" className="rounded-full text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30" onClick={clearChat}>
+                                  Clear Chat
+                                </Button>
+                                <Button variant="ghost" size="icon" className="rounded-full" onClick={copyToClipboard}>
+                                  {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                                </Button>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          <CardContent className="p-8 md:p-10">
+                            <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:font-black prose-headings:tracking-tight prose-p:leading-relaxed prose-strong:text-emerald-500">
+                              <Markdown>{aiResult}</Markdown>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    )}
+                  </div>
+
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Quick Actions</h3>
+                      <div className="grid grid-cols-1 gap-3">
+                        {[
+                          { mode: 'summary' as StudyMode, icon: <FileText className="h-4 w-4" />, label: "Summarize Notes", color: "bg-blue-500" },
+                          { mode: 'quiz' as StudyMode, icon: <ListChecks className="h-4 w-4" />, label: "Create a Quiz", color: "bg-purple-500" },
+                          { mode: 'concepts' as StudyMode, icon: <Brain className="h-4 w-4" />, label: "Extract Concepts", color: "bg-amber-500" },
+                          { mode: 'plan' as StudyMode, icon: <CalendarDays className="h-4 w-4" />, label: "Study Schedule", color: "bg-emerald-500" },
+                          { mode: 'explain' as StudyMode, icon: <HelpCircle className="h-4 w-4" />, label: "Explain Simply", color: "bg-rose-500" },
+                        ].map((action) => (
+                          <Button
+                            key={action.mode}
+                            variant="outline"
+                            className="h-auto py-4 px-5 justify-start gap-4 rounded-2xl border-slate-200 hover:border-emerald-500/50 hover:bg-emerald-50/30 transition-all group"
+                            onClick={() => {
+                              setStudyMode(action.mode);
+                              handleGenerate(action.mode);
+                            }}
+                            disabled={generating}
+                          >
+                            <div className={`p-2.5 rounded-xl ${action.color} text-white shadow-lg shadow-${action.color.split('-')[1]}-500/20 group-hover:scale-110 transition-transform`}>
+                              {action.icon}
+                            </div>
+                            <div className="flex flex-col items-start">
+                              <span className="font-bold text-sm">{action.label}</span>
+                              <span className="text-[10px] text-slate-500 font-medium">One-click generation</span>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {showHistory && (
+                      <motion.div 
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="space-y-4"
+                      >
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400">Recent History</h3>
+                          {aiHistory.length > 0 && (
+                            <Button variant="ghost" size="sm" className="h-6 text-[10px] text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30" onClick={clearSavedHistory}>
+                              Clear
+                            </Button>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          {aiHistory.length === 0 ? (
+                            <p className="text-xs text-slate-500 italic p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-dashed">No recent history found.</p>
+                          ) : (
+                            aiHistory.map((item) => (
+                              <button
+                                key={item.id}
+                                className="w-full text-left p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 hover:border-emerald-500/30 hover:shadow-md transition-all group"
+                                onClick={() => {
+                                  setAiResult(item.content);
+                                  setChatHistory(item.chatHistory || []);
+                                  scrollToContent();
+                                }}
+                              >
+                                <p className="text-sm font-bold truncate group-hover:text-emerald-500 transition-colors">{item.title}</p>
+                                <p className="text-[10px] text-slate-400 mt-1">{new Date(item.date).toLocaleDateString()}</p>
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
                     )}
                   </div>
                 </div>

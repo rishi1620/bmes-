@@ -96,7 +96,6 @@ const Contact = () => {
             
             <div className="mt-8 rounded-xl overflow-hidden border border-border h-64">
               <iframe 
-                title="CUET Campus Location Map"
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3688.086300185984!2d91.96884391535497!3d22.46337583990666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30ad2fca34ae5549%3A0x35c88a37b3e90e97!2sChittagong%20University%20of%20Engineering%20and%20Technology%20(CUET)!5e0!3m2!1sen!2sbd!4v1625000000000!5m2!1sen!2sbd" 
                 width="100%" 
                 height="100%" 
@@ -113,17 +112,15 @@ const Contact = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
               className="rounded-xl border border-border bg-card p-8 shadow-elevated text-center flex flex-col items-center justify-center space-y-4 h-full min-h-[400px]"
-              role="status"
-              aria-live="polite"
             >
-              <div className="h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2" aria-hidden="true">
+              <div className="h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
               <h3 className="text-2xl font-bold text-foreground">Message Sent!</h3>
               <p className="text-muted-foreground max-w-sm">
                 Thank you for reaching out. We have received your message and will get back to you shortly.
               </p>
-              <Button variant="outline" onClick={() => setIsSubmitted(false)} className="mt-6" aria-label="Send another contact message">
+              <Button variant="outline" onClick={() => setIsSubmitted(false)} className="mt-6">
                 Send Another Message
               </Button>
             </motion.div>
@@ -135,65 +132,27 @@ const Contact = () => {
               onSubmit={handleSubmit} 
               className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" 
               noValidate
-              aria-label="Contact message form"
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1">
-                  <Input 
-                    id="contact-name" 
-                    name="name" 
-                    placeholder="Your name" 
-                    aria-label="Your name"
-                    aria-required="true"
-                    aria-invalid={!!errors.name}
-                    aria-describedby={errors.name ? "contact-name-error" : undefined}
-                    className={errors.name ? "border-destructive" : ""} 
-                  />
-                  {errors.name && <p id="contact-name-error" role="alert" className="text-xs text-destructive">{errors.name}</p>}
+                  <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
+                  {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
                 </div>
                 <div className="space-y-1">
-                  <Input 
-                    id="contact-email" 
-                    name="email" 
-                    type="email" 
-                    placeholder="Your email" 
-                    aria-label="Your email"
-                    aria-required="true"
-                    aria-invalid={!!errors.email}
-                    aria-describedby={errors.email ? "contact-email-error" : undefined}
-                    className={errors.email ? "border-destructive" : ""} 
-                  />
-                  {errors.email && <p id="contact-email-error" role="alert" className="text-xs text-destructive">{errors.email}</p>}
+                  <Input name="email" type="email" placeholder="Your email" className={errors.email ? "border-destructive" : ""} />
+                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
                 </div>
               </div>
               <div className="space-y-1">
-                <Input 
-                  id="contact-subject" 
-                  name="subject" 
-                  placeholder="Subject" 
-                  aria-label="Message subject"
-                  aria-required="true"
-                  aria-invalid={!!errors.subject}
-                  aria-describedby={errors.subject ? "contact-subject-error" : undefined}
-                  className={errors.subject ? "border-destructive" : ""} 
-                />
-                {errors.subject && <p id="contact-subject-error" role="alert" className="text-xs text-destructive">{errors.subject}</p>}
+                <Input name="subject" placeholder="Subject" className={errors.subject ? "border-destructive" : ""} />
+                {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
               </div>
               <div className="space-y-1">
-                <Textarea 
-                  id="contact-message" 
-                  name="message" 
-                  placeholder="Your message..." 
-                  aria-label="Your message"
-                  aria-required="true"
-                  aria-invalid={!!errors.message}
-                  aria-describedby={errors.message ? "contact-message-error" : undefined}
-                  className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} 
-                />
-                {errors.message && <p id="contact-message-error" role="alert" className="text-xs text-destructive">{errors.message}</p>}
+                <Textarea name="message" placeholder="Your message..." className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} />
+                {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
               </div>
-              <Button type="submit" className="w-full" disabled={loading} aria-label={loading ? "Sending message..." : "Send Message"}>
-                <Send className="mr-2 h-4 w-4" aria-hidden="true" /> {loading ? "Sending..." : "Send Message"}
+              <Button type="submit" className="w-full" disabled={loading}>
+                <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
               </Button>
             </motion.form>
           )}

@@ -53,52 +53,22 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  const [fetchError, setFetchError] = useState<string | null>(null);
-
   const fetchRows = useCallback(async () => {
     setIsFetching(true);
-    setFetchError(null);
-    try {
-      // Select all columns to ensure editing dialog has complete data for all fields
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const query = supabase.from(tableName as any).select("*");
-      
-      const sortColumn = orderBy || "created_at";
-      const isAsc = orderBy === "display_order";
-      
-      const { data, error } = await query.order(sortColumn, { ascending: isAsc });
-      
-      if (error) {
-        console.warn(`[AdminCrudTable] Order by '${sortColumn}' failed for '${tableName}', retrying without order:`, error.message);
-        // Fallback: try fetching without ordering in case sort column doesn't exist
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const fallbackRes = await supabase.from(tableName as any).select("*");
-        if (fallbackRes.error) {
-          console.error(`[AdminCrudTable] Supabase fetch error for ${tableName}:`, fallbackRes.error);
-          setFetchError(fallbackRes.error.message);
-          toast({ 
-            title: `Error fetching ${title}`, 
-            description: fallbackRes.error.message, 
-            variant: "destructive" 
-          });
-          setRows([]);
-        } else {
-          const fallbackData = (fallbackRes.data as unknown as Record<string, unknown>[]) ?? [];
-          setRows(filter ? fallbackData.filter(filter) : fallbackData);
-        }
-      } else {
-        const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
-        setRows(filter ? allRows.filter(filter) : allRows);
-      }
-    } catch (err: unknown) {
-      console.error(`[AdminCrudTable] Unexpected exception for ${tableName}:`, err);
-      const errMsg = err instanceof Error ? err.message : "Failed to load data";
-      setFetchError(errMsg);
-      setRows([]);
-    } finally {
-      setIsFetching(false);
+    const selectQuery = columns.length > 0 ? Array.from(new Set([...columns, "id"])).join(",") : "*";
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data, error } = await supabase.from(tableName as any).select(selectQuery).order(orderBy ?? "created_at", { ascending: orderBy === "display_order" });
+    if (error) {
+      console.error("Supabase fetch error:", error);
+      toast({ title: "Error fetching data", description: error.message, variant: "destructive" });
+    } else {
+      console.log(`Supabase fetched rows for ${tableName}:`, data);
     }
-  }, [tableName, orderBy, title, filter]);
+    const allRows = (data as unknown as Record<string, unknown>[]) ?? [];
+    setRows(filter ? allRows.filter(filter) : allRows);
+    setIsFetching(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tableName, orderBy]);
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
@@ -369,12 +339,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                     <TableCell colSpan={columns.length + 1} className="h-32 text-center text-muted-foreground">
                       <div className="flex flex-col items-center justify-center gap-2">
                         <Search className="h-8 w-8 text-muted-foreground/50" />
-                        <p>{fetchError ? `Error: ${fetchError}` : "No results found."}</p>
-                        {fetchError && (
-                          <Button variant="outline" size="sm" onClick={fetchRows} className="mt-2 text-xs">
-                            Retry
-                          </Button>
-                        )}
+                        <p>No results found.</p>
                       </div>
                     </TableCell>
                   </TableRow>

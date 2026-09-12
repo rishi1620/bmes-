@@ -36,32 +36,14 @@ const Footer = () => {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Advancing biomedical engineering through research, innovation, and community at Chittagong University of Engineering & Technology.
             </p>
-            <div className="mt-6 flex gap-4" role="group" aria-label="Social media links">
-              <a 
-                href="https://facebook.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Visit CUET BMES on Facebook"
-              >
+            <div className="mt-6 flex gap-4">
+              <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Facebook className="h-5 w-5" />
               </a>
-              <a 
-                href="https://linkedin.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Visit CUET BMES on LinkedIn"
-              >
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Linkedin className="h-5 w-5" />
               </a>
-              <a 
-                href="https://youtube.com" 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="text-muted-foreground hover:text-primary transition-colors"
-                aria-label="Visit CUET BMES on YouTube"
-              >
+              <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="text-muted-foreground hover:text-primary transition-colors">
                 <Youtube className="h-5 w-5" />
               </a>
             </div>
@@ -69,7 +51,7 @@ const Footer = () => {
 
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">Quick Links</h4>
-            <nav className="flex flex-col gap-2" aria-label="Footer Quick Links">
+            <div className="flex flex-col gap-2">
               {[
                 { label: "About Us", path: "/about" },
                 { label: "Academics", path: "/academics" },
@@ -80,12 +62,12 @@ const Footer = () => {
                   {l.label}
                 </Link>
               ))}
-            </nav>
+            </div>
           </div>
 
           <div>
             <h4 className="mb-3 text-sm font-semibold text-foreground">Resources</h4>
-            <nav className="flex flex-col gap-2" aria-label="Footer Resources">
+            <div className="flex flex-col gap-2">
               {[
                 { label: "Activities & Events", path: "/activities" },
                 { label: "Achievements", path: "/achievements" },
@@ -98,7 +80,7 @@ const Footer = () => {
                   {l.label}
                 </Link>
               ))}
-            </nav>
+            </div>
           </div>
 
           <div>

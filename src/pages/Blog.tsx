@@ -8,7 +8,6 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
-import { defaultBlogPosts } from "@/data/defaultData";
 
 const Blog = () => {
   const { data: posts, isLoading } = useQuery({
@@ -23,8 +22,6 @@ const Blog = () => {
       return data;
     },
   });
-
-  const allPosts = (posts && posts.length > 0) ? posts : defaultBlogPosts;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -69,7 +66,7 @@ const Blog = () => {
           <div className="mt-10 grid gap-6 md:grid-cols-2">
             {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-48 rounded-xl" />)}
           </div>
-        ) : !allPosts?.length ? (
+        ) : !posts?.length ? (
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -84,7 +81,7 @@ const Blog = () => {
             animate="visible"
             className="mt-10 grid gap-6 md:grid-cols-2"
           >
-            {allPosts.map((p) => (
+            {posts.map((p) => (
               <motion.article 
                 variants={itemVariants}
                 key={p.id} 

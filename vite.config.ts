@@ -4,10 +4,7 @@ import path from "path";
 import { VitePWA } from "vite-plugin-pwa";
 
 // https://vitejs.dev/config/
-export default defineConfig({
-  esbuild: {
-    jsx: "automatic",
-  },
+export default defineConfig(() => ({
   server: {
     host: "0.0.0.0",
     port: 3000,
@@ -23,9 +20,6 @@ export default defineConfig({
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
-      workbox: {
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
-      },
       manifest: {
         name: "CUET BMES Portal",
         short_name: "BMES",
@@ -57,4 +51,4 @@ export default defineConfig({
   build: {
     chunkSizeWarningLimit: 1600,
   },
-});
+}));

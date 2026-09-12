@@ -1,6 +1,6 @@
-import { useEffect, useState, ReactNode, useCallback } from "react";
+import { useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
-import { supabase, isPlaceholder } from "@/integrations/supabase/client";
+import { supabase } from "@/integrations/supabase/client";
 import { AuthContext, AppRole } from "@/context/AuthContext";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -11,14 +11,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const checkRoles = useCallback(async (userId: string, email?: string) => {
-    console.info(`[AuthProvider] 🔍 Checking roles for user: ${userId} (${email || "no email"})`);
+  const checkRoles = async (userId: string, email?: string) => {
     const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
     let userRoles: AppRole[] = [];
     let isEnvAdmin = false;
     
     if (adminEmail && email === adminEmail) {
-      console.info(`[AuthProvider] 👑 User matches VITE_ADMIN_EMAIL: ${adminEmail}`);
       userRoles.push("admin");
       isEnvAdmin = true;
     }
@@ -29,48 +27,33 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .select("role")
         .eq("user_id", userId);
         
-      if (error) {
-        console.warn(`[AuthProvider] ⚠️ Error querying user_roles from database:`, error);
-      } else {
-        const dbRoles = data ? (data.map(r => r.role) as AppRole[]) : [];
-        console.info(`[AuthProvider] 📋 Database roles found for ${userId}:`, dbRoles);
+      if (error) throw error;
+      
+      const dbRoles = data ? data.map(r => r.role) : [];
+      
+      // Auto-sync: If user is admin in ENV but not in DB, try to add them to DB
+      if (isEnvAdmin && !dbRoles.includes("admin")) {
+        console.log("Auto-syncing admin role to database for:", email);
+        const { error: insertError } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role: "admin" });
         
-        // Auto-sync: If user is admin in ENV but not in DB, try to add them to DB
-        if (isEnvAdmin && !dbRoles.includes("admin")) {
-          console.info(`[AuthProvider] 🔄 Auto-syncing admin role to database for: ${email}`);
-          const { error: insertError } = await supabase
-            .from("user_roles")
-            .insert({ user_id: userId, role: "admin" });
-          
-          if (!insertError) {
-            console.info(`[AuthProvider] ✅ Successfully synced admin role to DB for: ${email}`);
-            dbRoles.push("admin");
-          } else {
-            console.warn(`[AuthProvider] ⚠️ Could not auto-sync admin role to DB (likely RLS). User still has env admin access:`, insertError);
-          }
+        if (!insertError) {
+          dbRoles.push("admin");
+        } else {
+          console.warn("Could not auto-sync admin role (likely RLS). User will still have admin access via ENV.");
         }
-
-        userRoles = [...new Set([...userRoles, ...dbRoles])];
       }
+
+      userRoles = [...new Set([...userRoles, ...dbRoles])];
     } catch (err) {
-      console.error("[AuthProvider] ❌ Exception during fetch user_roles:", err);
+      console.error("Error fetching user roles:", err);
     }
     
-    const adminStatus = userRoles.includes("admin") || userRoles.includes("super_admin");
-    const adminAccessStatus = userRoles.some(r => ["admin", "super_admin", "editor", "content_manager"].includes(r));
-    
-    console.info(`[AuthProvider] 🛡️ Final evaluated roles:`, {
-      userId,
-      email,
-      roles: userRoles,
-      isAdmin: adminStatus,
-      hasAdminAccess: adminAccessStatus
-    });
-
     setRoles(userRoles);
-    setIsAdmin(adminStatus);
-    setHasAdminAccess(adminAccessStatus);
-  }, []);
+    setIsAdmin(userRoles.includes("admin") || userRoles.includes("super_admin"));
+    setHasAdminAccess(userRoles.some(r => ["admin", "super_admin", "editor", "content_manager"].includes(r)));
+  };
 
   const hasRole = (allowedRoles: AppRole[]) => {
     if (isAdmin) return true; // Admins have all permissions
@@ -78,11 +61,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const handleAuthError = async (error: unknown) => {
-    console.error("[AuthProvider] ❌ Auth error encountered:", error);
+    console.error("Auth error:", error);
     const err = error as { message?: string } | string | null;
     const message = (typeof err === 'object' ? err?.message : (typeof err === 'string' ? err : "")) || "";
     
-    console.info(`[AuthProvider] ⚠️ Parsed auth error message: "${message}"`);
+    // Log the full error to help debug
+    console.log("Auth error message:", message);
     
     if (message.toLowerCase().includes("refresh token") || 
         message.toLowerCase().includes("session_not_found") ||
@@ -90,7 +74,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         message.toLowerCase().includes("refresh token not found") ||
         message.toLowerCase().includes("invalid grant") ||
         message.toLowerCase().includes("session expired")) {
-      console.warn("[AuthProvider] 🔄 Stale/Invalid refresh token or session detected. Purging storage and signing out...");
+      console.warn("Invalid refresh token or session detected, signing out and clearing storage...");
       
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -104,203 +88,107 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       try {
         await supabase.auth.signOut();
-        console.info("[AuthProvider] 🚪 SignOut completed after auth error.");
       } catch (e) {
-        console.error("[AuthProvider] ❌ Error during signOut cleanup:", e);
+        console.error("Error during signOut:", e);
       }
       
-      if (window.location.pathname.startsWith('/admin')) {
-        console.info("[AuthProvider] 🔀 Redirecting to /auth due to expired session on protected admin route.");
+      if (!window.location.pathname.includes('/auth')) {
         window.location.href = '/auth';
       }
     }
   };
 
   useEffect(() => {
-    let isMounted = true;
-
-    // Fast-path: if running in placeholder mode without stored keys, complete loading immediately
-    if (isPlaceholder) {
-      console.info("[AuthProvider] ⚡ Initializing in placeholder mode — resolving session immediately.");
-      setLoading(false);
-      return;
-    }
-
-    console.info("[AuthProvider] 🚀 Initializing AuthProvider subscription and session check...");
-
-    // Safety timeout to prevent loading state from getting permanently stuck
-    const safetyTimeout = setTimeout(() => {
-      if (isMounted) {
-        setLoading(prev => {
-          if (prev) {
-            console.info("[AuthProvider] ⏱️ Auth initial loading completed via fallback timer.");
-            return false;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        // Ensure profile exists on login
+        supabase.from("profiles").select("id").eq("id", session.user.id).maybeSingle().then(({ data, error }) => {
+          if (error) {
+            console.error("Error checking profile:", error);
           }
-          return prev;
-        });
-      }
-    }, 2000);
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      console.info(`[AuthProvider] ⚡ onAuthStateChange event: "${event}"`, {
-        userId: currentSession?.user?.id || "anonymous",
-        email: currentSession?.user?.email,
-        expiresAt: currentSession?.expires_at ? new Date(currentSession.expires_at * 1000).toLocaleTimeString() : undefined
-      });
-
-      if (!isMounted) return;
-
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-
-      if (currentSession?.user) {
-        try {
-          // Check profile asynchronously
-          const { data: profileData, error: profileErr } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("id", currentSession.user.id)
-            .maybeSingle();
-
-          if (profileErr) {
-            console.warn("[AuthProvider] ⚠️ Error querying user profile:", profileErr);
-          }
-
-          if (!profileData) {
-            console.info("[AuthProvider] 👤 Missing profile detected, inserting profile record for:", currentSession.user.id);
-            const { error: insertError } = await supabase.from("profiles").insert({
-              id: currentSession.user.id,
-              user_id: currentSession.user.id,
-              full_name: currentSession.user.user_metadata?.full_name || currentSession.user.email?.split('@')[0] || "User"
+          if (!data) {
+            console.log("Creating missing profile for user:", session.user.id);
+            // Try to insert, but catch and ignore 409 (already exists) errors
+            // This can happen if multiple tabs/reloads trigger this simultaneously
+            supabase.from("profiles").insert({
+              id: session.user.id,
+              user_id: session.user.id,
+              full_name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || "User"
+            }).then(({ error: insertError }) => {
+              if (insertError && insertError.code !== '23505') {
+                console.error("Error creating profile:", insertError);
+              }
+              checkRoles(session.user.id, session.user.email);
             });
-            if (insertError && insertError.code !== '23505') {
-              console.warn("[AuthProvider] ⚠️ Error inserting profile (non-duplicate):", insertError);
-            }
+          } else {
+            checkRoles(session.user.id, session.user.email);
           }
-        } catch (e) {
-          console.warn("[AuthProvider] ⚠️ Exception during profile verification:", e);
-        }
-
-        if (isMounted) {
-          await checkRoles(currentSession.user.id, currentSession.user.email);
-        }
+        });
       } else {
-        if (isMounted) {
-          setIsAdmin(false);
-          setHasAdminAccess(false);
-          setRoles([]);
-        }
+        setIsAdmin(false);
+        setHasAdminAccess(false);
+        setRoles([]);
       }
-
-      if (isMounted) {
-        setLoading(false);
-      }
-    });
-
-    // Initial getSession check
-    supabase.auth.getSession().then(async ({ data: { session: initialSession }, error }) => {
-      if (!isMounted) return;
-
-      if (error) {
-        await handleAuthError(error);
-      }
-
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-
-      if (initialSession?.user) {
-        await checkRoles(initialSession.user.id, initialSession.user.email);
-      }
-      
       setLoading(false);
-    }).catch(async (error) => {
-      console.error("[AuthProvider] ❌ getSession rejection:", error);
-      if (isMounted) {
-        await handleAuthError(error);
-        setLoading(false);
-      }
     });
 
-    return () => {
-      isMounted = false;
-      clearTimeout(safetyTimeout);
-      subscription.unsubscribe();
-    };
-  }, [checkRoles]);
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        handleAuthError(error);
+      }
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkRoles(session.user.id, session.user.email);
+      }
+      setLoading(false);
+    }).catch((error) => {
+      handleAuthError(error);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const signIn = async (email: string, password: string) => {
-    console.info(`[AuthProvider] 🔐 signIn requested for: ${email}`);
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) {
-        console.warn(`[AuthProvider] ❌ signIn failed for ${email}:`, error.message, error);
-        return { error: error as Error };
-      }
-      console.info(`[AuthProvider] ✅ signIn successful for ${email}:`, {
-        userId: data.user?.id,
-        email: data.user?.email
-      });
-      return { error: null };
-    } catch (err: unknown) {
-      console.error(`[AuthProvider] ❌ signIn exception for ${email}:`, err);
-      const errorObj = err instanceof Error ? err : new Error(String(err));
-      return { error: errorObj };
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    return { error: error as Error | null };
   };
 
   const signUp = async (email: string, password: string, fullName: string) => {
-    console.info(`[AuthProvider] 📝 signUp requested for: ${email} (${fullName})`);
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
-      });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { full_name: fullName }, emailRedirectTo: window.location.origin },
+    });
 
-      if (error) {
-        console.warn(`[AuthProvider] ❌ signUp failed for ${email}:`, error.message, error);
-        return { error: error as Error };
-      }
-
-      console.info(`[AuthProvider] ✅ signUp response received for ${email}:`, {
-        userId: data.user?.id,
-        identities: data.user?.identities?.length
-      });
-
-      if (data.user) {
-        try {
-          const emailResponse = await fetch("/api/send-welcome", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, name: fullName }),
-          });
-          if (!emailResponse.ok) {
-            console.warn("[AuthProvider] ⚠️ Welcome email route responded with status:", emailResponse.status);
-          } else {
-            console.info("[AuthProvider] ✉️ Welcome email sent successfully.");
-          }
-        } catch (err) {
-          console.warn("[AuthProvider] ⚠️ Error sending welcome email:", err);
+    if (!error && data.user) {
+      try {
+        const emailResponse = await fetch("/api/send-welcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, name: fullName }),
+        });
+        if (!emailResponse.ok) {
+          console.error("Failed to send welcome email. Server responded with:", emailResponse.status);
         }
+      } catch (err) {
+        console.error("Error sending welcome email:", err);
       }
-
-      return { error: null };
-    } catch (err: unknown) {
-      console.error(`[AuthProvider] ❌ signUp exception for ${email}:`, err);
-      const errorObj = err instanceof Error ? err : new Error(String(err));
-      return { error: errorObj };
     }
+
+    return { error: error as Error | null };
   };
 
   const signOut = async () => {
-    console.info("[AuthProvider] 🚪 signOut requested.");
     try {
       await supabase.auth.signOut();
-      console.info("[AuthProvider] ✅ supabase.auth.signOut completed.");
     } catch (error) {
-      console.error("[AuthProvider] ❌ Error during signOut:", error);
+      console.error("Error during sign out:", error);
     } finally {
-      // Force clear local storage keys
+      // Force clear local storage just in case
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -310,28 +198,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       keysToRemove.forEach(key => localStorage.removeItem(key));
       sessionStorage.clear();
-      console.info(`[AuthProvider] 🧹 Removed ${keysToRemove.length} storage keys. Redirecting to home.`);
       window.location.href = '/';
     }
   };
 
   const resetPassword = async (email: string) => {
-    console.info(`[AuthProvider] 🔑 resetPassword requested for: ${email}`);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
-      });
-      if (error) {
-        console.warn(`[AuthProvider] ❌ resetPassword error for ${email}:`, error);
-        return { error: error as Error };
-      }
-      console.info(`[AuthProvider] ✅ resetPassword link sent to: ${email}`);
-      return { error: null };
-    } catch (err: unknown) {
-      console.error(`[AuthProvider] ❌ resetPassword exception for ${email}:`, err);
-      const errorObj = err instanceof Error ? err : new Error(String(err));
-      return { error: errorObj };
-    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    });
+    return { error: error as Error | null };
   };
 
   return (

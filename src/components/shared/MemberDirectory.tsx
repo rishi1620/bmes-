@@ -61,11 +61,9 @@ export function MemberDirectory() {
         <p className="text-muted-foreground">Our growing community of biomedical engineering enthusiasts.</p>
       </div>
 
-      <div className="relative max-w-md mx-auto" role="search">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" aria-hidden="true" />
+      <div className="relative max-w-md mx-auto">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
-          id="member-search-input"
-          aria-label="Search members by name, ID or department"
           placeholder="Search by name, ID or department..."
           className="pl-10 bg-background/50 backdrop-blur-sm border-emerald-500/20 focus-visible:ring-emerald-500"
           value={searchQuery}

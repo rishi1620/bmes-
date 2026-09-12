@@ -62,19 +62,18 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 border-b border-primary/10 bg-gradient-to-r from-primary/5 via-background/40 to-accent/5 backdrop-blur-xl dark:from-primary/10 dark:via-background/40 dark:to-accent/10 shadow-sm transition-colors duration-300">
       <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5" aria-label={`${siteName} Home`}>
+        <Link to="/" className="flex items-center gap-2.5">
           <img
             src={logoUrl || defaultLogo}
             alt={siteName}
             className="h-12 w-auto object-contain transition-all duration-300 dark:brightness-0 dark:invert" />
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex" aria-label="Main Navigation">
+        <nav className="hidden items-center gap-1 lg:flex">
           {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                aria-current={location.pathname === link.path ? "page" : undefined}
                 className={`group relative rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 hover:text-primary hover:bg-primary/5 dark:hover:bg-primary/10 ${
                   location.pathname === link.path ? "text-primary bg-primary/5 dark:bg-primary/10" : "text-muted-foreground"
                 }`}
@@ -87,13 +86,7 @@ const Navbar = () => {
           ))}
           
           {user && (
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleSignOut} 
-              className="ml-2 gap-2 text-muted-foreground hover:text-foreground"
-              aria-label="Sign out of account"
-            >
+            <Button variant="ghost" size="sm" onClick={handleSignOut} className="ml-2 gap-2 text-muted-foreground hover:text-foreground">
               <LogOut className="h-4 w-4" />
               Sign Out
             </Button>
@@ -103,31 +96,20 @@ const Navbar = () => {
 
         <div className="flex items-center gap-2 lg:hidden">
           <ThemeToggle />
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label={mobileOpen ? "Close navigation menu" : "Open navigation menu"}
-            aria-expanded={mobileOpen}
-            aria-controls="mobile-navigation-menu"
-          >
+          <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       </div>
 
       {mobileOpen &&
-      <div 
-        id="mobile-navigation-menu" 
-        className="border-t border-primary/10 bg-gradient-to-b from-background to-primary/5 dark:to-primary/10 lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto"
-      >
-          <nav className="container flex flex-col gap-1 py-4" aria-label="Mobile Navigation">
+      <div className="border-t border-primary/10 bg-gradient-to-b from-background to-primary/5 dark:to-primary/10 lg:hidden max-h-[calc(100vh-4rem)] overflow-y-auto">
+          <nav className="container flex flex-col gap-1 py-4">
             {navLinks.map((link) =>
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileOpen(false)}
-                aria-current={location.pathname === link.path ? "page" : undefined}
                 className={`flex items-center rounded-md px-3 py-2.5 text-sm font-medium transition-all duration-200 hover:bg-primary/10 hover:text-primary hover:translate-x-1 border-l-2 ${
                   location.pathname === link.path ? "text-primary bg-primary/5 border-primary" : "text-muted-foreground border-transparent"
                 }`}
@@ -142,7 +124,6 @@ const Navbar = () => {
                 handleSignOut();
                 setMobileOpen(false);
               }}
-              aria-label="Sign out of account"
               className="flex items-center gap-2 rounded-md px-3 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
             >
               <LogOut className="h-4 w-4" />

@@ -49,15 +49,7 @@ import AdminNotices from "./pages/admin/AdminNotices";
 import AdminUsers from "./pages/admin/AdminUsers";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-      staleTime: 1000 * 60 * 5,
-    },
-  },
-});
+const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -68,7 +60,7 @@ const App = () => (
             <div className="flex w-full max-w-screen-2xl flex-1 flex-col">
               <Toaster />
               <Sonner />
-              <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <BrowserRouter>
                 <ScrollToTop />
                 <Routes>
                   <Route path="/" element={<Index />} />

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { Save, RefreshCw, Image as ImageIcon, Shield, Database } from "lucide-react";
+import { Save, RefreshCw, Image as ImageIcon, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,6 @@ import { toast } from "@/hooks/use-toast";
 import MediaSelectorDialog from "@/components/admin/MediaSelectorDialog";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
-import { SupabaseConnectivityDiagnostics } from "@/components/admin/SupabaseConnectivityDiagnostics";
 
 interface Setting {
   id: string;
@@ -212,24 +211,6 @@ const AdminSettings = () => {
             </div>
           </motion.div>
         ))}
-
-        {/* Database & Supabase Connectivity Diagnostics Section */}
-        <motion.div variants={itemVariants} className="rounded-lg border border-border bg-card p-5">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                <Database className="h-5 w-5 text-primary" />
-                Supabase & Database Connectivity
-              </h2>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Verify live connectivity, environment variables, authentication latency, and PostgREST endpoints.
-              </p>
-            </div>
-          </div>
-          <div className="pt-2">
-            <SupabaseConnectivityDiagnostics inline />
-          </div>
-        </motion.div>
       </motion.div>
     </AdminLayout>
   );

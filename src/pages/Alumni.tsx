@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import PageLayout from "@/components/layout/PageLayout";
 import SectionHeading from "@/components/shared/SectionHeading";
 import { Skeleton } from "@/components/ui/skeleton";
-import { defaultAlumni } from "@/data/defaultData";
 
 const Alumni = () => {
   const { data: alumni, isLoading } = useQuery({
@@ -15,10 +14,8 @@ const Alumni = () => {
     },
   });
 
-  const effectiveAlumni = (alumni && alumni.length > 0) ? alumni : defaultAlumni;
-
-  const featured = effectiveAlumni.filter((a) => a.is_featured);
-  const all = effectiveAlumni;
+  const featured = alumni?.filter((a) => a.is_featured) ?? [];
+  const all = alumni ?? [];
 
   return (
     <PageLayout>

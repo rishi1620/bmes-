@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Save, Plus, Trash } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { storageService } from "@/services/storageService";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -102,14 +101,15 @@ const AdminNotices = () => {
   const handlePdfUpload = async (index: number, file: File) => {
     setSaving(true);
     const fileName = `pdf-${Date.now()}-${file.name.replace(/\s+/g, "-")}`;
-    const uploadRes = await storageService.upload("media", fileName, file);
-    if (uploadRes.error || !uploadRes.data) {
-      toast({ title: "Upload failed", description: uploadRes.error?.message || "Failed to upload file to storage", variant: "destructive" });
+    const { error: uploadError } = await supabase.storage.from("media").upload(fileName, file);
+    if (uploadError) {
+      toast({ title: "Upload failed", description: uploadError.message, variant: "destructive" });
       setSaving(false);
       return;
     }
+    const { data: urlData } = supabase.storage.from("media").getPublicUrl(fileName);
     const arr = [...notices];
-    arr[index].pdf_url = uploadRes.data.publicUrl;
+    arr[index].pdf_url = urlData.publicUrl;
     updateJsonArray("portal_notices_json", arr);
     setSaving(false);
     toast({ title: "PDF uploaded successfully" });

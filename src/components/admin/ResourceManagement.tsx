@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { Trash, ChevronDown } from "lucide-react";
-import { storageService } from "@/services/storageService";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,11 +26,7 @@ export const ResourceManagement = ({ settings, updateSetting }: ResourceManageme
   const [mediaFiles, setMediaFiles] = useState<{ id: string; name: string }[]>([]);
 
   const fetchMedia = useCallback(async () => {
-    const { data, error } = await storageService.list("resources");
-    if (error) {
-      toast({ title: "Failed to list resources", description: error.message, variant: "destructive" });
-      return;
-    }
+    const { data } = await supabase.storage.from("resources").list();
     if (data) setMediaFiles(data.filter(f => f.name !== ".emptyFolderPlaceholder"));
   }, []);
 
@@ -44,9 +40,9 @@ export const ResourceManagement = ({ settings, updateSetting }: ResourceManageme
   };
 
   const deleteFile = async (fileName: string) => {
-    const { error } = await storageService.remove("resources", [fileName]);
+    const { error } = await supabase.storage.from("resources").remove([fileName]);
     if (error) {
-      toast({ title: "Error deleting file", description: error.message, variant: "destructive" });
+      toast({ title: "Error deleting file", variant: "destructive" });
     } else {
       toast({ title: "File deleted" });
       fetchMedia();
@@ -56,9 +52,9 @@ export const ResourceManagement = ({ settings, updateSetting }: ResourceManageme
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const { error } = await storageService.upload("resources", file.name, file);
+    const { error } = await supabase.storage.from("resources").upload(file.name, file);
     if (error) {
-      toast({ title: "Error uploading file", description: error.message, variant: "destructive" });
+      toast({ title: "Error uploading file", variant: "destructive" });
     } else {
       toast({ title: "File uploaded" });
       fetchMedia();
