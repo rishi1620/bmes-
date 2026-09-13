@@ -1074,7 +1074,7 @@ export default function AdminBulkEmail() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
                           <span className="font-semibold text-slate-700 dark:text-slate-300 truncate">Staff & Officers</span>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-slate-500/30 text-slate-600 shrink-0">
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-slate-500/30 text-slate-600 dark:text-slate-300 shrink-0">
                             {allRecipients.filter(r => r.source === 'staff').length}
                           </Badge>
                         </div>
@@ -1282,18 +1282,18 @@ export default function AdminBulkEmail() {
                                 variant="outline" 
                                 className={`text-[9px] px-1.5 py-0 uppercase font-semibold ${
                                   rec.source === "member" 
-                                    ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/10" 
+                                    ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" 
                                     : rec.source === "advisor"
-                                    ? "border-amber-500/30 text-amber-600 bg-amber-500/10"
+                                    ? "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10"
                                     : rec.source === "ec" 
-                                    ? "border-blue-500/30 text-blue-600 bg-blue-500/10" 
+                                    ? "border-blue-500/30 text-blue-600 dark:text-blue-400 bg-blue-500/10" 
                                     : rec.source === "staff"
-                                    ? "border-slate-500/30 text-slate-700 bg-slate-500/10"
+                                    ? "border-slate-500/30 text-slate-700 dark:text-slate-300 bg-slate-500/10"
                                     : rec.source === "event" 
-                                    ? "border-purple-500/30 text-purple-600 bg-purple-500/10" 
+                                    ? "border-purple-500/30 text-purple-600 dark:text-purple-400 bg-purple-500/10" 
                                     : rec.source === "membership"
-                                    ? "border-orange-500/30 text-orange-600 bg-orange-500/10"
-                                    : "border-slate-500/30 text-slate-600 bg-slate-500/10"
+                                    ? "border-orange-500/30 text-orange-600 dark:text-orange-400 bg-orange-500/10"
+                                    : "border-slate-500/30 text-slate-600 dark:text-slate-300 bg-slate-500/10"
                                 }`}
                               >
                                 {rec.source === "member" 
@@ -1411,7 +1411,7 @@ export default function AdminBulkEmail() {
 
           <div className="p-6 bg-slate-100 dark:bg-slate-900 flex justify-center">
             <div
-              className={`bg-white text-slate-900 rounded-xl shadow-lg border border-slate-200 overflow-hidden transition-all duration-200 ${
+              className={`force-light bg-white text-slate-900 rounded-xl shadow-lg border border-slate-200 overflow-hidden transition-all duration-200 ${
                 previewDevice === "mobile" ? "w-[340px]" : "w-full max-w-[560px]"
               }`}
             >

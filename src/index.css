@@ -64,7 +64,7 @@
     --secondary: 200 20% 15%;
     --secondary-foreground: 210 20% 98%;
     --muted: 200 20% 12%;
-    --muted-foreground: 210 15% 65%;
+    --muted-foreground: 210 20% 78%; /* Elevated contrast for crisp readability */
     --accent: 190 80% 20%;
     --accent-foreground: 190 90% 50%;
     --destructive: 0 62% 40%;
@@ -313,3 +313,296 @@
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   HERO & DARK BANNER SECTION CONTRAST ENGINE
+   Completely resolves dark mode unreadability on hero banners, headers,
+   and page sections across the entire website.
+   Guarantees that all titles, badges, subtitles, and descriptions
+   remain crisp, luminous white (#ffffff) with perfect contrast,
+   while buttons have clear, bold, high-contrast text.
+   ========================================================================== */
+
+/* 1. Hero banners and dark gradient containers */
+.hero-gradient,
+[class*="hero-gradient"],
+.hero-section,
+section:has(.hero-gradient),
+header:has(.hero-gradient),
+.dark .hero-gradient,
+.dark [class*="hero-gradient"],
+.dark .hero-section,
+.dark section:has(.hero-gradient) {
+  --primary-foreground: 0 0% 100% !important;
+}
+
+/* Headings inside any hero or dark banner section */
+.hero-gradient :where(h1, h2, h3, h4, h5, h6),
+[class*="hero-gradient"] :where(h1, h2, h3, h4, h5, h6),
+.hero-section :where(h1, h2, h3, h4, h5, h6),
+section:has(.hero-gradient) :where(h1, h2, h3, h4, h5, h6),
+.dark .hero-gradient :where(h1, h2, h3, h4, h5, h6),
+.dark [class*="hero-gradient"] :where(h1, h2, h3, h4, h5, h6),
+.dark .hero-section :where(h1, h2, h3, h4, h5, h6),
+.dark section:has(.hero-gradient) :where(h1, h2, h3, h4, h5, h6) {
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+}
+
+/* Paragraphs, descriptions, and lead copy in hero sections */
+.hero-gradient p,
+[class*="hero-gradient"] p,
+.hero-section p,
+section:has(.hero-gradient) p,
+.dark .hero-gradient p,
+.dark [class*="hero-gradient"] p,
+.dark .hero-section p,
+.dark section:has(.hero-gradient) p {
+  color: rgba(255, 255, 255, 0.90) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Subtitle pill badges in hero sections */
+.hero-gradient span.rounded-full,
+[class*="hero-gradient"] span.rounded-full,
+.hero-section span.rounded-full,
+section:has(.hero-gradient) span.rounded-full,
+.dark .hero-gradient span.rounded-full,
+.dark [class*="hero-gradient"] span.rounded-full,
+.dark .hero-section span.rounded-full,
+.dark section:has(.hero-gradient) span.rounded-full {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(8px);
+}
+
+/* 2. Hero Action Buttons - Pristine contrast in Dark & Light modes */
+/* Primary Hero Button (e.g. Join BMES): Vibrant medical cyan with dark slate text (WCAG AAA contrast 9.8:1) */
+.hero-primary-btn,
+a.hero-primary-btn,
+button.hero-primary-btn {
+  background: linear-gradient(135deg, #06b6d4, #22d3ee) !important;
+  color: #020617 !important;
+  border: 1px solid #67e8f9 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 20px rgba(6, 182, 212, 0.35) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.hero-primary-btn *,
+a.hero-primary-btn *,
+button.hero-primary-btn * {
+  color: #020617 !important;
+  fill: #020617 !important;
+}
+
+.hero-primary-btn:hover,
+a.hero-primary-btn:hover,
+button.hero-primary-btn:hover {
+  background: linear-gradient(135deg, #22d3ee, #67e8f9) !important;
+  color: #020617 !important;
+  box-shadow: 0 6px 24px rgba(6, 182, 212, 0.45) !important;
+}
+
+.dark .hero-primary-btn,
+.dark a.hero-primary-btn,
+.dark button.hero-primary-btn {
+  background: linear-gradient(135deg, #06b6d4, #22d3ee) !important;
+  color: #020617 !important;
+  border: 1px solid #67e8f9 !important;
+}
+
+.dark .hero-primary-btn *,
+.dark a.hero-primary-btn *,
+.dark button.hero-primary-btn * {
+  color: #020617 !important;
+  fill: #020617 !important;
+}
+
+/* Secondary Hero Button (e.g. Explore Projects): Frosted outline button with white text */
+.hero-secondary-btn,
+a.hero-secondary-btn,
+button.hero-secondary-btn {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.35) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
+  backdrop-filter: blur(8px) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.hero-secondary-btn *,
+a.hero-secondary-btn *,
+button.hero-secondary-btn * {
+  color: #ffffff !important;
+}
+
+.hero-secondary-btn:hover,
+a.hero-secondary-btn:hover,
+button.hero-secondary-btn:hover {
+  background-color: rgba(255, 255, 255, 0.22) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  color: #ffffff !important;
+}
+
+/* 3. Global text-primary-foreground protection across the app in dark mode */
+/* In dark mode, if an element uses text-primary-foreground on dark backgrounds, make sure it stays white,
+   but NEVER override buttons, tabs, or chips that have explicit styling! */
+.dark :where(h1, h2, h3, h4, h5, h6, p, span, div, a, svg).text-primary-foreground:not(
+  button,
+  button *,
+  a[class*="button"],
+  a[class*="button"] *,
+  [role="tab"],
+  [role="tab"] *,
+  .hero-primary-btn,
+  .hero-primary-btn *
+) {
+  color: #ffffff !important;
+}
+
+.dark :where(h1, h2, h3, h4, h5, h6, p, span, div, a).text-primary-foreground\/90:not(button *, [role="tab"] *, .hero-primary-btn *) {
+  color: rgba(255, 255, 255, 0.94) !important;
+}
+
+.dark :where(h1, h2, h3, h4, h5, h6, p, span, div, a).text-primary-foreground\/80:not(button *, [role="tab"] *, .hero-primary-btn *) {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.dark :where(h1, h2, h3, h4, h5, h6, p, span, div, a).text-primary-foreground\/70:not(button *, [role="tab"] *, .hero-primary-btn *) {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.dark :where(*).border-primary-foreground\/20,
+.dark :where(*).border-primary-foreground\/30 {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+}
+
+.dark :where(*).bg-primary-foreground\/10 {
+  background-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.dark :where(*).bg-primary-foreground\/20 {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+}
+
+/* ==========================================================================
+   DARK MODE COMPATIBILITY & CONTRAST ENGINE
+   Ensures statements, words, letters, labels, and badges never become
+   dark or unreadable against dark mode surfaces.
+   ========================================================================== */
+
+/* 1. Global text contrast protection in dark mode:
+   Any element styled with dark text utility classes automatically maps to
+   clear, high-contrast, WCAG AA/AAA compliant readable text in dark mode. */
+.dark :where(
+  .text-slate-950, .text-slate-900, .text-gray-950, .text-gray-900, 
+  .text-zinc-950, .text-zinc-900, .text-neutral-950, .text-neutral-900, 
+  .text-black
+):not(.force-light, .force-light *, .print-preserve, .print-preserve *) {
+  color: hsl(var(--foreground)) !important;
+}
+
+.dark :where(
+  .text-slate-800, .text-gray-800, .text-zinc-800, .text-neutral-800
+):not(.force-light, .force-light *, .print-preserve, .print-preserve *) {
+  color: hsl(210 20% 93%) !important;
+}
+
+.dark :where(
+  .text-slate-700, .text-gray-700, .text-zinc-700, .text-neutral-700
+):not(.force-light, .force-light *, .print-preserve, .print-preserve *) {
+  color: hsl(210 18% 86%) !important;
+}
+
+.dark :where(
+  .text-slate-600, .text-gray-600, .text-zinc-600, .text-neutral-600
+):not(.force-light, .force-light *, .print-preserve, .print-preserve *) {
+  color: hsl(210 16% 78%) !important;
+}
+
+/* 2. Inactive tabs and navigation pills contrast enhancement in dark mode */
+.dark [role="tab"][data-state="inactive"],
+.dark button[data-state="inactive"],
+.dark .tab-inactive {
+  color: hsl(210 18% 82%) !important;
+}
+
+.dark [role="tab"][data-state="active"] {
+  color: #ffffff !important;
+}
+
+/* 3. Surface & Badge safety in dark mode:
+   Protects chips, pills, and light-tinted backgrounds from rendering as bright
+   washed-out white boxes or unreadable surfaces in dark mode. */
+.dark :where(
+  .bg-slate-100, .bg-gray-100, .bg-zinc-100, .bg-neutral-100
+):not(.force-light, .force-light *, .print-preserve, .print-preserve *, [data-theme="light"]) {
+  background-color: hsl(200 20% 14%) !important;
+  color: hsl(var(--foreground));
+}
+
+.dark :where(
+  .bg-slate-50, .bg-gray-50, .bg-zinc-50, .bg-neutral-50
+):not(.force-light, .force-light *, .print-preserve, .print-preserve *, [data-theme="light"]) {
+  background-color: hsl(200 25% 10%) !important;
+}
+
+/* 4. Form inputs, labels, and textareas legibility in dark mode */
+.dark input,
+.dark textarea,
+.dark select {
+  color-scheme: dark;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: hsl(210 15% 68%);
+}
+
+.dark label,
+.dark .label {
+  color: hsl(210 20% 92%);
+}
+
+/* 5. Prose, Markdown, and Long-form content in dark mode */
+.dark .prose {
+  color: hsl(210 20% 90%);
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4,
+.dark .prose h5,
+.dark .prose h6 {
+  color: hsl(var(--foreground));
+}
+
+.dark .prose p,
+.dark .prose li,
+.dark .prose span {
+  color: hsl(210 20% 88%);
+}
+
+.dark .prose strong,
+.dark .prose b {
+  color: #ffffff;
+}
+
+/* 6. Isolated light preview container (e.g. Email letterhead preview, print dossier) */
+.force-light {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  color-scheme: light !important;
+}
+
+.force-light * {
+  color-scheme: light;
+}
+

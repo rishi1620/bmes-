@@ -1,5 +1,7 @@
-import { Mail, MapPin, Phone, Send, CheckCircle2 } from "lucide-react";
+import { Mail, MapPin, Phone, Send, CheckCircle2, HelpCircle, ArrowRight, MessageSquare, Sparkles } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -8,12 +10,62 @@ import SectionHeading from "@/components/shared/SectionHeading";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import EmbeddedGoogleForm from "@/components/shared/EmbeddedGoogleForm";
+import { useGoogleFormsConfig } from "@/hooks/useGoogleFormsConfig";
 
 const Contact = () => {
   const { toast } = useToast();
+  const { config: formsConfig } = useGoogleFormsConfig();
+  const [formChannel, setFormChannel] = useState<"message" | "google-form">("message");
   const [loading, setLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [errors, setErrors] = useState<{ name?: string; email?: string; subject?: string; message?: string }>({});
+
+  const { data: faqs = [] } = useQuery({
+    queryKey: ["contact-faqs"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("site_settings")
+        .select("setting_value")
+        .eq("setting_key", "faqs_json")
+        .maybeSingle();
+
+      if (data?.setting_value) {
+        try {
+          const parsed = JSON.parse(data.setting_value);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            return parsed.filter((f) => f.is_active !== false).slice(0, 5);
+          }
+        } catch {
+          // ignore
+        }
+      }
+      return [
+        {
+          id: "faq-1",
+          question: "How do I become an official member of CUET BMES?",
+          answer: "Students of CUET Department of BME can apply directly through the Student Portal (/portal?tab=membership). Once approved by the executive committee, your Member ID is issued.",
+        },
+        {
+          id: "faq-2",
+          question: "Who can attend BMES workshops and hackathons?",
+          answer: "Most workshops and academic seminars are open to all CUET engineering students and interested researchers. Check the Events tab (/events) for details and sign up.",
+        },
+        {
+          id: "faq-3",
+          question: "How do I download course syllabi and class routines?",
+          answer: "Academic resources, batch routines, and term syllabi can be downloaded directly from the Academics page (/academics) and the Student Portal (/portal).",
+        }
+      ];
+    },
+  });
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,57 +158,137 @@ const Contact = () => {
             </div>
           </motion.div>
 
-          {isSubmitted ? (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-              className="rounded-xl border border-border bg-card p-8 shadow-elevated text-center flex flex-col items-center justify-center space-y-4 h-full min-h-[400px]"
-            >
-              <div className="h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2">
-                <CheckCircle2 className="h-8 w-8" />
-              </div>
-              <h3 className="text-2xl font-bold text-foreground">Message Sent!</h3>
-              <p className="text-muted-foreground max-w-sm">
-                Thank you for reaching out. We have received your message and will get back to you shortly.
-              </p>
-              <Button variant="outline" onClick={() => setIsSubmitted(false)} className="mt-6">
-                Send Another Message
-              </Button>
-            </motion.div>
-          ) : (
-            <motion.form 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              onSubmit={handleSubmit} 
-              className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" 
-              noValidate
-            >
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-1">
-                  <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
-                  {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+          <div className="space-y-4">
+            {/* Tab switch between Direct Contact and Official Google Form */}
+            <Tabs value={formChannel} onValueChange={(val) => setFormChannel(val as "message" | "google-form")} className="w-full">
+              <TabsList className="grid grid-cols-2 h-10 w-full rounded-xl bg-muted/60 p-1">
+                <TabsTrigger value="message" className="rounded-lg text-xs font-semibold gap-1.5 data-[state=active]:bg-card data-[state=active]:shadow-xs">
+                  <Send className="h-3.5 w-3.5" />
+                  <span>Send Message</span>
+                </TabsTrigger>
+                <TabsTrigger value="google-form" className="rounded-lg text-xs font-semibold gap-1.5 data-[state=active]:bg-card data-[state=active]:shadow-xs">
+                  <MessageSquare className="h-3.5 w-3.5 text-purple-600" />
+                  <span>Member Feedback (Form)</span>
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="message" className="mt-4">
+                {isSubmitted ? (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.4 }}
+                    className="rounded-xl border border-border bg-card p-8 shadow-elevated text-center flex flex-col items-center justify-center space-y-4 h-full min-h-[400px]"
+                  >
+                    <div className="h-16 w-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-2">
+                      <CheckCircle2 className="h-8 w-8" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-foreground">Message Sent!</h3>
+                    <p className="text-muted-foreground max-w-sm">
+                      Thank you for reaching out. We have received your message and will get back to you shortly.
+                    </p>
+                    <Button variant="outline" onClick={() => setIsSubmitted(false)} className="mt-6">
+                      Send Another Message
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.form 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.3 }}
+                    onSubmit={handleSubmit} 
+                    className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-elevated" 
+                    noValidate
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-1">
+                        <Input name="name" placeholder="Your name" className={errors.name ? "border-destructive" : ""} />
+                        {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
+                      </div>
+                      <div className="space-y-1">
+                        <Input name="email" type="email" placeholder="Your email" className={errors.email ? "border-destructive" : ""} />
+                        {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <Input name="subject" placeholder="Subject" className={errors.subject ? "border-destructive" : ""} />
+                      {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
+                    </div>
+                    <div className="space-y-1">
+                      <Textarea name="message" placeholder="Your message..." className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} />
+                      {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
+                    </div>
+                    <Button type="submit" className="w-full" disabled={loading}>
+                      <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
+                    </Button>
+                  </motion.form>
+                )}
+              </TabsContent>
+
+              <TabsContent value="google-form" className="mt-4">
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between px-1 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1.5 font-medium text-foreground">
+                      <Sparkles className="h-3.5 w-3.5 text-purple-600" />
+                      Official Member & Student Feedback Survey
+                    </span>
+                    <span className="text-[11px] font-mono">Google Forms</span>
+                  </div>
+
+                  <EmbeddedGoogleForm
+                    formUrlOrId={formsConfig.memberFeedbackFormUrl}
+                    title={formsConfig.memberFeedbackTitle || "BMES CUET Member Feedback"}
+                    description="Your voice shapes our community. Share your feedback, workshop ideas, or society experience."
+                    defaultHeight={620}
+                    className="border-purple-500/20 shadow-md"
+                  />
                 </div>
-                <div className="space-y-1">
-                  <Input name="email" type="email" placeholder="Your email" className={errors.email ? "border-destructive" : ""} />
-                  {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <Input name="subject" placeholder="Subject" className={errors.subject ? "border-destructive" : ""} />
-                {errors.subject && <p className="text-xs text-destructive">{errors.subject}</p>}
-              </div>
-              <div className="space-y-1">
-                <Textarea name="message" placeholder="Your message..." className={`min-h-[120px] ${errors.message ? "border-destructive" : ""}`} />
-                {errors.message && <p className="text-xs text-destructive">{errors.message}</p>}
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                <Send className="mr-2 h-4 w-4" /> {loading ? "Sending..." : "Send Message"}
-              </Button>
-            </motion.form>
-          )}
+              </TabsContent>
+            </Tabs>
+          </div>
         </div>
+
+        {/* FAQs Section */}
+        {faqs.length > 0 && (
+          <div className="mt-20 pt-12 border-t border-border">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+              <div>
+                <div className="flex items-center gap-2 text-primary text-xs font-bold uppercase tracking-wider mb-1">
+                  <HelpCircle className="h-4 w-4" />
+                  <span>Frequently Asked Questions</span>
+                </div>
+                <h3 className="text-2xl font-bold text-foreground">
+                  Quick Answers to Common Queries
+                </h3>
+              </div>
+              <Button asChild variant="outline" size="sm" className="text-xs font-semibold gap-1.5 self-start sm:self-auto">
+                <Link to="/faq">
+                  <span>View All FAQs</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 shadow-xs">
+              <Accordion type="single" collapsible className="w-full space-y-3">
+                {faqs.map((faq, idx) => (
+                  <AccordionItem
+                    key={faq.id || idx}
+                    value={`contact-faq-${idx}`}
+                    className="border border-border/80 rounded-xl px-4 data-[state=open]:bg-primary/5 transition-colors"
+                  >
+                    <AccordionTrigger className="text-left py-3.5 hover:no-underline text-sm font-semibold text-foreground">
+                      {faq.question}
+                    </AccordionTrigger>
+                    <AccordionContent className="text-xs sm:text-sm text-muted-foreground leading-relaxed pt-1 pb-3.5">
+                      {faq.answer}
+                    </AccordionContent>
+                  </AccordionItem>
+                ))}
+              </Accordion>
+            </div>
+          </div>
+        )}
       </section>
     </PageLayout>
   );

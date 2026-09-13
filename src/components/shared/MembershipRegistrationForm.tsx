@@ -280,19 +280,13 @@ export function MembershipRegistrationForm() {
         </div>
         <div className="space-y-2">
           <Label htmlFor="department">Department</Label>
-          <Select onValueChange={v => setFormData({...formData, department: v})} required>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Department" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="BME">Biomedical Engineering (BME)</SelectItem>
-              <SelectItem value="EEE">Electrical & Electronic Engineering (EEE)</SelectItem>
-              <SelectItem value="CSE">Computer Science & Engineering (CSE)</SelectItem>
-              <SelectItem value="ME">Mechanical Engineering (ME)</SelectItem>
-              <SelectItem value="CE">Civil Engineering (CE)</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
+          <Input 
+            id="department" 
+            value={formData.department} 
+            onChange={e => setFormData({...formData, department: e.target.value})} 
+            placeholder="e.g. Biomedical Engineering / BME"
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="year_semester">Year & Semester</Label>

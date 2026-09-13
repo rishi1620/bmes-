@@ -154,10 +154,10 @@ const AdminNotices = () => {
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-medium text-muted-foreground">Manage Notices</h3>
                 <div className="flex gap-2">
-                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600">
+                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                     Dept
                   </span>
-                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600">
+                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
                     Club
                   </span>
                 </div>
@@ -172,10 +172,14 @@ const AdminNotices = () => {
                     <div className="flex items-center justify-between">
                       <AccordionTrigger className="flex-1 hover:no-underline py-4">
                         <div className="flex items-center gap-4 text-left">
-                          <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded ${item.category === 'club' ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600' : 'bg-slate-100 dark:bg-slate-800 text-slate-600'}`}>
+                          <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded border ${
+                            item.category === 'club' 
+                              ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
+                          }`}>
                             {item.category === 'club' ? 'Club' : 'Dept'}
                           </span>
-                          <span className="font-medium">{item.title || "Untitled Notice"}</span>
+                          <span className="font-medium text-foreground">{item.title || "Untitled Notice"}</span>
                           <span className="text-xs text-muted-foreground font-normal">{item.date}</span>
                         </div>
                       </AccordionTrigger>

@@ -110,7 +110,7 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
           <div className="relative z-10 p-3 sm:p-4 flex gap-3 sm:gap-4 items-center">
             {/* Portrait Photo Container */}
             <div className="relative shrink-0">
-              <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-xl bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border-2 border-amber-300/80 shadow-md overflow-hidden flex flex-col items-center justify-center text-slate-800">
+              <div className="w-20 h-24 sm:w-24 sm:h-28 rounded-xl bg-gradient-to-b from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 border-2 border-amber-300/80 shadow-md overflow-hidden flex flex-col items-center justify-center text-slate-800 dark:text-slate-200">
                 {member.photo_url ? (
                   <img
                     src={member.photo_url}
@@ -263,7 +263,7 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
               </div>
 
               {/* QR Verification Representation */}
-              <div className="bg-white p-1.5 rounded-lg shadow-sm shrink-0 flex flex-col items-center">
+              <div className="force-light bg-white p-1.5 rounded-lg shadow-sm shrink-0 flex flex-col items-center">
                 <QrCode className="w-10 h-10 sm:w-12 sm:h-12 text-slate-900" />
                 <span className="text-[6.5px] font-mono text-slate-700 font-bold tracking-tighter">
                   SCAN TO VERIFY

@@ -164,17 +164,17 @@ export function MembershipManagement() {
       </div>
 
       <div className="grid grid-cols-3 gap-4">
-        <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-amber-700">{stats.pending}</div>
-          <div className="text-[10px] uppercase tracking-wider font-semibold text-amber-600">Pending</div>
+        <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800/40 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.pending}</div>
+          <div className="text-[10px] uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-300">Pending</div>
         </div>
-        <div className="bg-emerald-50 border border-emerald-100 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-emerald-700">{stats.approved}</div>
-          <div className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600">Approved</div>
+        <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{stats.approved}</div>
+          <div className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-300">Approved</div>
         </div>
-        <div className="bg-slate-50 border border-slate-100 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-slate-700">{stats.total}</div>
-          <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-600">Total</div>
+        <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stats.total}</div>
+          <div className="text-[10px] uppercase tracking-wider font-semibold text-slate-600 dark:text-slate-400">Total</div>
         </div>
       </div>
 

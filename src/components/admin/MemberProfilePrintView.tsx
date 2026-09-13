@@ -33,7 +33,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
   return (
     <div
       id={`member-profile-print-${member.id}`}
-      className={`member-profile-dossier bg-white text-slate-900 p-8 sm:p-12 max-w-4xl mx-auto rounded-xl shadow-lg border border-slate-200 print:border-0 print:shadow-none print:p-0 print:m-0 print:max-w-full ${className}`}
+      className={`member-profile-dossier force-light bg-white text-slate-900 p-8 sm:p-12 max-w-4xl mx-auto rounded-xl shadow-lg border border-slate-200 print:border-0 print:shadow-none print:p-0 print:m-0 print:max-w-full ${className}`}
       style={{
         WebkitPrintColorAdjust: "exact",
         printColorAdjust: "exact",

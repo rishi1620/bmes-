@@ -16,8 +16,11 @@ import {
   FileText, 
   Image as ImageIcon,
   Search,
-  Film
+  Film,
+  MessageSquare
 } from "lucide-react";
+import EmbeddedGoogleForm from "@/components/shared/EmbeddedGoogleForm";
+import { useGoogleFormsConfig } from "@/hooks/useGoogleFormsConfig";
 import {
   Accordion,
   AccordionContent,
@@ -38,6 +41,7 @@ interface SoftwareLink {
 }
 
 const Portal = () => {
+  const { config: formsConfig } = useGoogleFormsConfig();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -206,6 +210,12 @@ const Portal = () => {
               >
                 <UserPlus className="mr-2 h-4 w-4" /> Membership
               </TabsTrigger>
+              <TabsTrigger 
+                value="feedback" 
+                className="rounded-xl px-6 py-2.5 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground text-slate-600 dark:text-slate-400"
+              >
+                <MessageSquare className="mr-2 h-4 w-4 text-purple-500" /> Member Feedback
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -263,7 +273,7 @@ const Portal = () => {
                             value={semester.id} 
                             className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900/40 px-4 transition-all data-[state=open]:border-emerald-500/30 data-[state=open]:shadow-sm"
                           >
-                            <AccordionTrigger className="hover:no-underline py-4 font-bold text-sm text-slate-700 dark:text-slate-300">
+                            <AccordionTrigger className="hover:no-underline py-4 font-bold text-sm text-slate-800 dark:text-slate-100">
                               {semester.name}
                             </AccordionTrigger>
                             <AccordionContent className="pb-4">
@@ -323,7 +333,7 @@ const Portal = () => {
                                 {selectedSemester?.name}
                               </span>
                               {selectedCourse.code && (
-                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">
+                                <span className="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 text-[10px] font-bold uppercase tracking-wider">
                                   {selectedCourse.code}
                                 </span>
                               )}
@@ -368,12 +378,12 @@ const Portal = () => {
                                     <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-500 transition-colors">
                                       {res.name}
                                     </h4>
-                                    <p className="text-[10px] text-slate-500 mt-1 font-medium">
+                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
                                       Added {new Date(res.created_at).toLocaleDateString()}
                                     </p>
                                     <div className="flex flex-wrap gap-1.5 mt-3">
                                       {res.tags.map(tag => (
-                                        <span key={tag} className="text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                        <span key={tag} className="text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                                           {tag}
                                         </span>
                                       ))}
@@ -381,7 +391,7 @@ const Portal = () => {
                                   </div>
                                 </div>
                                 <div className="px-5 py-3 bg-slate-50/50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                  <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest">{res.type}</span>
+                                  <span className="text-[9px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">{res.type}</span>
                                   <a 
                                     href={res.url} 
                                     target="_blank" 
@@ -481,6 +491,31 @@ const Portal = () => {
                 </Card>
 
                 <MemberDirectory />
+              </div>
+            </TabsContent>
+
+            <TabsContent value="feedback" className="space-y-6">
+              <div className="max-w-4xl mx-auto space-y-6">
+                <div className="text-center space-y-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 border border-purple-500/20">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Member Voice & Feedback
+                  </span>
+                  <h2 className="text-2xl font-bold text-foreground">
+                    {formsConfig.memberFeedbackTitle || "Biomedical Engineering Society - Member Feedback"}
+                  </h2>
+                  <p className="text-sm text-muted-foreground max-w-xl mx-auto">
+                    Help us improve society workshops, symposiums, peer mentorship, and resource availability. Your responses are directly reviewed by the executive team.
+                  </p>
+                </div>
+
+                <EmbeddedGoogleForm
+                  formUrlOrId={formsConfig.memberFeedbackFormUrl}
+                  title={formsConfig.memberFeedbackTitle || "Member Feedback Form"}
+                  description="Complete the official feedback survey below. Responses can be anonymous or linked to your student ID."
+                  defaultHeight={680}
+                  className="border-purple-500/30 shadow-lg"
+                />
               </div>
             </TabsContent>
           </div>

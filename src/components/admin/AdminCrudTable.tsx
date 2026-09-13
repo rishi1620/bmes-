@@ -72,7 +72,18 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
 
   useEffect(() => { fetchRows(); }, [fetchRows]);
 
-  const openNew = () => {
+  // Listen for automatic Google Forms sync events so table rows update automatically
+  useEffect(() => {
+    const handleFormsRefreshed = () => {
+      fetchRows();
+    };
+    window.addEventListener("bmes-forms-data-refreshed", handleFormsRefreshed);
+    return () => {
+      window.removeEventListener("bmes-forms-data-refreshed", handleFormsRefreshed);
+    };
+  }, [fetchRows]);
+
+  const openNew = useCallback(() => {
     setEditing(null);
     const defaults: Record<string, unknown> = { ...defaultValues };
     fields.forEach((f) => {
@@ -82,7 +93,18 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     });
     setForm(defaults);
     setOpen(true);
-  };
+  }, [defaultValues, fields]);
+
+  // Support ?new=true or ?action=create URL query parameter to trigger creation modal
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("new") === "true" || params.get("action") === "create") {
+      openNew();
+      // Clean up query param without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, "", newUrl);
+    }
+  }, [openNew]);
 
   const openEdit = (row: Record<string, unknown>) => {
     setEditing(row);

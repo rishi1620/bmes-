@@ -241,7 +241,7 @@ const Index = () => {
     <PageLayout>
       {/* Hero */}
       {hero && (
-        <section className="relative overflow-hidden">
+        <section className="relative overflow-hidden hero-section">
           <div className="absolute inset-0">
             <motion.img 
               initial={{ scale: 1.1 }}
@@ -251,14 +251,14 @@ const Index = () => {
               alt="" 
               className="h-full w-full object-cover" 
             />
-            <div className="absolute inset-0 hero-gradient opacity-85" />
+            <div className="absolute inset-0 hero-gradient opacity-90" />
           </div>
           <div className="container relative z-10 flex flex-col items-center py-16 text-center md:py-24">
             <motion.span 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="mb-4 inline-block rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-primary-foreground/90"
+              className="mb-4 inline-block rounded-full border border-white/25 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-widest text-white backdrop-blur-xs shadow-xs"
             >
               {hero.subtitle as string}
             </motion.span>
@@ -266,7 +266,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="max-w-4xl text-3xl font-extrabold leading-tight text-primary-foreground sm:text-4xl md:text-6xl"
+              className="max-w-4xl text-3xl font-extrabold leading-tight text-white drop-shadow-sm sm:text-4xl md:text-6xl"
             >
               {hero.title as string}
             </motion.h1>
@@ -274,7 +274,7 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="mt-6 max-w-2xl text-base text-primary-foreground/80 md:text-lg leading-relaxed"
+              className="mt-6 max-w-2xl text-base text-white/90 md:text-lg leading-relaxed drop-shadow-xs"
             >
               {hero.description as string}
             </motion.p>
@@ -285,14 +285,14 @@ const Index = () => {
               className="mt-8 flex flex-wrap gap-4 justify-center"
             >
               {hero.button_text && (
-                <Button asChild size="lg" className="bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-md">
+                <Button asChild size="lg" className="hero-primary-btn font-bold px-7 py-6 text-base rounded-xl transition-all">
                   <Link to={hero.button_link as string}>
                     {hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" />
                   </Link>
                 </Button>
               )}
               {hero.button2_text && (
-                <Button asChild variant="outline" size="lg" className="border-primary-foreground/30 bg-primary-foreground/10 text-primary-foreground hover:bg-primary-foreground/20 font-semibold backdrop-blur-xs">
+                <Button asChild variant="outline" size="lg" className="hero-secondary-btn font-semibold px-6 py-6 text-base rounded-xl backdrop-blur-xs transition-all">
                   <Link to={hero.button2_link as string}>
                     {hero.button2_text as string}
                   </Link>
@@ -942,13 +942,13 @@ const Index = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="hero-gradient py-10"
+          className="hero-gradient py-12 relative overflow-hidden hero-section"
         >
-          <div className="container text-center">
-            <h2 className="text-3xl font-bold text-primary-foreground">{cta.title}</h2>
-            <p className="mt-3 text-primary-foreground/80">{cta.description}</p>
+          <div className="container text-center relative z-10">
+            <h2 className="text-3xl font-bold text-white drop-shadow-sm">{cta.title}</h2>
+            <p className="mt-3 text-white/90 max-w-2xl mx-auto drop-shadow-xs">{cta.description}</p>
             {cta.button_text && (
-              <Button asChild size="lg" className="mt-6 bg-primary-foreground text-primary hover:bg-primary-foreground/90 font-semibold shadow-md">
+              <Button asChild size="lg" className="hero-primary-btn mt-6 font-bold px-8 py-6 text-base rounded-xl transition-all">
                 <Link to={
                   (cta.button_text?.toLowerCase().includes("join") || cta.button_link === "/portal?tab=membership" || cta.button_link === "/members")
                     ? "/portal?tab=membership"

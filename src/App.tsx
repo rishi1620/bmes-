@@ -21,6 +21,7 @@ import BlogPost from "./pages/BlogPost";
 import Achievements from "./pages/Achievements";
 import Alumni from "./pages/Alumni";
 import Contact from "./pages/Contact";
+import FAQ from "./pages/FAQ";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -49,6 +50,7 @@ import Notices from "./pages/Notices";
 import AdminNotices from "./pages/admin/AdminNotices";
 import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBulkEmail from "./pages/admin/AdminBulkEmail";
+import AdminWorkspace from "./pages/admin/AdminWorkspace";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -84,6 +86,7 @@ const App = () => (
                   <Route path="/achievements" element={<Achievements />} />
                   <Route path="/alumni" element={<Alumni />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/faq" element={<FAQ />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/news" element={<Navigate to="/notices" replace />} />
                   
@@ -113,6 +116,7 @@ const App = () => (
                   <Route path="/admin/membership/print/:id" element={<ProtectedRoute requireAdmin><ErrorBoundary><AdminMemberPrintView /></ErrorBoundary></ProtectedRoute>} />
                   <Route path="/admin/users" element={<ProtectedRoute requireAdmin><AdminUsers /></ProtectedRoute>} />
                   <Route path="/admin/bulk-email" element={<ProtectedRoute requireAdmin><AdminBulkEmail /></ProtectedRoute>} />
+                  <Route path="/admin/workspace" element={<ProtectedRoute requireAdmin><AdminWorkspace /></ProtectedRoute>} />
                   
                   <Route path="*" element={<NotFound />} />
                 </Routes>

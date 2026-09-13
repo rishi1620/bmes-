@@ -22,6 +22,7 @@ const corePages = [
   { page_name: "Blog", slug: "/blog", display_order: 10 },
   { page_name: "Alumni", slug: "/alumni", display_order: 11 },
   { page_name: "Contact", slug: "/contact", display_order: 12 },
+  { page_name: "FAQ", slug: "/faq", display_order: 13 },
 ];
 
 const AdminPages = () => {
