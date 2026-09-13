@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { ThemeToggle } from "@/components/shared/ThemeToggle";
+import { ThemeToggle, ThemeSegmentedSwitcher } from "@/components/shared/ThemeToggle";
 import defaultLogo from "@/assets/logo.png";
 
 const Navbar = () => {
@@ -130,6 +130,15 @@ const Navbar = () => {
               Sign Out
             </button>
           )}
+
+          {/* User-facing Theme Mode Switcher for Mobile Navigation */}
+          <div className="mt-3 pt-3 border-t border-border/50 px-1 space-y-2">
+            <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+              <span className="font-semibold text-foreground">Appearance Theme</span>
+              <span className="text-[10px] font-mono text-primary font-bold">Mobile & Desktop Sync</span>
+            </div>
+            <ThemeSegmentedSwitcher />
+          </div>
           </nav>
         </div>
       }

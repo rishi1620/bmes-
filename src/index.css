@@ -72,6 +72,23 @@
     --border: 200 20% 15%;
     --input: 200 20% 15%;
     --ring: 190 90% 50%;
+
+    --sidebar-background: 200 45% 6%;
+    --sidebar-foreground: 210 20% 94%;
+    --sidebar-primary: 190 90% 50%;
+    --sidebar-primary-foreground: 200 100% 10%;
+    --sidebar-accent: 200 30% 12%;
+    --sidebar-accent-foreground: 210 20% 94%;
+    --sidebar-border: 200 20% 15%;
+    --sidebar-ring: 190 90% 50%;
+
+    /* Custom tokens for Dark Mode */
+    --hero-gradient: linear-gradient(135deg, hsl(200 100% 12%), hsl(200 80% 16%), hsl(190 60% 20%));
+    --glass-bg: hsl(200 30% 8% / 0.75);
+    --glass-border: hsl(200 20% 25% / 0.35);
+    --glow-primary: 0 8px 32px hsl(190 90% 50% / 0.25);
+    --glow-accent: 0 8px 32px hsl(190 80% 30% / 0.2);
+    --surface-elevated: 0 1px 3px hsl(0 0% 0% / 0.4), 0 4px 12px hsl(0 0% 0% / 0.3);
   }
 }
 
@@ -85,6 +102,7 @@
     font-family: 'Inter', sans-serif;
     min-height: 100vh;
     background-attachment: fixed;
+    transition: background-color 0.25s ease, color 0.2s ease;
     background-image: 
       radial-gradient(at 100% 0%, hsla(200, 100%, 27%, 0.05) 0px, transparent 50%),
       radial-gradient(at 0% 100%, hsla(190, 80%, 42%, 0.05) 0px, transparent 50%),

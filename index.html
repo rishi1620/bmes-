@@ -17,6 +17,17 @@
     <meta name="twitter:title" content="CUET BMES Portal">
     <meta property="og:description" content="A comprehensive portal for the CUET Biomedical Engineering Society with a secure admin dashboard.">
     <meta name="twitter:description" content="A comprehensive portal for the CUET Biomedical Engineering Society with a secure admin dashboard.">
+    <link rel="canonical" href="https://cuetbmes.vercel.app" />
+    <script>
+      (function() {
+        try {
+          var h = window.location.hostname;
+          if (h && h.startsWith('bmes-') && h.endsWith('.vercel.app') && h !== 'cuetbmes.vercel.app') {
+            window.location.replace('https://cuetbmes.vercel.app' + window.location.pathname + window.location.search + window.location.hash);
+          }
+        } catch (e) {}
+      })();
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   </head>
 

@@ -6,6 +6,7 @@ import defaultLogo from "@/assets/logo.png";
 import Breadcrumbs from "@/components/shared/Breadcrumbs";
 import AdminNotifications from "@/components/admin/AdminNotifications";
 import AdminGlobalSearch from "@/components/admin/AdminGlobalSearch";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -269,6 +270,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
                 View Site
               </Link>
             </Button>
+            <ThemeToggle align="end" />
             <AdminNotifications />
             <div className="flex items-center gap-2">
               <div className="hidden sm:flex flex-col items-end text-sm">

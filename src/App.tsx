@@ -55,7 +55,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem storageKey="cuet-bmes-theme">
       <TooltipProvider>
         <AuthProvider>
           <div className="flex min-h-screen w-full flex-col items-center justify-center bg-transparent text-foreground">
