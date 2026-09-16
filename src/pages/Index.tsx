@@ -287,7 +287,7 @@ const Index = () => {
               {hero.button_text && (
                 <Button asChild size="lg" className="hero-primary-btn font-bold px-7 py-6 text-base rounded-xl transition-all">
                   <Link to={hero.button_link as string}>
-                    {hero.button_text as string} <ArrowRight className="ml-2 h-4 w-4" />
+                    {hero.button_text as string}
                   </Link>
                 </Button>
               )}
@@ -954,7 +954,7 @@ const Index = () => {
                     ? "/portal?tab=membership"
                     : (cta.button_link || "/portal?tab=membership")
                 }>
-                  {cta.button_text} <ArrowRight className="ml-2 h-4 w-4" />
+                  {cta.button_text}
                 </Link>
               </Button>
             )}
