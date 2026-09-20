@@ -10,7 +10,9 @@ const GMAIL_USER = (process.env.GMAIL_USER || "bmes@cuet.ac.bd").trim();
 const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD?.trim();
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_APP_PASSWORD,
@@ -18,6 +20,7 @@ const transporter = nodemailer.createTransport({
 });
 const FROM_EMAIL = GMAIL_USER;
 const OFFICIAL_REPLY_TO = "bmes@cuet.ac.bd";
+const FROM_HEADER = `"CUET BMES" <${FROM_EMAIL}>`;
 const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
 
 const app = express();
@@ -48,7 +51,7 @@ app.post("/api/send-otp", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+      from: FROM_HEADER,
       replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: "Your Event Registration Verification Code",
@@ -199,7 +202,7 @@ app.post("/api/send-member-verification-otp", async (req, res) => {
   try {
     if (GMAIL_APP_PASSWORD) {
       await transporter.sendMail({
-        from: `CUET BMES <${FROM_EMAIL}>`,
+        from: FROM_HEADER,
         replyTo: OFFICIAL_REPLY_TO,
         to: normalizedEmail,
         subject: `[CUET BMES] Official Email Verification Code: ${otp}`,
@@ -277,7 +280,7 @@ app.post("/api/send-confirmation", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+      from: FROM_HEADER,
       replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: `Registration Confirmed: ${eventTitle}`,
@@ -315,7 +318,7 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+      from: FROM_HEADER,
       replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: "[CUET BMES] Membership Application Received & Verified",
@@ -613,7 +616,7 @@ app.post("/api/send-membership-status", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+      from: FROM_HEADER,
       replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: subject,
@@ -641,7 +644,7 @@ app.post("/api/send-welcome", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+      from: FROM_HEADER,
       replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: "Welcome to CUET BMES Society!",
@@ -888,7 +891,7 @@ app.post("/api/send-bulk-email", async (req, res) => {
           });
 
           await transporter.sendMail({
-            from: `CUET BMES <${FROM_EMAIL}>`,
+            from: FROM_HEADER,
             replyTo: OFFICIAL_REPLY_TO,
             to: recipient.email,
             subject: subject.trim(),
@@ -952,7 +955,7 @@ app.post("/api/send-test-email", async (req, res) => {
     });
 
     await transporter.sendMail({
-      from: `CUET BMES <${FROM_EMAIL}>`,
+      from: FROM_HEADER,
       replyTo: OFFICIAL_REPLY_TO,
       to: testEmail.trim(),
       subject: `[TEST PREVIEW] ${subject.trim()}`,
