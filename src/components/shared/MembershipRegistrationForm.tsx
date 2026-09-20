@@ -125,9 +125,19 @@ export function MembershipRegistrationForm() {
         }),
       });
 
-      const data = await response.json();
+      let data: { success?: boolean; verificationToken?: string; error?: string } = {};
+      try {
+        data = await response.json();
+      } catch {
+        // Fallback for non-JSON responses
+      }
+
       if (!response.ok) {
-        throw new Error(data.error || "Failed to dispatch verification code.");
+        throw new Error(data.error || `Server responded with status ${response.status}`);
+      }
+
+      if (!data.verificationToken) {
+        throw new Error("Invalid response from server. Please try again.");
       }
 
       setVerificationToken(data.verificationToken);

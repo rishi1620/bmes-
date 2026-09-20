@@ -1354,18 +1354,18 @@ export default function AdminBulkEmail() {
               Confirm Email Broadcast
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3 pt-2">
-              <p className="text-sm">
+              <div className="text-sm">
                 You are about to send this <strong>{emailType}</strong> to{" "}
                 <strong className="text-foreground">{activeRecipientsList.length}</strong> recipient(s).
-              </p>
+              </div>
               <div className="rounded-lg border p-3 bg-muted/30 text-xs space-y-1.5 font-mono">
                 <div><strong>Subject:</strong> {subject}</div>
                 <div><strong>Sender:</strong> CUET BMES Administration &lt;bmes@cuet.ac.bd&gt;</div>
                 <div><strong>Total Batch:</strong> {activeRecipientsList.length} individual emails</div>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground">
                 This action cannot be undone once dispatched. Please ensure you have tested the email content.
-              </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

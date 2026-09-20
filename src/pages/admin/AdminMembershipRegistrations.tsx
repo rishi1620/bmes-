@@ -742,12 +742,12 @@ function AdminMembershipRegistrations() {
               Bulk Approve & Issue Membership IDs ({selectedIds.length})
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-2 pt-1 text-xs">
-              <p>
+              <div className="text-muted-foreground">
                 You are about to formally approve <strong>{selectedIds.length}</strong> selected applications.
-              </p>
-              <p>
+              </div>
+              <div className="text-muted-foreground">
                 Each applicant will be automatically assigned their unique Membership ID (e.g. <code className="font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1 py-0.5 rounded">BMES-B[Batch]-[StudentID]</code>) and receive the formal induction credential email template with student portal access.
-              </p>
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
