@@ -370,38 +370,245 @@ app.post("/api/send-membership-status", async (req, res) => {
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
-  const { email, name, status, reason } = req.body;
+  const { email, name, status, reason, membershipId, studentId, department, yearSemester, adminRemarks, customNote } = req.body;
 
   if (!email || !name || !status) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
   const isApproved = status === 'approved';
-  const subject = isApproved 
-    ? "Welcome to CUET BMES Society!" 
-    : "Update on your BMES Membership Application";
+  const effectiveNote = (adminRemarks || customNote || "").trim();
+  
+  // Format or generate standardized Membership ID
+  let finalMemberId = membershipId?.trim();
+  if (!finalMemberId) {
+    if (studentId) {
+      const numericMatch = studentId.toString().trim().match(/^(\d{2})\d{3,}/);
+      const batchNum = numericMatch ? numericMatch[1] : "20";
+      const cleanId = studentId.toString().replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+      finalMemberId = `BMES-B${batchNum}-${cleanId}`;
+    } else {
+      finalMemberId = `BMES-MEM-${Math.floor(100000 + Math.random() * 900000)}`;
+    }
+  }
 
-  const html = `
-    <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-      <h1 style="color: ${isApproved ? '#00568a' : '#ef4444'};">${isApproved ? 'Application Approved!' : 'Application Update'}</h1>
-      <p>Hi ${name},</p>
-      <p>Your membership application for the <strong>CUET Biomedical Engineering Society</strong> has been <strong>${status}</strong>.</p>
-      
-      ${isApproved ? `
-        <p>Congratulations! You are now an official member. You can now access exclusive resources and features in the student portal.</p>
-        <div style="margin: 30px 0;">
-          <a href="${APP_URL}/portal" style="background-color: #00568a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
-        </div>
-      ` : `
-        <p>We regret to inform you that your application was not approved at this time.</p>
-        ${reason ? `<p><strong>Reason:</strong> ${reason}</p>` : ''}
-        <p>If you believe this is a mistake, please feel free to reach out to us or re-apply with corrected information.</p>
-      `}
-      
-      <br/>
-      <p>Best regards,</p>
-      <p><strong>CUET BMES Executive Committee</strong></p>
-    </div>
+  const subject = isApproved 
+    ? `[CUET BMES] Membership Application Approved • Member ID: ${finalMemberId}` 
+    : "[CUET BMES] Update on your BMES Membership Application";
+
+  const approvedHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed; background-color: #f8fafc; padding: 32px 16px;">
+        <tr>
+          <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.06);">
+              <!-- Header Banner -->
+              <tr>
+                <td style="background-color: #00568a; padding: 30px 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
+                  <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #bae6fd;">
+                    Chittagong University of Engineering & Technology
+                  </p>
+                  <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+                    BIOMEDICAL ENGINEERING SOCIETY (BMES)
+                  </h1>
+                  <p style="margin: 8px 0 0 0; font-size: 12px; font-weight: 600; color: #fef08a;">
+                    Official Membership Induction & Credential Issuance
+                  </p>
+                </td>
+              </tr>
+
+              <!-- Main Body -->
+              <tr>
+                <td style="padding: 32px 28px; color: #1e293b;">
+                  <div style="display: inline-block; padding: 4px 12px; background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 20px; font-size: 11px; font-weight: 700; color: #047857; text-transform: uppercase; margin-bottom: 18px; letter-spacing: 0.5px;">
+                    ✓ Application Approved & Inducted
+                  </div>
+
+                  <h2 style="margin: 0 0 14px 0; font-size: 21px; font-weight: 800; color: #0f172a; line-height: 1.3;">
+                    Congratulations & Welcome, ${name}!
+                  </h2>
+
+                  <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.65; color: #334155;">
+                    We are pleased to inform you that your membership application for the <strong>CUET Biomedical Engineering Society</strong> has been formally approved by the Executive Committee. You are now recognized as an official society member.
+                  </p>
+
+                  <!-- Membership Credential Box -->
+                  <div style="margin: 24px 0; padding: 22px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); border: 2px solid #0284c7; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.08); text-align: center;">
+                    <span style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #0369a1; margin-bottom: 8px;">
+                      Official Society Membership ID
+                    </span>
+                    <div style="font-family: 'Courier New', Courier, monospace; font-size: 26px; font-weight: 800; letter-spacing: 2.5px; color: #00568a; background-color: #ffffff; padding: 12px 18px; border-radius: 8px; border: 1px dashed #0284c7; display: inline-block; margin-bottom: 16px; box-shadow: 0 2px 4px rgba(0, 86, 138, 0.05);">
+                      ${finalMemberId}
+                    </div>
+
+                    <!-- Member Credential Details Table -->
+                    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="font-size: 13px; text-align: left; border-collapse: collapse; background-color: #ffffff; border-radius: 8px; overflow: hidden; border: 1px solid #bae6fd;">
+                      <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 9px 14px; font-weight: 600; color: #64748b; width: 42%;">Full Name:</td>
+                        <td style="padding: 9px 14px; font-weight: 700; color: #0f172a;">${name}</td>
+                      </tr>
+                      ${studentId ? `
+                      <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 9px 14px; font-weight: 600; color: #64748b;">Student ID:</td>
+                        <td style="padding: 9px 14px; font-weight: 700; color: #0f172a;">${studentId}</td>
+                      </tr>
+                      ` : ''}
+                      <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 9px 14px; font-weight: 600; color: #64748b;">Department:</td>
+                        <td style="padding: 9px 14px; font-weight: 700; color: #0f172a;">${department || "Biomedical Engineering"}</td>
+                      </tr>
+                      ${yearSemester ? `
+                      <tr style="border-bottom: 1px solid #f1f5f9;">
+                        <td style="padding: 9px 14px; font-weight: 600; color: #64748b;">Academic Level:</td>
+                        <td style="padding: 9px 14px; font-weight: 700; color: #0f172a;">${yearSemester}</td>
+                      </tr>
+                      ` : ''}
+                      <tr>
+                        <td style="padding: 9px 14px; font-weight: 600; color: #64748b;">Status:</td>
+                        <td style="padding: 9px 14px; font-weight: 700; color: #16a34a;">Active Official Member</td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <!-- Member Privileges -->
+                  <div style="margin: 20px 0; padding: 16px; background-color: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 13px; color: #334155; line-height: 1.6;">
+                    <p style="margin: 0 0 8px 0; font-weight: 700; color: #0f172a;">
+                      Member Privileges & Opportunities:
+                    </p>
+                    <ul style="margin: 0; padding-left: 20px;">
+                      <li style="margin-bottom: 4px;">Access curated biomedical software packages and research libraries on the Student Portal.</li>
+                      <li style="margin-bottom: 4px;">Priority access to CUET BMES workshops, national symposiums, and medical instrumentation bootcamps.</li>
+                      <li>Official member directory listing and digital card verification.</li>
+                    </ul>
+                  </div>
+
+                  ${effectiveNote ? `
+                  <!-- Administrator Special Note -->
+                  <div style="margin: 20px 0; padding: 16px 20px; background-color: #f0fdf4; border-left: 4px solid #16a34a; border-radius: 6px; font-size: 13px; color: #166534; line-height: 1.6;">
+                    <strong style="display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.8px; color: #15803d; margin-bottom: 4px;">
+                      Direct Note from Administration:
+                    </strong>
+                    ${effectiveNote.replace(/\n/g, '<br/>')}
+                  </div>
+                  ` : ''}
+
+                  <!-- Action CTA Button -->
+                  <div style="margin: 28px 0; text-align: center;">
+                    <a href="${APP_URL}/portal" target="_blank" style="display: inline-block; background-color: #00568a; color: #ffffff; padding: 13px 28px; text-decoration: none; border-radius: 8px; font-weight: 700; font-size: 14px; letter-spacing: 0.3px; box-shadow: 0 2px 5px rgba(0, 86, 138, 0.2);">
+                      Access Student Portal &rarr;
+                    </a>
+                  </div>
+
+                  <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+                    <p style="margin: 0; font-size: 14px; font-weight: 600; color: #334155;">
+                      Warm regards,
+                    </p>
+                    <p style="margin: 4px 0 0 0; font-size: 13px; color: #64748b;">
+                      Executive Committee & Administration<br/>
+                      <strong>CUET Biomedical Engineering Society</strong>
+                    </p>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="background-color: #f8fafc; padding: 20px 24px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #64748b;">
+                  <p style="margin: 0 0 4px 0; font-weight: 600; color: #334155;">
+                    Biomedical Engineering Society (BMES), CUET
+                  </p>
+                  <p style="margin: 0; color: #94a3b8;">
+                    Department of Biomedical Engineering • Chittagong University of Engineering & Technology, Raozan, Chattogram-4349
+                  </p>
+                  <p style="margin: 8px 0 0 0; color: #94a3b8;">
+                    Official Society Desk: <a href="mailto:bmes@cuet.ac.bd" style="color: #00568a; text-decoration: underline;">bmes@cuet.ac.bd</a>
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
+  `;
+
+  const rejectedHtml = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${subject}</title>
+    </head>
+    <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed; background-color: #f8fafc; padding: 32px 16px;">
+        <tr>
+          <td align="center">
+            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 14px; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+              <tr>
+                <td style="background-color: #00568a; padding: 26px 24px; text-align: center; border-bottom: 4px solid #ef4444;">
+                  <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #bae6fd;">
+                    Chittagong University of Engineering & Technology
+                  </p>
+                  <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff;">
+                    BIOMEDICAL ENGINEERING SOCIETY (BMES)
+                  </h1>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 32px 28px; color: #1e293b;">
+                  <div style="display: inline-block; padding: 4px 10px; background-color: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; font-size: 11px; font-weight: 700; color: #b91c1c; margin-bottom: 16px;">
+                    Application Status Update
+                  </div>
+
+                  <h2 style="margin: 0 0 14px 0; font-size: 19px; font-weight: 700; color: #0f172a;">
+                    Update on Your Membership Application
+                  </h2>
+
+                  <p style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+                    Dear <strong>${name}</strong>,
+                  </p>
+
+                  <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+                    Thank you for your interest in joining the CUET Biomedical Engineering Society. We regret to inform you that your application could not be approved at this time.
+                  </p>
+
+                  ${reason ? `
+                  <div style="margin: 16px 0; padding: 14px 18px; background-color: #fef2f2; border-left: 4px solid #ef4444; border-radius: 4px; font-size: 13px; color: #991b1b;">
+                    <strong>Reason / Remarks:</strong> ${reason}
+                  </div>
+                  ` : ''}
+
+                  <p style="margin: 16px 0 0 0; font-size: 13px; line-height: 1.6; color: #64748b;">
+                    If you believe there has been an error, or if you wish to update your information, you may submit a new application through the student portal or reach out directly to <a href="mailto:bmes@cuet.ac.bd" style="color: #00568a; font-weight: 600;">bmes@cuet.ac.bd</a>.
+                  </p>
+
+                  <div style="margin-top: 28px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
+                    <p style="margin: 0; font-size: 13px; font-weight: 600; color: #334155;">
+                      CUET BMES Executive Committee
+                    </p>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td style="background-color: #f8fafc; padding: 18px 24px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #64748b;">
+                  Department of Biomedical Engineering • CUET • bmes@cuet.ac.bd
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+    </html>
   `;
 
   try {
@@ -410,10 +617,10 @@ app.post("/api/send-membership-status", async (req, res) => {
       replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: subject,
-      html: html,
+      html: isApproved ? approvedHtml : rejectedHtml,
     });
 
-    res.json({ success: true });
+    res.json({ success: true, membershipId: finalMemberId });
   } catch (err) {
     console.error("Server error:", err);
     res.status(500).json({ error: "Internal server error" });

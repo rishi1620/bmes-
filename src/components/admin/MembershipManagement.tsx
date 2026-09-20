@@ -21,6 +21,7 @@ import { Loader2, Trash2, CheckCircle2, XCircle, Clock, Search, Users } from "lu
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { generateMembershipId } from "@/utils/membership";
 
 interface Registration {
   id: string;
@@ -78,6 +79,7 @@ export function MembershipManagement() {
 
   const updateStatus = async (id: string, newStatus: string) => {
     setUpdatingId(id);
+    const targetReg = registrations.find(r => r.id === id);
     try {
       const { error } = await supabase
         .from("membership_registrations")
@@ -88,10 +90,33 @@ export function MembershipManagement() {
       
       setRegistrations(prev => prev.map(r => r.id === id ? { ...r, status: newStatus } : r));
       toast.success(`Registration ${newStatus} successfully.`);
-      
-      // If we approved someone, maybe they should move to the approved tab
-      if (newStatus === 'approved' && activeTab === 'pending') {
-        // Stay on pending or move? Usually stay to see the change, but user might expect them to disappear
+
+      // Send official email notification if approved or rejected
+      if (targetReg && (newStatus === 'approved' || newStatus === 'rejected')) {
+        try {
+          const memberId = generateMembershipId(
+            targetReg.student_id,
+            targetReg.id,
+            targetReg.year_semester,
+            targetReg.created_at
+          );
+
+          await fetch("/api/send-membership-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: targetReg.email,
+              name: targetReg.full_name,
+              status: newStatus,
+              membershipId: memberId,
+              studentId: targetReg.student_id,
+              department: targetReg.department,
+              yearSemester: targetReg.year_semester,
+            }),
+          });
+        } catch (mailErr) {
+          console.error("Failed to send status email:", mailErr);
+        }
       }
     } catch (error) {
       console.error("Error updating status:", error);

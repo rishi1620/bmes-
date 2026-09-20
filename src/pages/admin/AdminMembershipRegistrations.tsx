@@ -11,9 +11,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Check, X, Trash2, Download, Search, RefreshCw, CreditCard, CheckCircle2 } from "lucide-react";
+import { Check, X, Trash2, Download, Search, RefreshCw, CreditCard, CheckCircle2, ShieldCheck, Copy, AlertCircle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { MemberIdCardModal } from "@/components/admin/MemberIdCardModal";
+import { MembershipApprovalModal } from "@/components/admin/MembershipApprovalModal";
 import { extractBatchInfo, generateMembershipId } from "@/utils/membership";
 
 interface Registration {
@@ -39,6 +40,15 @@ function AdminMembershipRegistrations() {
   const [deleteBulk, setDeleteBulk] = useState(false);
   const [selectedMemberForCard, setSelectedMemberForCard] = useState<Registration | null>(null);
   const [logoUrl, setLogoUrl] = useState<string>("");
+  
+  // Enhanced approval workflow states
+  const [approvingRegistration, setApprovingRegistration] = useState<Registration | null>(null);
+  const [isApprovalSubmitting, setIsApprovalSubmitting] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState<Registration | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [isRejecting, setIsRejecting] = useState(false);
+  const [bulkApproveModalOpen, setBulkApproveModalOpen] = useState(false);
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const fetchRegistrations = useCallback(async () => {
     setLoading(true);
@@ -74,48 +84,111 @@ function AdminMembershipRegistrations() {
     loadLogo();
   }, [fetchRegistrations]);
 
-  const updateStatus = async (id: string, status: 'approved' | 'rejected') => {
-    const registration = registrations.find(r => r.id === id);
-    if (!registration) return;
+  // Handle confirmed approval with dynamic Unique Membership ID and formal induction email
+  const handleConfirmApprove = async ({
+    registrationId,
+    membershipId,
+    customNote,
+    sendEmail,
+  }: {
+    registrationId: string;
+    membershipId: string;
+    customNote: string;
+    sendEmail: boolean;
+  }) => {
+    const reg = registrations.find(r => r.id === registrationId);
+    if (!reg) return;
 
+    setIsApprovalSubmitting(true);
     try {
       const { error } = await supabase
         .from("membership_registrations")
-        .update({ status })
-        .eq("id", id);
+        .update({ status: 'approved' })
+        .eq("id", registrationId);
 
       if (error) throw error;
-      
-      toast.success(`Registration ${status} successfully`);
-      
-      // Send email notification
-      try {
-        const response = await fetch("/api/send-membership-status", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: registration.email,
-            name: registration.full_name,
-            status: status
-          }),
-        });
-        
-        if (!response.ok) {
-          const errData = await response.json().catch(() => ({}));
-          console.error("Failed to send email notification:", errData);
-          toast.error(`Status updated, but email failed: ${errData.error || 'Check server logs'}`);
-        } else {
-          toast.info(`Notification email sent to ${registration.email}`);
+
+      if (sendEmail) {
+        try {
+          const response = await fetch("/api/send-membership-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: reg.email,
+              name: reg.full_name,
+              status: "approved",
+              membershipId,
+              studentId: reg.student_id,
+              department: reg.department,
+              yearSemester: reg.year_semester,
+              adminRemarks: customNote,
+            }),
+          });
+
+          if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            console.error("Email send failed:", errData);
+            toast.warning(`Approved with ID ${membershipId}, but email notification failed to dispatch.`);
+          } else {
+            toast.success(`Application Approved! Formal induction email dispatched to ${reg.email} with Membership ID: ${membershipId}`);
+          }
+        } catch (emailErr) {
+          console.error("Email error:", emailErr);
+          toast.warning(`Approved with ID ${membershipId}, but email notification failed to send.`);
         }
-      } catch (emailError) {
-        console.error("Email notification error:", emailError);
-        toast.error("Status updated, but failed to send email notification.");
+      } else {
+        toast.success(`Application Approved! Official Membership ID: ${membershipId}`);
       }
 
+      setApprovingRegistration(null);
       fetchRegistrations();
     } catch (error: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      toast.error("Failed to update status: " + (error as any).message);
+      toast.error("Failed to approve application: " + (error as any).message);
+    } finally {
+      setIsApprovalSubmitting(false);
+    }
+  };
+
+  // Handle confirmed rejection with polite explanation email
+  const handleConfirmReject = async () => {
+    if (!rejectTarget) return;
+    setIsRejecting(true);
+    try {
+      const { error } = await supabase
+        .from("membership_registrations")
+        .update({ status: 'rejected' })
+        .eq("id", rejectTarget.id);
+
+      if (error) throw error;
+
+      try {
+        await fetch("/api/send-membership-status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: rejectTarget.email,
+            name: rejectTarget.full_name,
+            status: "rejected",
+            reason: rejectReason.trim() || undefined,
+            studentId: rejectTarget.student_id,
+            department: rejectTarget.department,
+          }),
+        });
+        toast.info(`Application rejected. Status notification email sent to ${rejectTarget.email}`);
+      } catch (err) {
+        console.error("Rejection email error:", err);
+        toast.info("Application rejected.");
+      }
+
+      setRejectTarget(null);
+      setRejectReason("");
+      fetchRegistrations();
+    } catch (error: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error("Failed to reject application: " + (error as any).message);
+    } finally {
+      setIsRejecting(false);
     }
   };
 
@@ -204,6 +277,63 @@ function AdminMembershipRegistrations() {
     );
   };
 
+  const executeBulkApprove = async () => {
+    if (selectedIds.length === 0) return;
+
+    setBulkProcessing(true);
+    try {
+      const { error } = await supabase
+        .from("membership_registrations")
+        .update({ status: 'approved' })
+        .in("id", selectedIds);
+
+      if (error) throw error;
+
+      const selectedRegistrations = registrations.filter(r => selectedIds.includes(r.id));
+      let sentCount = 0;
+
+      await Promise.all(selectedRegistrations.map(async (reg) => {
+        try {
+          const memberId = generateMembershipId(
+            reg.student_id,
+            reg.id,
+            reg.year_semester,
+            reg.created_at
+          );
+
+          const emailResponse = await fetch("/api/send-membership-status", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: reg.email,
+              name: reg.full_name,
+              status: "approved",
+              membershipId: memberId,
+              studentId: reg.student_id,
+              department: reg.department,
+              yearSemester: reg.year_semester,
+            }),
+          });
+          if (emailResponse.ok) {
+            sentCount++;
+          }
+        } catch (e) {
+          console.error(`Failed to send email to ${reg.email}`, e);
+        }
+      }));
+
+      toast.success(`${selectedIds.length} registrations approved! Dynamic IDs generated & formal emails sent (${sentCount}/${selectedIds.length}).`);
+      setSelectedIds([]);
+      setBulkApproveModalOpen(false);
+      fetchRegistrations();
+    } catch (error: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error("Failed to bulk approve registrations: " + (error as any).message);
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
   const bulkUpdateStatus = async (status: 'approved' | 'rejected') => {
     if (selectedIds.length === 0) return;
 
@@ -224,13 +354,24 @@ function AdminMembershipRegistrations() {
       // We'll do this in parallel
       Promise.all(selectedRegistrations.map(async (reg) => {
         try {
+          const memberId = generateMembershipId(
+            reg.student_id,
+            reg.id,
+            reg.year_semester,
+            reg.created_at
+          );
+
           const emailResponse = await fetch("/api/send-membership-status", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               email: reg.email,
               name: reg.full_name,
-              status: status
+              status: status,
+              membershipId: memberId,
+              studentId: reg.student_id,
+              department: reg.department,
+              yearSemester: reg.year_semester,
             }),
           });
           if (!emailResponse.ok) {
@@ -347,21 +488,20 @@ function AdminMembershipRegistrations() {
             </Button>
             <Button 
               size="sm" 
-              variant="outline" 
-              className="h-8 text-primary border-primary/30 hover:bg-primary/10 gap-1 font-semibold"
-              onClick={() => bulkUpdateStatus('approved')}
-              disabled={loading}
+              className="h-8 bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 font-bold shadow-2xs"
+              onClick={() => setBulkApproveModalOpen(true)}
+              disabled={loading || bulkProcessing}
             >
-              <Check className="h-3.5 w-3.5" /> Approve Selected
+              <ShieldCheck className="h-3.5 w-3.5" /> Approve Selected ({selectedIds.length})
             </Button>
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-8 text-red-600 border-red-200 hover:bg-red-50 gap-1"
+              className="h-8 text-red-600 border-red-200 hover:bg-red-50 gap-1 font-semibold"
               onClick={() => bulkUpdateStatus('rejected')}
-              disabled={loading}
+              disabled={loading || bulkProcessing}
             >
-              <X className="h-3.5 w-3.5" /> Reject Selected
+              <X className="h-3.5 w-3.5" /> Reject Selected ({selectedIds.length})
             </Button>
             <Button 
               size="sm" 
@@ -423,11 +563,35 @@ function AdminMembershipRegistrations() {
                     <TableCell>
                       <div className="flex flex-col gap-0.5">
                         <span className="font-semibold text-foreground text-sm">{reg.full_name}</span>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20 w-fit">
-                            {membershipId}
-                          </span>
-                        </div>
+                        {reg.status === 'approved' ? (
+                          <div className="flex items-center gap-1.5 flex-wrap my-0.5">
+                            <span className="font-mono text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-300/60 dark:border-emerald-800/80 flex items-center gap-1 shadow-2xs">
+                              <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                              {membershipId}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigator.clipboard.writeText(membershipId);
+                                toast.success(`Copied ID: ${membershipId}`);
+                              }}
+                              className="text-muted-foreground hover:text-primary transition-colors p-0.5"
+                              title="Copy Membership ID"
+                            >
+                              <Copy className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1 flex-wrap my-0.5">
+                            <span 
+                              className="font-mono text-[10px] text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded border border-dashed border-slate-300 dark:border-slate-700"
+                              title="Unique ID automatically generated upon approval"
+                            >
+                              Auto ID: {membershipId}
+                            </span>
+                          </div>
+                        )}
                         <div className="flex items-center gap-1.5 flex-wrap">
                           <span className="text-xs text-muted-foreground">{reg.email}</span>
                           <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary bg-primary/10 px-1 py-0.2 rounded border border-primary/20">
@@ -475,20 +639,20 @@ function AdminMembershipRegistrations() {
                         {reg.status === 'pending' && (
                           <>
                             <Button 
-                              size="icon" 
-                              variant="outline" 
-                              className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
-                              onClick={() => updateStatus(reg.id, 'approved')}
-                              title="Approve Member"
+                              size="sm" 
+                              className="h-8 px-2.5 gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-2xs"
+                              onClick={() => setApprovingRegistration(reg)}
+                              title="Review & Formally Approve with Membership ID Email"
                             >
-                              <Check className="h-4 w-4" />
+                              <ShieldCheck className="h-3.5 w-3.5" />
+                              <span className="hidden sm:inline">Approve</span>
                             </Button>
                             <Button 
                               size="icon" 
                               variant="outline" 
                               className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
-                              onClick={() => updateStatus(reg.id, 'rejected')}
-                              title="Reject Member"
+                              onClick={() => setRejectTarget(reg)}
+                              title="Reject Member Application"
                             >
                               <X className="h-4 w-4" />
                             </Button>
@@ -520,6 +684,95 @@ function AdminMembershipRegistrations() {
         onClose={() => setSelectedMemberForCard(null)}
         logoUrl={logoUrl}
       />
+
+      {/* Formal Membership Approval & Induction Modal */}
+      <MembershipApprovalModal
+        registration={approvingRegistration}
+        isOpen={!!approvingRegistration}
+        onClose={() => setApprovingRegistration(null)}
+        onConfirmApprove={handleConfirmApprove}
+        isSubmitting={isApprovalSubmitting}
+      />
+
+      {/* Single Rejection Reason Dialog */}
+      <AlertDialog open={!!rejectTarget} onOpenChange={(open) => !open && !isRejecting && setRejectTarget(null)}>
+        <AlertDialogContent className="max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-red-600 flex items-center gap-2">
+              <AlertCircle className="h-5 w-5" />
+              Reject Membership Application
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to reject the application for <strong>{rejectTarget?.full_name}</strong> ({rejectTarget?.student_id})?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="py-2 space-y-2">
+            <label className="text-xs font-semibold text-foreground block">
+              Reason / Feedback for Applicant <span className="text-muted-foreground font-normal">(Optional, included in email)</span>
+            </label>
+            <Input
+              placeholder="e.g. Incomplete payment transaction ID or non-matching student roll"
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              className="text-xs"
+            />
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isRejecting}>Cancel</AlertDialogCancel>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleConfirmReject}
+              disabled={isRejecting}
+              className="text-xs font-semibold"
+            >
+              {isRejecting ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> : null}
+              Confirm Rejection & Send Update
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Bulk Approval Confirmation Dialog */}
+      <AlertDialog open={bulkApproveModalOpen} onOpenChange={setBulkApproveModalOpen}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-emerald-600 flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5" />
+              Bulk Approve & Issue Membership IDs ({selectedIds.length})
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2 pt-1 text-xs">
+              <p>
+                You are about to formally approve <strong>{selectedIds.length}</strong> selected applications.
+              </p>
+              <p>
+                Each applicant will be automatically assigned their unique Membership ID (e.g. <code className="font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950 px-1 py-0.5 rounded">BMES-B[Batch]-[StudentID]</code>) and receive the formal induction credential email template with student portal access.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={bulkProcessing}>Cancel</AlertDialogCancel>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5"
+              size="sm"
+              onClick={executeBulkApprove}
+              disabled={bulkProcessing}
+            >
+              {bulkProcessing ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  <span>Processing Induction Batch...</span>
+                </>
+              ) : (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  <span>Confirm Bulk Approval & Send Emails</span>
+                </>
+              )}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
         <AlertDialogContent>

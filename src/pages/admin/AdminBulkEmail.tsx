@@ -99,6 +99,14 @@ const EMAIL_TEMPLATES = [
     buttonUrl: "/portal",
   },
   {
+    label: "🎓 Membership Approved & Induction",
+    type: "announcement" as const,
+    subject: "[CUET BMES] Membership Application Approved • Welcome to the Society!",
+    message: `Dear {name},\n\nCongratulations! Your membership application for the CUET Biomedical Engineering Society has been reviewed and officially approved.\n\nYou are now an official inducted member of our society. Your official Membership ID and credentials are active.\n\nYou can now log in to the Student Portal to view and download your official virtual Member ID Card, access licensed academic biomedical software, and participate in upcoming specialized workshops.\n\nWe look forward to an inspiring journey together in biomedical engineering!`,
+    buttonText: "Access Student Portal & Member Card",
+    buttonUrl: "/portal",
+  },
+  {
     label: "🚨 Urgent Society Notice",
     type: "urgent" as const,
     subject: "[URGENT] Important Notice from CUET BMES Administration",
