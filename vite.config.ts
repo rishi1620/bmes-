@@ -61,6 +61,8 @@ export default defineConfig(() => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,webp,jpg,jpeg,woff,woff2}"],
+        navigateFallback: "index.html",
+        navigateFallbackDenylist: [/^\/api/],
         runtimeCaching: [
           // 1. Cache-first strategy for static images & visual assets
           {
@@ -111,11 +113,12 @@ export default defineConfig(() => ({
               },
             },
           },
-          // 4. Background Sync policy for offline form submissions & API posts
+          // 4. Background Sync policy for offline form submissions & persistent registrations
           {
             urlPattern: ({ url, request }) =>
               request.method === "POST" &&
-              (url.pathname.startsWith("/api/") ||
+              (url.pathname.includes("/api/send-confirmation") ||
+                url.pathname.includes("/api/send-membership-confirmation") ||
                 url.hostname.includes("supabase.co")),
             handler: "NetworkOnly",
             options: {
@@ -130,8 +133,7 @@ export default defineConfig(() => ({
         ],
       },
       devOptions: {
-        enabled: true,
-        type: "module",
+        enabled: false,
       },
     }),
   ].filter(Boolean),
