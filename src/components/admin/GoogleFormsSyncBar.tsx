@@ -90,13 +90,13 @@ export default function GoogleFormsSyncBar({ contextTitle, formType, compact = f
                 variant="outline" 
                 className={`text-[10px] h-5 px-1.5 gap-1 font-semibold ${
                   autoSyncEnabled 
-                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" 
+                    ? "bg-primary/10 text-primary border-primary/20" 
                     : "bg-muted text-muted-foreground"
                 }`}
               >
                 {autoSyncEnabled ? (
                   <>
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
                     Auto-Sync Active (Every 60s)
                   </>
                 ) : (
@@ -140,7 +140,7 @@ export default function GoogleFormsSyncBar({ contextTitle, formType, compact = f
               </>
             ) : (
               <>
-                <Play className="h-3 w-3 text-emerald-600" />
+                <Play className="h-3 w-3 text-primary" />
                 <span className="hidden md:inline">Resume Auto-Sync</span>
               </>
             )}

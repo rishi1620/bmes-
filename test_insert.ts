@@ -10,8 +10,8 @@ async function test() {
   
   const { error } = await supabase.from("event_registrations").insert({
     event_id: eventId,
-    name: 'Test',
-    email: 'test@test.com'
+    name: 'BMES Test',
+    email: 'bmes@cuet.ac.bd'
   });
   console.log("Error:", error);
 }

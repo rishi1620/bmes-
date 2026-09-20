@@ -157,7 +157,7 @@ const AdminNotices = () => {
                   <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                     Dept
                   </span>
-                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded bg-primary/10 text-primary border border-primary/25">
                     Club
                   </span>
                 </div>
@@ -167,14 +167,14 @@ const AdminNotices = () => {
                   <AccordionItem 
                     key={item.id || i} 
                     value={item.id || String(i)} 
-                    className={`border rounded-md px-4 transition-colors ${item.category === 'club' ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-card'}`}
+                    className={`border rounded-md px-4 transition-colors ${item.category === 'club' ? 'border-primary/25 bg-primary/5' : 'border-border bg-card'}`}
                   >
                     <div className="flex items-center justify-between">
                       <AccordionTrigger className="flex-1 hover:no-underline py-4">
                         <div className="flex items-center gap-4 text-left">
                           <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded border ${
                             item.category === 'club' 
-                              ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' 
+                              ? 'bg-primary/10 text-primary border-primary/25' 
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700'
                           }`}>
                             {item.category === 'club' ? 'Club' : 'Dept'}

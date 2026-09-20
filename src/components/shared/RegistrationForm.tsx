@@ -166,8 +166,8 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
   if (submitted) {
     return (
       <div className="py-8 text-center space-y-4">
-        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-          <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
           </svg>
         </div>
@@ -202,7 +202,7 @@ export function RegistrationForm({ eventId, eventTitle, onSuccess }: Registratio
         <Input
           id="email"
           type="email"
-          placeholder="john@example.com"
+          placeholder="student_id@student.cuet.ac.bd"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           required

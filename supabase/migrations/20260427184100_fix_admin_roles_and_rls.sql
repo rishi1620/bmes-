@@ -28,8 +28,8 @@ DO $$
 DECLARE 
   target_user_id UUID;
 BEGIN
-  -- Search for the user by email
-  SELECT id INTO target_user_id FROM auth.users WHERE email = 'hrictikdastidar@gmail.com';
+  -- Search for the official society user by email
+  SELECT id INTO target_user_id FROM auth.users WHERE email = 'bmes@cuet.ac.bd';
   
   IF target_user_id IS NOT NULL THEN
     -- Delete existing roles for this user to avoid conflicts

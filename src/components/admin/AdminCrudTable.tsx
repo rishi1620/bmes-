@@ -216,7 +216,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
     if (field?.render) return field.render(row[c], row);
     
     if (typeof row[c] === "boolean") return (
-      <Badge variant={row[c] ? "default" : "secondary"} className={row[c] ? "bg-emerald-500 hover:bg-emerald-600" : ""}>
+      <Badge variant={row[c] ? "default" : "secondary"} className={row[c] ? "bg-primary hover:bg-primary/90 text-primary-foreground" : ""}>
         {row[c] ? "Active" : "Inactive"}
       </Badge>
     );
@@ -381,7 +381,7 @@ const AdminCrudTable = ({ tableName, title, description, fields, columns, orderB
                           <Button variant="ghost" size="icon" onClick={() => openEdit(row)} title="Edit" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10">
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button variant="ghost" size="icon" onClick={() => duplicateRow(row)} title="Duplicate" className="h-8 w-8 text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10">
+                          <Button variant="ghost" size="icon" onClick={() => duplicateRow(row)} title="Duplicate" className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10">
                             <Copy className="h-4 w-4" />
                           </Button>
                           <Button variant="ghost" size="icon" onClick={() => confirmDelete(row.id as string)} title="Delete" className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10">

@@ -213,7 +213,7 @@ export const GoogleFormSubmissionsViewer: React.FC<GoogleFormSubmissionsViewerPr
                 size="sm"
                 onClick={handleExportCsv}
                 disabled={responses.length === 0 || isLoading}
-                className="h-8 text-xs gap-1.5 text-emerald-600 border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                className="h-8 text-xs gap-1.5 text-primary border-primary/30 hover:bg-primary/10"
               >
                 <Download className="h-3.5 w-3.5" />
                 <span>Export CSV</span>
@@ -264,8 +264,8 @@ export const GoogleFormSubmissionsViewer: React.FC<GoogleFormSubmissionsViewerPr
             <div className="p-3 rounded-xl border border-border bg-card shadow-2xs">
               <p className="text-[11px] font-medium text-muted-foreground">API Sync Status</p>
               <div className="flex items-center gap-1.5 mt-1">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-semibold text-emerald-600">Connected</span>
+                <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+                <span className="text-xs font-semibold text-primary">Connected</span>
               </div>
             </div>
           </div>

@@ -303,7 +303,7 @@ export default function AdminFAQ() {
               <Badge variant="outline" className="text-[11px] font-semibold tracking-wide border-primary/30 text-primary bg-primary/5">
                 Core Content
               </Badge>
-              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+              <span className="text-[11px] text-primary font-medium flex items-center gap-1">
                 <Check className="h-3 w-3" /> Live Synced with Public Site
               </span>
             </div>

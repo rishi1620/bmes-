@@ -104,7 +104,7 @@ export const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
             timestamp: m.created_at,
             badge: isApproved ? "Member Verified" : "Pending Review",
             badgeColor: isApproved 
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" 
+              ? "bg-primary/10 text-primary border-primary/30" 
               : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
             linkAdmin: "/admin/membership",
             linkPublic: "/portal?tab=verify",
@@ -226,7 +226,7 @@ export const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
             timestamp: nowIso,
             badge: isApproved ? "Member Verified" : "Application Pending",
             badgeColor: isApproved 
-              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30" 
+              ? "bg-primary/10 text-primary border-primary/30" 
               : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30",
             isLive: true,
             linkAdmin: "/admin/membership",
@@ -429,13 +429,13 @@ export const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
                   variant="outline"
                   className={`text-[10px] font-mono px-2 py-0.5 flex items-center gap-1.5 ${
                     channelConnected
-                      ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10"
+                      ? "border-primary/30 text-primary bg-primary/10"
                       : "border-amber-500/30 text-amber-600 bg-amber-500/10"
                   }`}
                 >
                   <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-primary"></span>
                   </span>
                   {channelConnected ? "Real-time Live" : "Reconnecting"}
                 </Badge>
@@ -609,7 +609,7 @@ export const RecentActivityFeed: React.FC<RecentActivityFeedProps> = ({
                       </Badge>
 
                       {item.isLive && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider bg-emerald-500 text-white px-1.5 py-0.2 rounded-full">
+                        <span className="text-[9px] font-bold uppercase tracking-wider bg-primary text-primary-foreground px-1.5 py-0.2 rounded-full">
                           LIVE
                         </span>
                       )}

@@ -56,7 +56,7 @@ export function MemberDirectory() {
     <div className="mt-16 space-y-8 animate-fade-in">
       <div className="text-center space-y-2">
         <h3 className="text-2xl font-bold flex items-center justify-center gap-2">
-          <Users className="h-6 w-6 text-emerald-500" />
+          <Users className="h-6 w-6 text-primary" />
           Member Directory
         </h3>
         <p className="text-muted-foreground">Our growing community of biomedical engineering enthusiasts.</p>
@@ -66,7 +66,7 @@ export function MemberDirectory() {
         <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Search by name, ID or department..."
-          className="pl-10 bg-background/50 backdrop-blur-sm border-emerald-500/20 focus-visible:ring-emerald-500"
+          className="pl-10 bg-background/50 backdrop-blur-sm border-primary/20 focus-visible:ring-primary"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
@@ -83,24 +83,24 @@ export function MemberDirectory() {
             const memId = generateMembershipId(member.student_id, member.id, member.year_semester);
 
             return (
-              <Card key={member.id} className="group hover:border-emerald-500/50 transition-all duration-300 hover:shadow-md bg-card/50 backdrop-blur-sm">
+              <Card key={member.id} className="group hover:border-primary/50 transition-all duration-300 hover:shadow-md bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-5 space-y-3">
                   <div className="flex items-start justify-between gap-2">
                     <div className="space-y-1 min-w-0">
-                      <h4 className="font-bold text-lg group-hover:text-emerald-600 transition-colors truncate">{member.full_name}</h4>
+                      <h4 className="font-bold text-lg group-hover:text-primary transition-colors truncate">{member.full_name}</h4>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-xs font-mono font-medium text-muted-foreground">{member.student_id}</span>
                         <span className="text-muted-foreground/40">•</span>
-                        <span className="text-[11px] font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200 dark:border-emerald-800/60">
+                        <span className="text-[11px] font-mono font-bold text-primary bg-primary/10 px-1.5 py-0.2 rounded border border-primary/20">
                           {memId}
                         </span>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-1 shrink-0">
-                      <Badge className="bg-amber-400 text-emerald-950 hover:bg-amber-400 font-black text-[10px] uppercase tracking-wider border border-amber-300 shadow-2xs">
+                      <Badge className="bg-amber-400 text-slate-950 hover:bg-amber-400 font-black text-[10px] uppercase tracking-wider border border-amber-300 shadow-2xs">
                         {batch.batchTag}
                       </Badge>
-                      <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100 text-[9.5px] uppercase tracking-wider">
+                      <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-[9.5px] uppercase tracking-wider">
                         Official Member
                       </Badge>
                     </div>
@@ -108,11 +108,11 @@ export function MemberDirectory() {
                   
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Building2 className="h-3 w-3 text-emerald-500 shrink-0" />
+                      <Building2 className="h-3 w-3 text-primary shrink-0" />
                       <span className="truncate">{member.department}</span>
                     </div>
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <GraduationCap className="h-3 w-3 text-emerald-500 shrink-0" />
+                      <GraduationCap className="h-3 w-3 text-primary shrink-0" />
                       <span className="truncate">{member.year_semester}</span>
                     </div>
                   </div>

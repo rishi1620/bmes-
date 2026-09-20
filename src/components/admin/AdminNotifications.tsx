@@ -187,7 +187,7 @@ const AdminNotifications = () => {
                 <Link to={item.link} className="flex gap-3 items-start w-full">
                   <div className={`mt-0.5 rounded-full p-1.5 ${
                     item.type === 'submission' ? 'bg-blue-100 text-blue-600' : 
-                    item.type === 'registration' ? 'bg-green-100 text-green-600' : 
+                    item.type === 'registration' ? 'bg-primary/10 text-primary' : 
                     'bg-purple-100 text-purple-600'
                   }`}>
                     {item.type === 'submission' ? <Inbox className="h-3.5 w-3.5" /> : 

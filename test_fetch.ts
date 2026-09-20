@@ -20,8 +20,8 @@ fetch(import.meta.env.VITE_SUPABASE_URL + '/rest/v1/events?select=id&limit=1', {
     },
     body: JSON.stringify({
       event_id: eventId,
-      name: 'Test',
-      email: 'test@test.com'
+      name: 'BMES Test',
+      email: 'bmes@cuet.ac.bd'
     })
   });
 })

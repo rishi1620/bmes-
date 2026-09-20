@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { format } from "date-fns";
-import { Check, X, Trash2, Download, Search, RefreshCw, CreditCard } from "lucide-react";
+import { Check, X, Trash2, Download, Search, RefreshCw, CreditCard, CheckCircle2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { MemberIdCardModal } from "@/components/admin/MemberIdCardModal";
 import { extractBatchInfo, generateMembershipId } from "@/utils/membership";
@@ -184,7 +184,7 @@ function AdminMembershipRegistrations() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case 'approved': return <Badge className="bg-emerald-500">Approved</Badge>;
+      case 'approved': return <Badge className="bg-primary text-primary-foreground">Approved</Badge>;
       case 'rejected': return <Badge variant="destructive">Rejected</Badge>;
       default: return <Badge variant="secondary">Pending</Badge>;
     }
@@ -337,18 +337,18 @@ function AdminMembershipRegistrations() {
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-8 text-emerald-700 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 gap-1.5 font-semibold"
+              className="h-8 text-primary border-primary/30 hover:bg-primary/10 gap-1.5 font-semibold"
               onClick={() => {
                 const first = registrations.find(r => selectedIds.includes(r.id));
                 if (first) setSelectedMemberForCard(first);
               }}
             >
-              <CreditCard className="h-3.5 w-3.5 text-emerald-600" /> Virtual ID Card
+              <CreditCard className="h-3.5 w-3.5 text-primary" /> Virtual ID Card
             </Button>
             <Button 
               size="sm" 
               variant="outline" 
-              className="h-8 text-emerald-600 border-emerald-200 hover:bg-emerald-50 gap-1"
+              className="h-8 text-primary border-primary/30 hover:bg-primary/10 gap-1 font-semibold"
               onClick={() => bulkUpdateStatus('approved')}
               disabled={loading}
             >
@@ -424,11 +424,16 @@ function AdminMembershipRegistrations() {
                       <div className="flex flex-col gap-0.5">
                         <span className="font-semibold text-foreground text-sm">{reg.full_name}</span>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-mono text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-300 dark:border-emerald-800 w-fit">
+                          <span className="font-mono text-[11px] font-bold text-primary bg-primary/10 px-1.5 py-0.5 rounded border border-primary/20 w-fit">
                             {membershipId}
                           </span>
                         </div>
-                        <span className="text-xs text-muted-foreground">{reg.email}</span>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="text-xs text-muted-foreground">{reg.email}</span>
+                          <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-primary bg-primary/10 px-1 py-0.2 rounded border border-primary/20">
+                            <CheckCircle2 className="h-2.5 w-2.5 text-primary" /> Verified
+                          </span>
+                        </div>
                         {reg.phone_number && (
                           <span className="text-xs text-muted-foreground">{reg.phone_number}</span>
                         )}
@@ -438,7 +443,7 @@ function AdminMembershipRegistrations() {
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-mono font-bold text-foreground">{reg.student_id}</span>
-                          <Badge className="bg-amber-400 hover:bg-amber-400 text-emerald-950 font-black text-[10px] px-2 py-0.5 border border-amber-300 shadow-2xs">
+                          <Badge className="bg-amber-400 hover:bg-amber-400 text-slate-900 font-black text-[10px] px-2 py-0.5 border border-amber-300 shadow-2xs">
                             {batch.batchTag}
                           </Badge>
                         </div>
@@ -460,11 +465,11 @@ function AdminMembershipRegistrations() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="h-8 px-2.5 gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/50"
+                          className="h-8 px-2.5 gap-1.5 text-xs font-semibold text-primary border-primary/30 hover:bg-primary/10"
                           onClick={() => setSelectedMemberForCard(reg)}
                           title="Generate Virtual ID Card & Member Profile"
                         >
-                          <CreditCard className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                          <CreditCard className="h-3.5 w-3.5 text-primary" />
                           <span className="hidden sm:inline">Virtual ID</span>
                         </Button>
                         {reg.status === 'pending' && (
@@ -472,7 +477,7 @@ function AdminMembershipRegistrations() {
                             <Button 
                               size="icon" 
                               variant="outline" 
-                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                              className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
                               onClick={() => updateStatus(reg.id, 'approved')}
                               title="Approve Member"
                             >

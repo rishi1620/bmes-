@@ -6,14 +6,18 @@ import crypto from "crypto";
 
 dotenv.config();
 
+const GMAIL_USER = (process.env.GMAIL_USER || "bmes@cuet.ac.bd").trim();
+const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD?.trim();
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
+    user: GMAIL_USER,
+    pass: GMAIL_APP_PASSWORD,
   }
 });
-const FROM_EMAIL = process.env.GMAIL_USER;
+const FROM_EMAIL = GMAIL_USER;
+const OFFICIAL_REPLY_TO = "bmes@cuet.ac.bd";
 const APP_URL = process.env.APP_URL || "https://cuetbmes.vercel.app";
 
 const app = express();
@@ -26,8 +30,8 @@ app.get("/api/health", (req, res) => {
 });
 
 app.post("/api/send-otp", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    return res.status(500).json({ error: "Email service is not configured." });
+  if (!GMAIL_APP_PASSWORD) {
+    return res.status(500).json({ error: "Email service is not configured. Please set GMAIL_APP_PASSWORD." });
   }
 
   const { email } = req.body;
@@ -36,7 +40,7 @@ app.post("/api/send-otp", async (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   
   // Create stateless verification token
-  const secret = process.env.GMAIL_APP_PASSWORD || "fallback-secret-key-123";
+  const secret = GMAIL_APP_PASSWORD || "fallback-secret-key-123";
   const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
   const dataToHash = `${email}:${otp}:${expiresAt}`;
   const hash = crypto.createHmac("sha256", secret).update(dataToHash).digest("hex");
@@ -45,11 +49,12 @@ app.post("/api/send-otp", async (req, res) => {
   try {
     await transporter.sendMail({
       from: `CUET BMES <${FROM_EMAIL}>`,
+      replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: "Your Event Registration Verification Code",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h1 style="color: #10b981;">Verification Code</h1>
+          <h1 style="color: #00568a;">Verification Code</h1>
           <p>Hi,</p>
           <p>Your verification code for event registration is: <strong style="font-size: 24px;">${otp}</strong></p>
           <p>Please enter this code in the registration form to complete your registration. This code will expire in 10 minutes.</p>
@@ -96,9 +101,171 @@ app.post("/api/verify-otp", (req, res) => {
   res.json({ success: true });
 });
 
+// Member Registration Official Email Verification (Dispatched from bmes@cuet.ac.bd)
+app.post("/api/send-member-verification-otp", async (req, res) => {
+  const { email, name, studentId } = req.body;
+  if (!email || typeof email !== "string") {
+    return res.status(400).json({ error: "A valid university email address is required." });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  
+  // Validate university domain
+  const isCuetDomain = normalizedEmail.endsWith("@student.cuet.ac.bd") || normalizedEmail.endsWith("@cuet.ac.bd");
+  if (!isCuetDomain) {
+    return res.status(400).json({
+      error: "Please provide your official CUET student email address (@student.cuet.ac.bd or @cuet.ac.bd)."
+    });
+  }
+
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  const secret = process.env.GMAIL_APP_PASSWORD || "cuet-bmes-member-verification-secret";
+  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 mins
+  const dataToHash = `member:${normalizedEmail}:${otp}:${expiresAt}`;
+  const hash = crypto.createHmac("sha256", secret).update(dataToHash).digest("hex");
+  const verificationToken = `${expiresAt}.${hash}`;
+
+  const studentName = name?.trim() || "Prospective BMES Member";
+
+  const emailHtml = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+      <!-- Header Banner -->
+      <div style="background-color: #00568a; padding: 28px 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
+        <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #bae6fd;">
+          Chittagong University of Engineering & Technology
+        </p>
+        <h1 style="margin: 0; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: -0.5px;">
+          BIOMEDICAL ENGINEERING SOCIETY (BMES)
+        </h1>
+        <p style="margin: 8px 0 0 0; font-size: 12px; font-weight: 600; color: #fef08a;">
+          Official Member Authenticity & Email Verification Desk
+        </p>
+      </div>
+
+      <!-- Main Body -->
+      <div style="padding: 32px 28px; color: #1e293b;">
+        <div style="display: inline-block; padding: 4px 10px; background-color: #f0f9ff; border: 1px solid #bae6fd; border-radius: 6px; font-size: 11px; font-weight: 700; color: #00568a; text-transform: uppercase; margin-bottom: 16px;">
+          Official Dispatch: bmes@cuet.ac.bd
+        </div>
+
+        <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #0f172a;">
+          Verify Your University Email for Portal Membership
+        </h2>
+
+        <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+          Dear <strong>${studentName}</strong>,
+        </p>
+        <p style="margin: 0 0 20px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+          You have initiated a new member registration on the official <strong>CUET BMES Portal</strong>. To confirm your status as a registered university student and ensure member authenticity in our official records, please enter the one-time verification passcode below:
+        </p>
+
+        <!-- Code Box -->
+        <div style="margin: 24px 0; padding: 24px; background-color: #f8fafc; border: 2px dashed #00568a; border-radius: 10px; text-align: center;">
+          <span style="display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #64748b; margin-bottom: 8px;">
+            One-Time Passcode (OTP)
+          </span>
+          <div style="font-family: 'Courier New', Courier, monospace; font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #00568a;">
+            ${otp}
+          </div>
+          <span style="display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 600; color: #b45309; background-color: #fef3c7; padding: 3px 8px; border-radius: 4px;">
+            Expires in 10 minutes
+          </span>
+        </div>
+
+        <!-- Verification Metadata -->
+        <div style="margin-bottom: 24px; padding: 16px; background-color: #f1f5f9; border-radius: 8px; font-size: 12px; color: #475569; line-height: 1.6;">
+          <div style="margin-bottom: 4px;"><strong>Target Student Email:</strong> ${normalizedEmail}</div>
+          ${studentId ? `<div style="margin-bottom: 4px;"><strong>Student ID:</strong> ${studentId}</div>` : ''}
+          <div><strong>Authorized Dispatch Address:</strong> bmes@cuet.ac.bd (Official Society Desk)</div>
+        </div>
+
+        <p style="margin: 0 0 8px 0; font-size: 13px; line-height: 1.5; color: #64748b;">
+          <strong>Security Assurance:</strong> This verification code was sent from <strong>bmes@cuet.ac.bd</strong>. Society administrators will never ask for your password or credentials. If you did not request this verification, please contact us immediately at <a href="mailto:bmes@cuet.ac.bd" style="color: #00568a; text-decoration: underline;">bmes@cuet.ac.bd</a>.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="background-color: #f8fafc; padding: 20px 24px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #64748b;">
+        <p style="margin: 0 0 4px 0; font-weight: 600; color: #334155;">
+          Biomedical Engineering Society (BMES), CUET
+        </p>
+        <p style="margin: 0; color: #94a3b8;">
+          Department of Biomedical Engineering • Chittagong University of Engineering & Technology, Raozan, Chattogram-4349
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    if (GMAIL_APP_PASSWORD) {
+      await transporter.sendMail({
+        from: `CUET BMES <${FROM_EMAIL}>`,
+        replyTo: OFFICIAL_REPLY_TO,
+        to: normalizedEmail,
+        subject: `[CUET BMES] Official Email Verification Code: ${otp}`,
+        html: emailHtml,
+      });
+      console.log(`[Email Verification] Successfully dispatched OTP (${otp}) from ${FROM_EMAIL} to ${normalizedEmail}`);
+    } else {
+      console.warn(`[Email Verification] GMAIL_APP_PASSWORD not configured. Simulated dispatch to ${normalizedEmail} with OTP: ${otp}`);
+    }
+
+    return res.json({
+      success: true,
+      sender: FROM_EMAIL,
+      verificationToken,
+      expiresAt,
+      message: `Verification code dispatched from ${FROM_EMAIL} to ${normalizedEmail}.`
+    });
+  } catch (err: unknown) {
+    console.error("[Email Verification] Transporter error:", err);
+    // Return structured error
+    return res.status(500).json({
+      error: "Failed to dispatch verification email from bmes@cuet.ac.bd. Please check server logs or try again shortly."
+    });
+  }
+});
+
+app.post("/api/verify-member-otp", (req, res) => {
+  const { email, otp, verificationToken } = req.body;
+  if (!email || !otp || !verificationToken) {
+    return res.status(400).json({ error: "Missing email, verification code, or token." });
+  }
+
+  const normalizedEmail = email.trim().toLowerCase();
+  const cleanOtp = otp.toString().trim();
+
+  const parts = verificationToken.split(".");
+  if (parts.length !== 2) {
+    return res.status(400).json({ error: "Invalid verification token format." });
+  }
+
+  const [expiresAtStr, hash] = parts;
+  const expiresAt = parseInt(expiresAtStr, 10);
+
+  if (Date.now() > expiresAt) {
+    return res.status(400).json({ error: "The verification code has expired. Please request a new code." });
+  }
+
+  const secret = process.env.GMAIL_APP_PASSWORD || "cuet-bmes-member-verification-secret";
+  const dataToHash = `member:${normalizedEmail}:${cleanOtp}:${expiresAt}`;
+  const expectedHash = crypto.createHmac("sha256", secret).update(dataToHash).digest("hex");
+
+  if (hash !== expectedHash) {
+    return res.status(400).json({ error: "Incorrect verification code. Please check your email and try again." });
+  }
+
+  res.json({
+    success: true,
+    verifiedEmail: normalizedEmail,
+    verifiedBy: "bmes@cuet.ac.bd",
+    verifiedAt: new Date().toISOString()
+  });
+});
+
 app.post("/api/send-confirmation", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("GMAIL credentials are not set");
+  if (!GMAIL_APP_PASSWORD) {
+    console.error("GMAIL_APP_PASSWORD is not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -110,12 +277,13 @@ app.post("/api/send-confirmation", async (req, res) => {
 
   try {
     await transporter.sendMail({
-      from: `BMES Society <${FROM_EMAIL}>`,
+      from: `CUET BMES <${FROM_EMAIL}>`,
+      replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: `Registration Confirmed: ${eventTitle}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
-          <h1 style="color: #10b981; font-size: 24px; margin-top: 0;">Registration Confirmed!</h1>
+          <h1 style="color: #00568a; font-size: 24px; margin-top: 0;">Registration Confirmed!</h1>
           <p style="font-size: 16px; color: #374151; line-height: 1.5;">Hi ${name},</p>
           <p style="font-size: 16px; color: #374151; line-height: 1.5;">You have successfully registered for <strong>${eventTitle}</strong>.</p>
           <p style="font-size: 16px; color: #374151; line-height: 1.5;">We look forward to seeing you there!</p>
@@ -134,8 +302,8 @@ app.post("/api/send-confirmation", async (req, res) => {
 });
 
 app.post("/api/send-membership-confirmation", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("GMAIL credentials are not set");
+  if (!GMAIL_APP_PASSWORD) {
+    console.error("GMAIL_APP_PASSWORD is not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -148,17 +316,43 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
   try {
     await transporter.sendMail({
       from: `CUET BMES <${FROM_EMAIL}>`,
+      replyTo: OFFICIAL_REPLY_TO,
       to: email,
-      subject: "Membership Application Received",
+      subject: "[CUET BMES] Membership Application Received & Verified",
       html: `
-        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h1 style="color: #3b82f6;">Application Received!</h1>
-          <p>Hi ${name},</p>
-          <p>We have successfully received your membership application for the <strong>CUET Biomedical Engineering Society</strong>.</p>
-          <p>Your application is currently under review by the executive committee. We will notify you via email once your status is updated.</p>
-          <br/>
-          <p>Best regards,</p>
-          <p><strong>CUET BMES Executive Committee</strong></p>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
+          <div style="background-color: #00568a; padding: 26px 24px; text-align: center; border-bottom: 4px solid #f59e0b;">
+            <p style="margin: 0 0 6px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #bae6fd;">
+              Chittagong University of Engineering & Technology
+            </p>
+            <h1 style="margin: 0; font-size: 20px; font-weight: 800; color: #ffffff;">
+              BIOMEDICAL ENGINEERING SOCIETY (BMES)
+            </h1>
+          </div>
+          <div style="padding: 30px 24px; color: #1e293b;">
+            <div style="display: inline-block; padding: 4px 10px; background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 6px; font-size: 11px; font-weight: 700; color: #00568a; margin-bottom: 16px;">
+              ✓ Email Authenticity Verified via bmes@cuet.ac.bd
+            </div>
+            <h2 style="margin: 0 0 14px 0; font-size: 18px; font-weight: 700; color: #00568a;">
+              Membership Application Successfully Received!
+            </h2>
+            <p style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+              Dear <strong>${name}</strong>,
+            </p>
+            <p style="margin: 0 0 14px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+              We have officially received your membership registration for the <strong>CUET Biomedical Engineering Society</strong>. Your university email address (<strong>${email}</strong>) has been verified.
+            </p>
+            <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #334155;">
+              Your application is now under review by the Executive Committee. You will receive an official notification email once your membership status is finalized and your official BMES ID is issued.
+            </p>
+            <div style="padding: 14px; background-color: #f8fafc; border-radius: 8px; font-size: 12px; color: #64748b; line-height: 1.5;">
+              <strong>Application Tracking:</strong> You can view the live status of your application anytime directly in the <a href="${APP_URL}/portal?tab=membership" style="color: #00568a; font-weight: bold; text-decoration: underline;">BMES Student Portal</a>.
+            </div>
+          </div>
+          <div style="background-color: #f8fafc; padding: 18px 24px; border-top: 1px solid #e2e8f0; text-align: center; font-size: 11px; color: #64748b;">
+            <p style="margin: 0 0 4px 0; font-weight: 600; color: #334155;">Executive Committee • Biomedical Engineering Society, CUET</p>
+            <p style="margin: 0; color: #94a3b8;">Official Desk: bmes@cuet.ac.bd</p>
+          </div>
         </div>
       `,
     });
@@ -171,8 +365,8 @@ app.post("/api/send-membership-confirmation", async (req, res) => {
 });
 
 app.post("/api/send-membership-status", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("GMAIL credentials are not set");
+  if (!GMAIL_APP_PASSWORD) {
+    console.error("GMAIL_APP_PASSWORD is not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -189,14 +383,14 @@ app.post("/api/send-membership-status", async (req, res) => {
 
   const html = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-      <h1 style="color: ${isApproved ? '#10b981' : '#ef4444'};">${isApproved ? 'Application Approved!' : 'Application Update'}</h1>
+      <h1 style="color: ${isApproved ? '#00568a' : '#ef4444'};">${isApproved ? 'Application Approved!' : 'Application Update'}</h1>
       <p>Hi ${name},</p>
       <p>Your membership application for the <strong>CUET Biomedical Engineering Society</strong> has been <strong>${status}</strong>.</p>
       
       ${isApproved ? `
         <p>Congratulations! You are now an official member. You can now access exclusive resources and features in the student portal.</p>
         <div style="margin: 30px 0;">
-          <a href="${APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+          <a href="${APP_URL}/portal" style="background-color: #00568a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
         </div>
       ` : `
         <p>We regret to inform you that your application was not approved at this time.</p>
@@ -213,6 +407,7 @@ app.post("/api/send-membership-status", async (req, res) => {
   try {
     await transporter.sendMail({
       from: `CUET BMES <${FROM_EMAIL}>`,
+      replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: subject,
       html: html,
@@ -226,8 +421,8 @@ app.post("/api/send-membership-status", async (req, res) => {
 });
 
 app.post("/api/send-welcome", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("GMAIL credentials are not set");
+  if (!GMAIL_APP_PASSWORD) {
+    console.error("GMAIL_APP_PASSWORD is not set");
     return res.status(500).json({ error: "Email service is not configured on the server." });
   }
 
@@ -240,17 +435,18 @@ app.post("/api/send-welcome", async (req, res) => {
   try {
     await transporter.sendMail({
       from: `CUET BMES <${FROM_EMAIL}>`,
+      replyTo: OFFICIAL_REPLY_TO,
       to: email,
       subject: "Welcome to CUET BMES Society!",
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h1 style="color: #10b981;">Welcome to the Society!</h1>
+          <h1 style="color: #00568a;">Welcome to the Society!</h1>
           <p>Hi ${name},</p>
           <p>Thank you for creating an account with the <strong>CUET Biomedical Engineering Society</strong>.</p>
           <p>We're excited to have you as part of our community!</p>
           <p>You can now explore our events, projects, and research activities. If you haven't already, consider applying for official membership through the student portal.</p>
           <div style="margin: 30px 0;">
-            <a href="${APP_URL}/portal" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
+            <a href="${APP_URL}/portal" style="background-color: #00568a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold;">Go to Student Portal</a>
           </div>
           <br/>
           <p>Best regards,</p>
@@ -284,11 +480,11 @@ function generateBulkEmailHtml({
   actionButtonUrl?: string;
   appUrl: string;
 }) {
-  let accentColor = "#10b981"; // emerald
+  let accentColor = "#00568a"; // CUET Blue
   let badgeText = "OFFICIAL ANNOUNCEMENT";
-  let badgeBg = "#ecfdf5";
-  let badgeBorder = "#a7f3d0";
-  let badgeTextColor = "#065f46";
+  let badgeBg = "#f0f9ff";
+  let badgeBorder = "#bae6fd";
+  let badgeTextColor = "#0369a1";
 
   if (emailType === "reminder") {
     accentColor = "#f59e0b"; // amber
@@ -413,10 +609,10 @@ function generateBulkEmailHtml({
 
 // Bulk email endpoint for announcements, reminders, and updates
 app.post("/api/send-bulk-email", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.error("GMAIL credentials are not configured in environment.");
+  if (!GMAIL_APP_PASSWORD) {
+    console.error("GMAIL_APP_PASSWORD is not configured in environment.");
     return res.status(500).json({ 
-      error: "Email service is not configured. Please ensure GMAIL_USER and GMAIL_APP_PASSWORD are set." 
+      error: "Email service is not configured. Please ensure GMAIL_APP_PASSWORD is set." 
     });
   }
 
@@ -486,6 +682,7 @@ app.post("/api/send-bulk-email", async (req, res) => {
 
           await transporter.sendMail({
             from: `CUET BMES <${FROM_EMAIL}>`,
+            replyTo: OFFICIAL_REPLY_TO,
             to: recipient.email,
             subject: subject.trim(),
             html: htmlContent,
@@ -516,9 +713,9 @@ app.post("/api/send-bulk-email", async (req, res) => {
 
 // Single test email endpoint so admins can test formatting before sending to all users
 app.post("/api/send-test-email", async (req, res) => {
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+  if (!GMAIL_APP_PASSWORD) {
     return res.status(500).json({ 
-      error: "Email service is not configured. Please ensure GMAIL_USER and GMAIL_APP_PASSWORD are set." 
+      error: "Email service is not configured. Please ensure GMAIL_APP_PASSWORD is set." 
     });
   }
 
@@ -549,6 +746,7 @@ app.post("/api/send-test-email", async (req, res) => {
 
     await transporter.sendMail({
       from: `CUET BMES <${FROM_EMAIL}>`,
+      replyTo: OFFICIAL_REPLY_TO,
       to: testEmail.trim(),
       subject: `[TEST PREVIEW] ${subject.trim()}`,
       html: htmlContent,

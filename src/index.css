@@ -106,7 +106,7 @@
     background-image: 
       radial-gradient(at 100% 0%, hsla(200, 100%, 27%, 0.05) 0px, transparent 50%),
       radial-gradient(at 0% 100%, hsla(190, 80%, 42%, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(160, 80%, 42%, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(200, 90%, 40%, 0.05) 0px, transparent 50%),
       radial-gradient(at 0% 0%, hsla(220, 80%, 42%, 0.05) 0px, transparent 50%);
   }
 
@@ -114,7 +114,7 @@
     background-image: 
       radial-gradient(at 100% 0%, hsla(200, 100%, 27%, 0.12) 0px, transparent 50%),
       radial-gradient(at 0% 100%, hsla(190, 80%, 42%, 0.12) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, hsla(160, 80%, 42%, 0.12) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(200, 90%, 40%, 0.12) 0px, transparent 50%),
       radial-gradient(at 0% 0%, hsla(220, 80%, 42%, 0.12) 0px, transparent 50%);
   }
 
@@ -254,7 +254,7 @@
   .id-card-front,
   .id-card-back {
     box-shadow: none !important;
-    border: 1px solid #10b981 !important;
+    border: 1px solid #00568a !important;
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     margin: 10px auto !important;

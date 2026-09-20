@@ -40,11 +40,11 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
       }}
     >
       {/* Printable Letterhead Header */}
-      <div className="border-b-2 border-emerald-700 pb-6 mb-8 flex items-center justify-between gap-6">
+      <div className="border-b-2 border-primary pb-6 mb-8 flex items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <img src={logo} alt="CUET BMES" className="h-16 w-16 object-contain" />
           <div>
-            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-emerald-900 uppercase">
+            <h1 className="text-xl sm:text-2xl font-black tracking-tight text-[#00568a] uppercase">
               Biomedical Engineering Society (BMES)
             </h1>
             <p className="text-xs sm:text-sm font-semibold text-slate-700">
@@ -57,7 +57,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
         </div>
 
         <div className="text-right shrink-0">
-          <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-900 border border-emerald-300 rounded-lg text-xs font-bold uppercase tracking-wider">
+          <div className="inline-block px-3 py-1 bg-primary/10 text-primary border border-primary/30 rounded-lg text-xs font-bold uppercase tracking-wider">
             Official Member Dossier
           </div>
           <p className="text-[10px] text-slate-500 mt-1 font-mono">
@@ -70,24 +70,24 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
       <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-8 flex flex-col sm:flex-row items-center justify-between gap-6 print:bg-slate-100/70">
         <div className="flex items-center gap-5">
           {/* Member Photo / Avatar */}
-          <div className="w-24 h-28 sm:w-28 sm:h-32 rounded-lg bg-emerald-800 text-white border-2 border-emerald-600 shadow-sm overflow-hidden flex items-center justify-center shrink-0">
+          <div className="w-24 h-28 sm:w-28 sm:h-32 rounded-lg bg-[#00568a] text-white border-2 border-[#004773] shadow-sm overflow-hidden flex items-center justify-center shrink-0">
             {member.photo_url ? (
               <img src={member.photo_url} alt={member.full_name} className="w-full h-full object-cover" />
             ) : (
               <div className="flex flex-col items-center">
                 <span className="text-2xl font-bold">{initials}</span>
-                <span className="text-[9px] uppercase tracking-wider text-emerald-200 mt-1">CUET BMES</span>
+                <span className="text-[9px] uppercase tracking-wider text-sky-200 mt-1">CUET BMES</span>
               </div>
             )}
           </div>
 
           <div className="space-y-1.5 text-center sm:text-left">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-400 text-emerald-950 shadow-xs border border-amber-300">
+              <span className="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-amber-400 text-slate-950 shadow-xs border border-amber-300">
                 {batchInfo.batchTag}
               </span>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-700" />
+              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-primary/10 text-primary border border-primary/30 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3 text-primary" />
                 {member.status === "approved" ? "Official Member" : "Application Received"}
               </span>
             </div>
@@ -111,7 +111,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
           <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
             Membership ID
           </span>
-          <span className="font-mono font-black text-sm text-emerald-800 tracking-wider">
+          <span className="font-mono font-black text-sm text-[#00568a] tracking-wider">
             {membershipId}
           </span>
         </div>
@@ -121,8 +121,8 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {/* Academic Profile */}
         <div className="border border-slate-200 rounded-xl p-5 bg-white space-y-3">
-          <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 border-b border-slate-100 pb-2 flex items-center gap-1.5">
-            <Award className="w-4 h-4 text-emerald-600" /> Academic Information
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#00568a] border-b border-slate-100 pb-2 flex items-center gap-1.5">
+            <Award className="w-4 h-4 text-[#00568a]" /> Academic Information
           </h3>
           <div className="space-y-2.5 text-xs">
             <div className="flex justify-between py-1 border-b border-slate-50">
@@ -135,7 +135,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
             </div>
             <div className="flex justify-between py-1 border-b border-slate-50">
               <span className="text-slate-500">Academic Batch</span>
-              <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              <span className="font-bold text-[#00568a] bg-primary/10 px-2 py-0.5 rounded border border-primary/25">
                 {batchInfo.batchLabel}
               </span>
             </div>
@@ -152,13 +152,13 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
 
         {/* Membership & Verification Details */}
         <div className="border border-slate-200 rounded-xl p-5 bg-white space-y-3">
-          <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 border-b border-slate-100 pb-2 flex items-center gap-1.5">
-            <Award className="w-4 h-4 text-emerald-600" /> Society Credentials
+          <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#00568a] border-b border-slate-100 pb-2 flex items-center gap-1.5">
+            <Award className="w-4 h-4 text-[#00568a]" /> Society Credentials
           </h3>
           <div className="space-y-2.5 text-xs">
             <div className="flex justify-between py-1 border-b border-slate-50">
               <span className="text-slate-500">Membership ID</span>
-              <span className="font-mono font-bold text-emerald-800">{membershipId}</span>
+              <span className="font-mono font-bold text-[#00568a]">{membershipId}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-50">
               <span className="text-slate-500">Official Batch Tag</span>
@@ -168,7 +168,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
             </div>
             <div className="flex justify-between py-1 border-b border-slate-50">
               <span className="text-slate-500">Society Status</span>
-              <span className="font-bold text-emerald-700 capitalize">{member.status}</span>
+              <span className="font-bold text-primary capitalize">{member.status}</span>
             </div>
             <div className="flex justify-between py-1 border-b border-slate-50">
               <span className="text-slate-500">Membership Tenure</span>
@@ -186,7 +186,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
 
       {/* Contact & Registration Information */}
       <div className="border border-slate-200 rounded-xl p-5 bg-white space-y-3 mb-8">
-        <h3 className="text-xs font-extrabold uppercase tracking-wider text-emerald-800 border-b border-slate-100 pb-2">
+        <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#00568a] border-b border-slate-100 pb-2">
           Contact & Communication Record
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
@@ -217,7 +217,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
         </div>
 
         <div className="flex flex-col items-center justify-center">
-          <div className="w-20 h-20 rounded-full border-2 border-dashed border-emerald-600/60 flex flex-col items-center justify-center text-emerald-800 p-1">
+          <div className="w-20 h-20 rounded-full border-2 border-dashed border-[#00568a]/60 flex flex-col items-center justify-center text-[#00568a] p-1">
             <span className="text-[8px] font-black uppercase tracking-tight text-center">
               CUET BMES
             </span>
@@ -227,7 +227,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
         </div>
 
         <div className="space-y-12">
-          <div className="h-10 flex items-end justify-center font-serif italic text-emerald-900">
+          <div className="h-10 flex items-end justify-center font-serif italic text-[#00568a]">
             Executive Committee
           </div>
           <div className="border-t border-slate-400 pt-1 text-slate-600 font-medium">
@@ -239,7 +239,7 @@ export const MemberProfilePrintView: React.FC<MemberProfilePrintViewProps> = ({
       {/* Footer Disclaimer */}
       <div className="mt-8 text-center text-[10px] text-slate-400 border-t border-slate-100 pt-3">
         This document is an authentic electronic record issued by the Biomedical Engineering Society (BMES), CUET. 
-        Verify membership authenticity at <span className="text-emerald-700 font-medium">www.cuetbmes.org/portal</span> using ID: <span className="font-mono font-bold text-slate-600">{membershipId}</span>.
+        Verify membership authenticity at <span className="text-primary font-medium">www.cuetbmes.org/portal</span> using ID: <span className="font-mono font-bold text-slate-600">{membershipId}</span>.
       </div>
     </div>
   );

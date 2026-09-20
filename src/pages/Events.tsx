@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { CalendarDays, MapPin, FileCheck2, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { CalendarDays, MapPin } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
 import PageLayout from "@/components/layout/PageLayout";
@@ -12,18 +12,12 @@ import { CountdownTimer } from "@/components/shared/CountdownTimer";
 import { RegistrationForm } from "@/components/shared/RegistrationForm";
 import { ShareButtons } from "@/components/shared/ShareButtons";
 import { isRegistrationOpen, getRegistrationMessage } from "@/lib/utils";
-import EmbeddedGoogleForm from "@/components/shared/EmbeddedGoogleForm";
-import { useGoogleFormsConfig } from "@/hooks/useGoogleFormsConfig";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { Tables } from "@/integrations/supabase/types";
 
 const Events = () => {
-  const { config: formsConfig } = useGoogleFormsConfig();
   const [selectedEvent, setSelectedEvent] = useState<Tables<"events"> | null>(null);
   const [isRegOpen, setIsRegOpen] = useState(false);
-  const [modalRegTab, setModalRegTab] = useState<"standard" | "google-form">("standard");
-  const [showEmbeddedGoogleFormSection, setShowEmbeddedGoogleFormSection] = useState(true);
 
   const { data: events = [], isLoading } = useQuery({
     queryKey: ["public-events"],
@@ -142,44 +136,18 @@ const Events = () => {
                         )}
                       </div>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle className="text-base font-bold">Register for {e.title}</DialogTitle>
                       </DialogHeader>
 
-                      <Tabs value={modalRegTab} onValueChange={(val) => setModalRegTab(val as "standard" | "google-form")} className="w-full mt-2">
-                        <TabsList className="grid grid-cols-2 h-9 w-full rounded-lg bg-muted/60 p-1">
-                          <TabsTrigger value="standard" className="text-xs font-semibold">
-                            Website Registration
-                          </TabsTrigger>
-                          <TabsTrigger value="google-form" className="text-xs font-semibold gap-1.5">
-                            <FileCheck2 className="h-3.5 w-3.5 text-blue-600" />
-                            Google Form
-                          </TabsTrigger>
-                        </TabsList>
-
-                        <TabsContent value="standard" className="pt-3">
-                          <RegistrationForm 
-                            eventId={e.id} 
-                            eventTitle={e.title} 
-                            onSuccess={() => setIsRegOpen(false)} 
-                          />
-                        </TabsContent>
-
-                        <TabsContent value="google-form" className="pt-3">
-                          <div className="space-y-3">
-                            <p className="text-xs text-muted-foreground">
-                              Submit your registration details directly through our official event Google Form. Responses are synced in real-time to the executive committee.
-                            </p>
-                            <EmbeddedGoogleForm
-                              formUrlOrId={formsConfig.eventRegistrationFormUrl}
-                              title={`${e.title} - Registration`}
-                              defaultHeight={540}
-                              className="border-blue-500/20"
-                            />
-                          </div>
-                        </TabsContent>
-                      </Tabs>
+                      <div className="pt-2">
+                        <RegistrationForm 
+                          eventId={e.id} 
+                          eventTitle={e.title} 
+                          onSuccess={() => setIsRegOpen(false)} 
+                        />
+                      </div>
                     </DialogContent>
                   </Dialog>
                   
@@ -203,80 +171,6 @@ const Events = () => {
           </div>
         )}
       </section>
-
-      {/* Embedded Google Forms Event Registration Section */}
-      {formsConfig.eventRegistrationEnabled && (
-        <section className="container py-10">
-          <div className="rounded-2xl border border-blue-500/20 bg-gradient-to-b from-blue-500/5 via-card to-card p-6 sm:p-8 shadow-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-border/80">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20">
-                    <FileCheck2 className="h-3.5 w-3.5" />
-                    Google Forms Integration
-                  </span>
-                  <span className="text-xs text-muted-foreground">• Live Form Sync</span>
-                </div>
-                <h2 className="text-xl sm:text-2xl font-bold text-foreground">
-                  {formsConfig.eventRegistrationTitle || "Official Event & Workshop Registration"}
-                </h2>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Prefer registering with your Google account? Fill out our official Google Form below. All responses are logged directly into our committee dashboard.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2 shrink-0">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowEmbeddedGoogleFormSection(!showEmbeddedGoogleFormSection)}
-                  className="h-8 text-xs gap-1.5"
-                >
-                  {showEmbeddedGoogleFormSection ? (
-                    <>
-                      <ChevronUp className="h-3.5 w-3.5" />
-                      <span>Collapse Form</span>
-                    </>
-                  ) : (
-                    <>
-                      <ChevronDown className="h-3.5 w-3.5" />
-                      <span>Expand Form</span>
-                    </>
-                  )}
-                </Button>
-
-                <Button
-                  asChild
-                  variant="default"
-                  size="sm"
-                  className="h-8 text-xs gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
-                >
-                  <a
-                    href={formsConfig.eventRegistrationFormUrl.replace(/[?&]embedded=true/, "")}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <span>Open in New Tab</span>
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                </Button>
-              </div>
-            </div>
-
-            {showEmbeddedGoogleFormSection && (
-              <div className="pt-6 animate-fade-in">
-                <EmbeddedGoogleForm
-                  formUrlOrId={formsConfig.eventRegistrationFormUrl}
-                  title={formsConfig.eventRegistrationTitle || "BMES CUET Event Registration"}
-                  description="Fill out the registration form below. Confirmation and credentials will be sent to your student email."
-                  defaultHeight={640}
-                  className="border-blue-500/30 shadow-md"
-                />
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
       {past.length > 0 && (
         <section className="bg-muted/50 py-16 animate-fade-up animate-fade-up-delay-200">

@@ -85,13 +85,13 @@ export const MemberIdCardModal: React.FC<MemberIdCardModalProps> = ({
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                  <CreditCard className="h-5 w-5 text-emerald-600" />
+                  <CreditCard className="h-5 w-5 text-primary" />
                   Official Member Credentials & ID
                 </DialogTitle>
-                <Badge className="bg-amber-400 text-emerald-950 font-black border border-amber-300">
+                <Badge className="bg-amber-400 text-slate-950 font-black border border-amber-300">
                   {batchInfo.batchTag}
                 </Badge>
-                <Badge variant="outline" className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50">
+                <Badge variant="outline" className="text-xs font-mono font-bold text-primary bg-primary/10 border-primary/25">
                   {membershipId}
                 </Badge>
               </div>
@@ -108,7 +108,7 @@ export const MemberIdCardModal: React.FC<MemberIdCardModalProps> = ({
                 onClick={copyMembershipId}
                 className="gap-1.5 h-8 text-xs font-medium"
               >
-                {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                {isCopied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
                 Copy ID
               </Button>
               <Button
@@ -123,7 +123,7 @@ export const MemberIdCardModal: React.FC<MemberIdCardModalProps> = ({
               </Button>
               <Button
                 size="sm"
-                className="gap-1.5 h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+                className="gap-1.5 h-8 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
                 onClick={() => handlePrint(activeTab)}
               >
                 <Printer className="h-3.5 w-3.5" />
@@ -239,7 +239,7 @@ export const MemberIdCardModal: React.FC<MemberIdCardModalProps> = ({
             <div className="flex flex-wrap items-center justify-between gap-3 p-4 bg-muted/20 border border-border rounded-xl">
               <div className="text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">Batch Tag: </span>
-                <span className="font-bold text-emerald-600">{batchInfo.batchTag}</span> • 
+                <span className="font-bold text-primary">{batchInfo.batchTag}</span> • 
                 <span className="font-medium text-foreground ml-2">Membership ID: </span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{membershipId}</span>
               </div>
@@ -268,7 +268,7 @@ export const MemberIdCardModal: React.FC<MemberIdCardModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={() => handlePrint("profile")}
-                className="gap-1.5 font-bold bg-emerald-600 text-white hover:bg-emerald-700"
+                className="gap-1.5 font-bold bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Printer className="h-4 w-4" />
                 Print Member Dossier (A4)

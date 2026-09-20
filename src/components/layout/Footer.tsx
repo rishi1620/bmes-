@@ -87,7 +87,9 @@ const Footer = () => {
             <h4 className="mb-3 text-sm font-semibold text-foreground">Contact</h4>
             <div className="flex flex-col gap-2.5 text-sm text-muted-foreground">
               <span className="flex items-center gap-2"><MapPin className="h-4 w-4 shrink-0" /> CUET, Chittagong, Bangladesh</span>
-              <span className="flex items-center gap-2"><Mail className="h-4 w-4 shrink-0" /> bmes@cuet.ac.bd</span>
+              <a href="mailto:bmes@cuet.ac.bd" className="flex items-center gap-2 hover:text-primary transition-colors">
+                <Mail className="h-4 w-4 shrink-0" /> bmes@cuet.ac.bd
+              </a>
               <span className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0" /> +880 1XXX-XXXXXX</span>
             </div>
           </div>

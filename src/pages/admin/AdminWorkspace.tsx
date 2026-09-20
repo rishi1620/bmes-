@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { Link } from "react-router-dom";
 import AdminLayout from "@/components/layout/AdminLayout";
 import { 
   googleSignIn, 
@@ -566,7 +567,7 @@ const AdminWorkspace: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  Sign in with your Google Account to authorize seamless access to Google Drive files, Google Calendar scheduling, and Google Forms surveys directly from this dashboard.
+                  Sign in with the official society account (<strong className="text-foreground">bmes@cuet.ac.bd</strong>) to authorize seamless access to Google Drive files, Google Calendar scheduling, and Google Forms surveys directly from this dashboard.
                 </p>
               </div>
               <Button onClick={handleSignIn} disabled={isAuthenticating} size="sm" className="shrink-0 text-xs gap-2">
@@ -695,7 +696,7 @@ const AdminWorkspace: React.FC = () => {
                                 ? "bg-rose-500/10 text-rose-600 border-rose-500/20" 
                                 : isImage 
                                 ? "bg-blue-500/10 text-blue-600 border-blue-500/20" 
-                                : "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                                : "bg-primary/10 text-primary border-primary/20"
                             }`}>
                               {isPdf ? <FileText className="h-4 w-4" /> : isImage ? <ImageIcon className="h-4 w-4" /> : <FolderOpen className="h-4 w-4" />}
                             </div>
@@ -1011,10 +1012,10 @@ const AdminWorkspace: React.FC = () => {
                 <div>
                   <CardTitle className="text-sm font-bold flex items-center gap-2">
                     <FileCheck2 className="h-4 w-4 text-primary" />
-                    Public Website Active Embedded Google Forms
+                    Official Google Forms & Response Sync Hub
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    These official Google Forms are embedded directly into the public website for Member Feedback and Event Registration.
+                    Create forms in admin. All submitted responses automatically sync directly into the website's corresponding database sections.
                   </CardDescription>
                 </div>
 
@@ -1038,8 +1039,8 @@ const AdminWorkspace: React.FC = () => {
                       <div className="space-y-0.5">
                         <div className="flex items-center gap-2">
                           <h3 className="text-xs font-bold text-foreground">Member & Student Feedback</h3>
-                          <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20">
-                            Embedded on /contact & /portal
+                          <Badge variant="outline" className="text-[10px] border-primary/30 text-primary bg-primary/10">
+                            Syncs to Messages & Feedback
                           </Badge>
                         </div>
                         <p className="text-[11px] text-muted-foreground line-clamp-1">
@@ -1047,14 +1048,14 @@ const AdminWorkspace: React.FC = () => {
                         </p>
                       </div>
 
-                      <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0 mt-1" />
+                      <span className="h-2 w-2 rounded-full bg-primary shrink-0 mt-1" />
                     </div>
 
                     <div className="p-2.5 rounded-lg bg-muted/40 text-[11px] font-mono text-muted-foreground space-y-1">
                       <div className="flex items-center justify-between">
                         <span>Form ID:</span>
                         <span className="text-foreground truncate max-w-[200px]">
-                          {formsConfig.memberFeedbackFormId || "Configured via URL"}
+                          {formsConfig.memberFeedbackFormId || "Not assigned yet"}
                         </span>
                       </div>
                     </div>
@@ -1065,7 +1066,7 @@ const AdminWorkspace: React.FC = () => {
                         onClick={() => {
                           const id = formsConfig.memberFeedbackFormId || extractGoogleFormId(formsConfig.memberFeedbackFormUrl);
                           if (!id) {
-                            toast.error("Please configure a valid Google Form ID or URL first.");
+                            toast.error("Please generate or configure a Google Form first.");
                             return;
                           }
                           setSelectedFormForSubmissions({
@@ -1076,39 +1077,38 @@ const AdminWorkspace: React.FC = () => {
                         className="h-7 text-xs px-2.5 bg-purple-600 hover:bg-purple-700 text-white gap-1"
                       >
                         <FileSpreadsheet className="h-3 w-3" />
-                        <span>View Submissions</span>
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setPreviewModal({
-                            url: formsConfig.memberFeedbackFormUrl,
-                            title: formsConfig.memberFeedbackTitle || "Member Feedback Form",
-                          })
-                        }
-                        className="h-7 text-xs px-2.5 gap-1"
-                      >
-                        <Eye className="h-3 w-3" />
-                        <span>Test Preview</span>
+                        <span>Submissions</span>
                       </Button>
 
                       <Button
                         asChild
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground gap-1"
+                        className="h-7 text-xs px-2.5 gap-1 text-primary border-primary/30 hover:bg-primary/10"
                       >
-                        <a
-                          href={formsConfig.memberFeedbackFormUrl.replace(/[?&]embedded=true/, "")}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <span>Open</span>
+                        <Link to="/admin/submissions">
+                          <span>View in Admin</span>
                           <ExternalLink className="h-3 w-3" />
-                        </a>
+                        </Link>
                       </Button>
+
+                      {formsConfig.memberFeedbackFormUrl && (
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground gap-1"
+                        >
+                          <a
+                            href={formsConfig.memberFeedbackFormUrl.replace(/[?&]embedded=true/, "")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <span>Open</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -1119,7 +1119,7 @@ const AdminWorkspace: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <h3 className="text-xs font-bold text-foreground">Event Registration Form</h3>
                           <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-600 bg-blue-50 dark:bg-blue-950/20">
-                            Embedded on /events
+                            Syncs to Event Registrations
                           </Badge>
                         </div>
                         <p className="text-[11px] text-muted-foreground line-clamp-1">
@@ -1134,7 +1134,7 @@ const AdminWorkspace: React.FC = () => {
                       <div className="flex items-center justify-between">
                         <span>Form ID:</span>
                         <span className="text-foreground truncate max-w-[200px]">
-                          {formsConfig.eventRegistrationFormId || "Configured via URL"}
+                          {formsConfig.eventRegistrationFormId || "Not assigned yet"}
                         </span>
                       </div>
                     </div>
@@ -1145,7 +1145,7 @@ const AdminWorkspace: React.FC = () => {
                         onClick={() => {
                           const id = formsConfig.eventRegistrationFormId || extractGoogleFormId(formsConfig.eventRegistrationFormUrl);
                           if (!id) {
-                            toast.error("Please configure a valid Google Form ID or URL first.");
+                            toast.error("Please generate or configure a Google Form first.");
                             return;
                           }
                           setSelectedFormForSubmissions({
@@ -1156,39 +1156,38 @@ const AdminWorkspace: React.FC = () => {
                         className="h-7 text-xs px-2.5 bg-purple-600 hover:bg-purple-700 text-white gap-1"
                       >
                         <FileSpreadsheet className="h-3 w-3" />
-                        <span>View Submissions</span>
-                      </Button>
-
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() =>
-                          setPreviewModal({
-                            url: formsConfig.eventRegistrationFormUrl,
-                            title: formsConfig.eventRegistrationTitle || "Event Registration Form",
-                          })
-                        }
-                        className="h-7 text-xs px-2.5 gap-1"
-                      >
-                        <Eye className="h-3 w-3" />
-                        <span>Test Preview</span>
+                        <span>Submissions</span>
                       </Button>
 
                       <Button
                         asChild
-                        variant="ghost"
+                        variant="outline"
                         size="sm"
-                        className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground gap-1"
+                        className="h-7 text-xs px-2.5 gap-1 text-blue-600 border-blue-500/30 hover:bg-blue-50 dark:hover:bg-blue-950/20"
                       >
-                        <a
-                          href={formsConfig.eventRegistrationFormUrl.replace(/[?&]embedded=true/, "")}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <span>Open</span>
+                        <Link to="/admin/registrations">
+                          <span>View in Admin</span>
                           <ExternalLink className="h-3 w-3" />
-                        </a>
+                        </Link>
                       </Button>
+
+                      {formsConfig.eventRegistrationFormUrl && (
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs px-2 text-muted-foreground hover:text-foreground gap-1"
+                        >
+                          <a
+                            href={formsConfig.eventRegistrationFormUrl.replace(/[?&]embedded=true/, "")}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <span>Open</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -1303,7 +1302,7 @@ const AdminWorkspace: React.FC = () => {
                                   {form.title}
                                 </p>
                                 {isFeedbackActive && (
-                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-emerald-500/30 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20">
+                                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-primary/30 text-primary bg-primary/10">
                                     Active Feedback
                                   </Badge>
                                 )}
@@ -1343,7 +1342,7 @@ const AdminWorkspace: React.FC = () => {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleAssignActiveForm("feedback", form)}
-                                className="h-7 text-[11px] px-2 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/20"
+                                className="h-7 text-[11px] px-2 text-primary border-primary/30 hover:bg-primary/10"
                                 title="Set as public Member Feedback Form"
                               >
                                 Set Feedback

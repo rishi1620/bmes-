@@ -86,6 +86,9 @@ const AdminSettings = () => {
       const { data } = await supabase.from("site_settings").select("*");
       const map: Record<string, string> = {};
       (data as Setting[] | null)?.forEach((s) => { map[s.setting_key] = s.setting_value; });
+      if (!map.contact_email) {
+        map.contact_email = "bmes@cuet.ac.bd";
+      }
       setSettings(map);
     } finally {
       setLoading(false);

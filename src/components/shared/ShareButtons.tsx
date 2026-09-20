@@ -69,7 +69,7 @@ export const ShareButtons = ({ url, title }: ShareButtonsProps) => {
         onClick={handleCopy}
         aria-label="Copy link"
       >
-        {copied ? <Check className="h-4 w-4 text-green-500" /> : <LinkIcon className="h-4 w-4" />}
+        {copied ? <Check className="h-4 w-4 text-primary" /> : <LinkIcon className="h-4 w-4" />}
       </Button>
     </div>
   );

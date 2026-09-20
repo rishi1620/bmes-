@@ -73,7 +73,22 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
 
     cachedAccessToken = credential.accessToken;
     return { user: result.user, accessToken: cachedAccessToken };
-  } catch (error) {
+  } catch (error: unknown) {
+    const firebaseError = error as { code?: string; message?: string };
+    
+    // Gracefully handle user cancellation or closing popup window
+    if (
+      firebaseError?.code === "auth/popup-closed-by-user" ||
+      firebaseError?.code === "auth/cancelled-popup-request"
+    ) {
+      // Normal user dismissal; do not treat as an unhandled exception
+      return null;
+    }
+
+    if (firebaseError?.code === "auth/popup-blocked") {
+      throw new Error("Google sign-in popup was blocked by your browser. Please allow popups for this site.");
+    }
+
     console.error("Google Workspace Sign-in Error:", error);
     throw error;
   } finally {

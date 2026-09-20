@@ -18,18 +18,18 @@ export interface GoogleFormsConfig {
 }
 
 export const DEFAULT_GOOGLE_FORMS_CONFIG: GoogleFormsConfig = {
-  // Preconfigured default fallback forms (can be customized or created with 1-click in Admin Workspace)
-  memberFeedbackFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSd9qC70Z3lM0hFh1q5N6b5B7R8v0s9t4u1w/viewform?embedded=true",
-  memberFeedbackFormId: "1FAIpQLSd9qC70Z3lM0hFh1q5N6b5B7R8v0s9t4u1w",
+  // Official forms can be created with 1-click in Admin Workspace and synced automatically
+  memberFeedbackFormUrl: "",
+  memberFeedbackFormId: "",
   memberFeedbackTitle: "BMES CUET Member & Student Feedback Survey",
   memberFeedbackDescription: "Share your thoughts, suggestions, and workshop requests with the Biomedical Engineering Society executive committee.",
-  memberFeedbackEnabled: true,
+  memberFeedbackEnabled: false,
 
-  eventRegistrationFormUrl: "https://docs.google.com/forms/d/e/1FAIpQLSe7yD29X4kL1gHh2r6O7c6C8S9w1t0u5v2x/viewform?embedded=true",
-  eventRegistrationFormId: "1FAIpQLSe7yD29X4kL1gHh2r6O7c6C8S9w1t0u5v2x",
+  eventRegistrationFormUrl: "",
+  eventRegistrationFormId: "",
   eventRegistrationTitle: "Official Event Registration via Google Forms",
   eventRegistrationDescription: "Register for upcoming seminars, bio-design workshops, and society events through our official Google Form.",
-  eventRegistrationEnabled: true,
+  eventRegistrationEnabled: false,
 };
 
 export function useGoogleFormsConfig() {

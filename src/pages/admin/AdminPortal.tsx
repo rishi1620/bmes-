@@ -361,7 +361,7 @@ const AdminPortal = () => {
                             <div className="grid gap-2">
                               {course.resources.map(res => (
                                 <div key={res.id} className="flex items-center gap-3 p-2 border rounded-md bg-muted/30 group">
-                                  <div className="text-emerald-500">
+                                  <div className="text-primary">
                                     {res.type === "pdf" ? <FileText className="h-4 w-4" /> : 
                                      res.type === "image" ? <ImageIcon className="h-4 w-4" /> : 
                                      res.type === "video" ? <Film className="h-4 w-4" /> : 

@@ -244,9 +244,9 @@ export default function AdminQuickActions({
       label: "Add New Event",
       description: "Schedule a workshop, seminar, or competition",
       icon: Calendar,
-      accent: "text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
+      accent: "text-primary bg-primary/10 border-primary/20",
       badge: "Events",
-      badgeClass: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30",
+      badgeClass: "bg-primary/10 text-primary border-primary/30",
       onClick: () => setEventModalOpen(true),
     },
     {
@@ -337,7 +337,7 @@ export default function AdminQuickActions({
                 onClick={() => setEventModalOpen(true)}
                 className="flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-accent/70 transition-colors"
               >
-                <div className="h-8 w-8 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                <div className="h-8 w-8 rounded-md bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                   <Calendar className="h-4 w-4" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -504,9 +504,9 @@ export default function AdminQuickActions({
             variant="outline" 
             size="sm" 
             onClick={() => setEventModalOpen(true)}
-            className="h-8 text-xs gap-1.5 border-emerald-500/30 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400"
+            className="h-8 text-xs gap-1.5 border-primary/30 hover:bg-primary/10 hover:text-primary"
           >
-            <Calendar className="h-3.5 w-3.5 text-emerald-600" />
+            <Calendar className="h-3.5 w-3.5 text-primary" />
             <span>New Event</span>
           </Button>
           <Button 
@@ -544,7 +544,7 @@ export default function AdminQuickActions({
         <DialogContent className="sm:max-w-[520px] p-6 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center gap-2">
-              <div className="h-9 w-9 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center border border-emerald-500/20">
+              <div className="h-9 w-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center border border-primary/20">
                 <Calendar className="h-5 w-5" />
               </div>
               <div>
@@ -669,7 +669,7 @@ export default function AdminQuickActions({
                   type="submit"
                   size="sm"
                   disabled={submittingEvent}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                  className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5"
                 >
                   {submittingEvent ? (
                     <>

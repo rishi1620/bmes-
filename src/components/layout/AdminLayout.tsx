@@ -173,8 +173,8 @@ const SidebarContent = ({
             src={logoUrl || defaultLogo} 
           />
           <span className="absolute -bottom-0.5 -right-0.5 flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500 ring-2 ring-background"></span>
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary ring-2 ring-background"></span>
           </span>
         </div>
         <div className="flex flex-col min-w-0">
@@ -185,7 +185,7 @@ const SidebarContent = ({
             </Badge>
           </div>
           <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-primary"></span>
             Synced with Main Site
           </span>
         </div>
@@ -272,10 +272,10 @@ const SidebarContent = ({
         <div className="p-2.5 rounded-lg border border-border/60 bg-muted/40 text-xs">
           <div className="flex items-center justify-between mb-1">
             <span className="text-[11px] font-semibold text-foreground flex items-center gap-1.5">
-              <Globe className="h-3.5 w-3.5 text-emerald-500" />
+              <Globe className="h-3.5 w-3.5 text-primary" />
               Public Main Site
             </span>
-            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-emerald-500/30 text-emerald-600 bg-emerald-500/10">
+            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/30 text-primary bg-primary/10">
               Live
             </Badge>
           </div>
@@ -436,12 +436,12 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
           <div className="flex items-center gap-2 md:gap-3 shrink-0">
             {/* Live Sync Status Indicator Badge */}
             <div 
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 text-xs font-medium cursor-help"
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-primary/20 bg-primary/5 text-primary text-xs font-medium cursor-help"
               title="Database changes immediately reflect on the public site"
             >
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
               <span>Site Synced</span>
             </div>
@@ -461,7 +461,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
               <DropdownMenuContent align="end" className="w-56 p-1.5">
                 <DropdownMenuLabel className="text-xs font-semibold text-muted-foreground flex items-center justify-between">
                   <span>Public Site Links</span>
-                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-emerald-500/30 text-emerald-600">
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/30 text-primary">
                     Live
                   </Badge>
                 </DropdownMenuLabel>
@@ -478,7 +478,7 @@ const AdminLayout = ({ children }: {children: React.ReactNode;}) => {
                 <DropdownMenuItem asChild>
                   <Link to="/portal" target="_blank" className="flex items-center justify-between cursor-pointer text-xs">
                     <span className="flex items-center gap-2">
-                      <UserCheck className="h-3.5 w-3.5 text-emerald-500" />
+                      <UserCheck className="h-3.5 w-3.5 text-primary" />
                       Member Portal & ID
                     </span>
                     <ExternalLink className="h-3 w-3 text-muted-foreground" />

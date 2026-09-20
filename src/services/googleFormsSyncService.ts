@@ -249,7 +249,7 @@ export async function syncGoogleFormsData(options: { silent?: boolean } = {}): P
 
               const { error: insertErr } = await supabase.from("contact_submissions").insert({
                 name: parsed.extractedName || "CUET Member / Student",
-                email: parsed.extractedEmail || "feedback@bmes-cuet.org",
+                email: parsed.extractedEmail || "bmes@cuet.ac.bd",
                 subject: subject,
                 message: messageBody,
                 is_read: false,
@@ -306,7 +306,7 @@ export async function syncGoogleFormsData(options: { silent?: boolean } = {}): P
               if (matched) targetEventId = matched.id;
             }
 
-            const candidateEmail = parsed.extractedEmail || `participant-${resp.responseId.slice(0, 6)}@bmes-cuet.org`;
+            const candidateEmail = parsed.extractedEmail || `participant-${resp.responseId.slice(0, 6)}@cuet.ac.bd`;
 
             // Check if already registered for this event
             const isDuplicate = (existingRegs || []).some(reg => 

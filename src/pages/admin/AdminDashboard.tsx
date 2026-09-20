@@ -776,10 +776,10 @@ const AdminDashboard = () => {
                 {userRole}
               </Badge>
               
-              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25">
+              <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-primary/10 text-primary border border-primary/25">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
                 </span>
                 <span>Live Sync Active</span>
                 <span className="text-muted-foreground font-mono text-[10px]">({syncState.latencyMs}ms)</span>
@@ -819,7 +819,7 @@ const AdminDashboard = () => {
 
             <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs font-medium h-9 shadow-2xs">
               <Link to="/" target="_blank" rel="noopener noreferrer">
-                <Globe className="h-3.5 w-3.5 text-emerald-500" />
+                <Globe className="h-3.5 w-3.5 text-primary" />
                 <span>Public Site</span>
                 <ExternalLink className="h-3 w-3 opacity-60 ml-0.5" />
               </Link>
@@ -882,11 +882,11 @@ const AdminDashboard = () => {
         ) : (
           <div className="rounded-xl border border-border/80 bg-card/60 p-3 px-4 flex items-center justify-between text-xs text-muted-foreground shadow-2xs">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+              <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
               <span className="text-foreground font-medium">All operational queues are clear.</span>
               <span className="hidden sm:inline">• No pending applications or unread inquiries.</span>
             </div>
-            <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400">100% Synced</span>
+            <span className="text-[11px] font-mono text-primary">100% Synced</span>
           </div>
         )}
 
@@ -1024,13 +1024,13 @@ const AdminDashboard = () => {
           <CardHeader className="bg-muted/20 border-b pb-3.5 pt-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
-                <div className="h-8 w-8 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-500/20">
+                <div className="h-8 w-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 border border-primary/20">
                   <Activity className="h-4 w-4" />
                 </div>
                 <div>
                   <CardTitle className="text-sm font-bold text-foreground flex items-center gap-2">
                     Main Pages & Data Flow Synchronization
-                    <Badge variant="outline" className="text-[10px] font-mono border-emerald-500/30 text-emerald-600 bg-emerald-500/10">
+                    <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary bg-primary/10">
                       Realtime Active
                     </Badge>
                   </CardTitle>
@@ -1046,7 +1046,7 @@ const AdminDashboard = () => {
                   size="sm"
                   onClick={() => syncMainWebsiteData(true)}
                   disabled={isManualSyncing}
-                  className="h-8 text-xs gap-1.5 border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-500/10"
+                  className="h-8 text-xs gap-1.5 border-primary/30 text-primary hover:bg-primary/10"
                 >
                   <RefreshCw className={`h-3.5 w-3.5 ${isManualSyncing ? "animate-spin" : ""}`} />
                   {isManualSyncing ? "Auditing 21 Channels..." : "Audit All Sections"}
@@ -1161,7 +1161,7 @@ const AdminDashboard = () => {
 
                     {/* Col 3: Live State */}
                     <div className="md:col-span-3 flex items-center gap-2">
-                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 shrink-0">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-primary bg-primary/10 px-2 py-0.5 rounded-full border border-primary/20 shrink-0">
                         <Check className="h-3 w-3" />
                         Synced
                       </span>
@@ -1193,7 +1193,7 @@ const AdminDashboard = () => {
               <div className="border-t border-border/80 bg-slate-950 text-slate-100 p-4 font-mono text-xs shadow-inner">
                 <div className="flex items-center justify-between pb-2 border-b border-slate-800 mb-2">
                   <span className="font-semibold text-slate-300 flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                    <ShieldCheck className="h-4 w-4 text-sky-400" />
                     Supabase Realtime Sync Buffer ({syncLogs.length} events)
                   </span>
                   {syncLogs.length > 0 && (
@@ -1221,7 +1221,7 @@ const AdminDashboard = () => {
                       <div key={log.id} className="flex items-start justify-between gap-2 p-1.5 rounded bg-slate-900/80 border border-slate-800">
                         <div className="flex items-center gap-2 min-w-0">
                           <span className={`px-1 rounded text-[9px] font-bold ${
-                            log.status === "success" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
+                            log.status === "success" ? "bg-sky-500/20 text-sky-400" : "bg-rose-500/20 text-rose-400"
                           }`}>
                             {log.status.toUpperCase()}
                           </span>
@@ -1283,7 +1283,7 @@ const AdminDashboard = () => {
                   <div className="space-y-2.5">
                     {pendingApps.length === 0 ? (
                       <div className="text-center py-8 text-muted-foreground text-xs space-y-2">
-                        <CheckCircle2 className="mx-auto h-8 w-8 text-emerald-500/40" />
+                        <CheckCircle2 className="mx-auto h-8 w-8 text-primary/40" />
                         <p className="font-semibold text-foreground">No Pending Applications</p>
                         <p className="text-muted-foreground text-[11px]">All student membership registrations have been reviewed.</p>
                       </div>

@@ -77,7 +77,7 @@ export default function AdminMemberPrintView() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 p-6">
         <div className="text-center space-y-3">
-          <div className="h-8 w-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto" />
+          <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
           <p className="text-sm text-muted-foreground font-medium">Loading member profile...</p>
         </div>
       </div>
@@ -147,10 +147,10 @@ export default function AdminMemberPrintView() {
             <div className="h-4 w-px bg-slate-300 dark:bg-slate-700 hidden sm:block" />
             <div className="flex items-center gap-2">
               <span className="font-bold text-sm text-foreground">{currentMember.full_name}</span>
-              <Badge className="bg-amber-400 text-emerald-950 font-black border border-amber-300 text-[10px]">
+              <Badge className="bg-amber-400 text-slate-950 font-black border border-amber-300 text-[10px]">
                 {batchInfo.batchTag}
               </Badge>
-              <Badge variant="outline" className="font-mono text-[11px] font-bold text-emerald-700 bg-emerald-50">
+              <Badge variant="outline" className="font-mono text-[11px] font-bold text-primary bg-primary/10 border-primary/25">
                 {membershipId}
               </Badge>
             </div>
@@ -191,7 +191,7 @@ export default function AdminMemberPrintView() {
               onClick={copyMembershipId}
               className="gap-1 h-8 text-xs"
             >
-              {isCopied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+              {isCopied ? <Check className="h-3.5 w-3.5 text-primary" /> : <Copy className="h-3.5 w-3.5" />}
               <span className="hidden sm:inline">Copy ID</span>
             </Button>
 
@@ -208,7 +208,7 @@ export default function AdminMemberPrintView() {
             <Button
               size="sm"
               onClick={() => handlePrint(viewMode)}
-              className="gap-1.5 h-8 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs"
+              className="gap-1.5 h-8 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs"
             >
               <Printer className="h-3.5 w-3.5" />
               Print {viewMode === "card" ? "Virtual ID Card" : "Profile Dossier"}

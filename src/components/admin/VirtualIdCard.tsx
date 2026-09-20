@@ -55,9 +55,9 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
       {(!showBack || isPrintOnly) && (
         <div
           id={`id-card-front-${member.id}`}
-          className="id-card-front relative w-[360px] sm:w-[420px] h-[228px] sm:h-[265px] rounded-2xl overflow-hidden shadow-2xl border border-emerald-500/30 text-slate-800 dark:text-slate-100 select-none transition-all"
+          className="id-card-front relative w-[360px] sm:w-[420px] h-[228px] sm:h-[265px] rounded-2xl overflow-hidden shadow-2xl border border-sky-500/30 text-slate-800 dark:text-slate-100 select-none transition-all"
           style={{
-            background: "linear-gradient(135deg, #064e3b 0%, #065f46 45%, #047857 100%)",
+            background: "linear-gradient(135deg, #00253e 0%, #00456e 45%, #00568a 100%)",
             color: "#ffffff",
             WebkitPrintColorAdjust: "exact",
             printColorAdjust: "exact",
@@ -73,10 +73,10 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
           />
 
           {/* Holographic Security Accent Line */}
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-emerald-400 to-amber-300" />
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-300 via-sky-400 to-amber-300" />
 
           {/* Top Header Banner */}
-          <div className="relative z-10 px-4 pt-3 pb-2 flex items-center justify-between border-b border-emerald-400/20 bg-emerald-950/40 backdrop-blur-xs">
+          <div className="relative z-10 px-4 pt-3 pb-2 flex items-center justify-between border-b border-sky-400/20 bg-slate-950/40 backdrop-blur-xs">
             <div className="flex items-center gap-2.5">
               <div className="h-10 w-10 rounded-full bg-white p-1 shadow-sm flex items-center justify-center shrink-0">
                 <img src={logo} alt="CUET BMES" className="h-full w-full object-contain" />
@@ -85,10 +85,10 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
                 <h3 className="text-[12px] sm:text-[13px] font-extrabold uppercase tracking-wider text-amber-300">
                   CUET BMES
                 </h3>
-                <p className="text-[9px] sm:text-[10px] text-emerald-100 font-medium tracking-tight">
+                <p className="text-[9px] sm:text-[10px] text-sky-100 font-medium tracking-tight">
                   Biomedical Engineering Society
                 </p>
-                <p className="text-[8px] text-emerald-200/80 tracking-tight">
+                <p className="text-[8px] text-sky-200/80 tracking-tight">
                   Chittagong Univ. of Eng. & Tech.
                 </p>
               </div>
@@ -96,10 +96,10 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
 
             {/* Official Batch Tag Pill */}
             <div className="flex flex-col items-end gap-1">
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest bg-amber-400 text-emerald-950 shadow-sm border border-amber-300">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black uppercase tracking-widest bg-amber-400 text-slate-950 shadow-sm border border-amber-300">
                 {batchInfo.batchTag}
               </span>
-              <span className="inline-flex items-center gap-0.5 text-[8.5px] font-semibold text-emerald-200">
+              <span className="inline-flex items-center gap-0.5 text-[8.5px] font-semibold text-sky-200">
                 <CheckCircle2 className="w-2.5 h-2.5 text-amber-300" />
                 {member.status === "approved" ? "VERIFIED MEMBER" : "OFFICIAL APPLICANT"}
               </span>
@@ -118,11 +118,11 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center p-2 text-center text-emerald-900">
-                    <div className="w-10 h-10 rounded-full bg-emerald-700 text-white flex items-center justify-center font-bold text-sm mb-1 shadow-inner">
+                  <div className="flex flex-col items-center justify-center p-2 text-center text-sky-950">
+                    <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm mb-1 shadow-inner">
                       {initials}
                     </div>
-                    <span className="text-[9px] font-semibold tracking-tighter text-emerald-900">
+                    <span className="text-[9px] font-semibold tracking-tighter text-sky-950">
                       CUET BMES
                     </span>
                   </div>
@@ -130,8 +130,8 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
               </div>
 
               {/* Holographic Society Seal Badge */}
-              <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-400 to-amber-500 text-emerald-950 rounded-full p-1 shadow-md border border-white/60">
-                <Award className="w-3.5 h-3.5 text-emerald-950" />
+              <div className="absolute -bottom-2 -right-2 bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 rounded-full p-1 shadow-md border border-white/60">
+                <Award className="w-3.5 h-3.5 text-slate-950" />
               </div>
             </div>
 
@@ -145,17 +145,17 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
                   <span className="text-[10px] sm:text-[11px] font-bold text-amber-300 tracking-wide">
                     ID: {member.student_id}
                   </span>
-                  <span className="text-emerald-300/60">•</span>
-                  <span className="text-[9.5px] sm:text-[10px] text-emerald-100 truncate">
+                  <span className="text-sky-300/60">•</span>
+                  <span className="text-[9.5px] sm:text-[10px] text-sky-100 truncate">
                     {member.department}
                   </span>
                 </div>
               </div>
 
               {/* Membership ID Highlight Box */}
-              <div className="bg-emerald-950/60 border border-emerald-400/30 rounded-lg px-2.5 py-1 flex items-center justify-between">
+              <div className="bg-slate-950/60 border border-sky-400/30 rounded-lg px-2.5 py-1 flex items-center justify-between">
                 <div>
-                  <div className="text-[7.5px] uppercase tracking-wider text-emerald-300/80 font-bold">
+                  <div className="text-[7.5px] uppercase tracking-wider text-sky-300/80 font-bold">
                     Membership ID
                   </div>
                   <div className="font-mono text-[11px] sm:text-[12px] font-extrabold text-amber-300 tracking-wider">
@@ -163,29 +163,29 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-[7.5px] uppercase tracking-wider text-emerald-300/80 font-bold">
+                  <div className="text-[7.5px] uppercase tracking-wider text-sky-300/80 font-bold">
                     Session / Level
                   </div>
-                  <div className="text-[9.5px] sm:text-[10px] font-semibold text-emerald-100 truncate max-w-[110px]">
+                  <div className="text-[9.5px] sm:text-[10px] font-semibold text-sky-100 truncate max-w-[110px]">
                     {member.year_semester}
                   </div>
                 </div>
               </div>
 
               {/* Bottom Metadata & Validity */}
-              <div className="flex items-center justify-between pt-0.5 text-[8px] sm:text-[8.5px] text-emerald-200/90 font-medium">
+              <div className="flex items-center justify-between pt-0.5 text-[8px] sm:text-[8.5px] text-sky-200/90 font-medium">
                 <div>
-                  <span className="text-emerald-300/70">Issued:</span> {issueDate}
+                  <span className="text-sky-300/70">Issued:</span> {issueDate}
                 </div>
                 <div>
-                  <span className="text-emerald-300/70">Valid:</span> {tenure}
+                  <span className="text-sky-300/70">Valid:</span> {tenure}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Card Bottom Footer Line */}
-          <div className="absolute bottom-0 left-0 right-0 bg-emerald-950/80 px-4 py-1 flex items-center justify-between border-t border-emerald-400/20 text-[7.5px] tracking-widest text-emerald-300/80 font-semibold uppercase">
+          <div className="absolute bottom-0 left-0 right-0 bg-slate-950/80 px-4 py-1 flex items-center justify-between border-t border-sky-400/20 text-[7.5px] tracking-widest text-sky-300/80 font-semibold uppercase">
             <span>OFFICIAL SOCIETY IDENTIFICATION CARD</span>
             <span className="font-mono text-amber-300">{batchInfo.batchTag}</span>
             <span>www.cuetbmes.org</span>
@@ -197,9 +197,9 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
       {(showBack || isPrintOnly) && (
         <div
           id={`id-card-back-${member.id}`}
-          className="id-card-back relative w-[360px] sm:w-[420px] h-[228px] sm:h-[265px] rounded-2xl overflow-hidden shadow-2xl border border-emerald-500/30 text-slate-800 dark:text-slate-100 select-none transition-all"
+          className="id-card-back relative w-[360px] sm:w-[420px] h-[228px] sm:h-[265px] rounded-2xl overflow-hidden shadow-2xl border border-sky-500/30 text-slate-800 dark:text-slate-100 select-none transition-all"
           style={{
-            background: "linear-gradient(135deg, #064e3b 0%, #065f46 50%, #022c22 100%)",
+            background: "linear-gradient(135deg, #00253e 0%, #00456e 50%, #00192b 100%)",
             color: "#ffffff",
             WebkitPrintColorAdjust: "exact",
             printColorAdjust: "exact",
@@ -217,20 +217,20 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
           <div className="relative z-10 p-3 sm:p-4 h-full flex flex-col justify-between">
             {/* Header / Notice */}
             <div>
-              <div className="flex items-center justify-between border-b border-emerald-400/20 pb-1.5 mb-2">
+              <div className="flex items-center justify-between border-b border-sky-400/20 pb-1.5 mb-2">
                 <div className="flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-amber-300" />
                   <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-amber-300">
                     Official Member Credentials
                   </span>
                 </div>
-                <span className="text-[9px] font-mono font-bold bg-amber-400 text-emerald-950 px-2 py-0.5 rounded-full">
+                <span className="text-[9px] font-mono font-bold bg-amber-400 text-slate-950 px-2 py-0.5 rounded-full">
                   {batchInfo.batchTag}
                 </span>
               </div>
 
               {/* Terms of Membership */}
-              <div className="text-[8px] sm:text-[8.5px] leading-relaxed text-emerald-100/90 space-y-1">
+              <div className="text-[8px] sm:text-[8.5px] leading-relaxed text-sky-100/90 space-y-1">
                 <p>
                   1. This virtual card certifies that the cardholder is a registered member of the <strong>Biomedical Engineering Society (BMES)</strong> at CUET.
                 </p>
@@ -244,19 +244,19 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
             </div>
 
             {/* Emergency & Verification Section */}
-            <div className="bg-emerald-950/60 border border-emerald-400/20 rounded-lg p-2 flex items-center justify-between gap-2">
-              <div className="space-y-0.5 text-[8.5px] sm:text-[9px] text-emerald-100">
-                <div className="flex items-center gap-1 text-emerald-200">
+            <div className="bg-slate-950/60 border border-sky-400/20 rounded-lg p-2 flex items-center justify-between gap-2">
+              <div className="space-y-0.5 text-[8.5px] sm:text-[9px] text-sky-100">
+                <div className="flex items-center gap-1 text-sky-200">
                   <Mail className="w-2.5 h-2.5 text-amber-300 shrink-0" />
                   <span className="truncate max-w-[160px] sm:max-w-[200px]">{member.email}</span>
                 </div>
                 {member.phone_number && (
-                  <div className="flex items-center gap-1 text-emerald-200">
+                  <div className="flex items-center gap-1 text-sky-200">
                     <Phone className="w-2.5 h-2.5 text-amber-300 shrink-0" />
                     <span>{member.phone_number}</span>
                   </div>
                 )}
-                <div className="flex items-center gap-1 text-emerald-200">
+                <div className="flex items-center gap-1 text-sky-200">
                   <MapPin className="w-2.5 h-2.5 text-amber-300 shrink-0" />
                   <span>CUET Campus, Raozan, Chattogram</span>
                 </div>
@@ -272,7 +272,7 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
             </div>
 
             {/* Barcode & Signature Footer */}
-            <div className="pt-1 flex items-end justify-between border-t border-emerald-400/20">
+            <div className="pt-1 flex items-end justify-between border-t border-sky-400/20">
               {/* Simulated Barcode */}
               <div className="space-y-0.5">
                 <div className="h-6 w-32 sm:w-40 flex items-stretch gap-[2px] bg-white/10 p-0.5 rounded">
@@ -294,10 +294,10 @@ export const VirtualIdCard: React.FC<VirtualIdCardProps> = ({
 
               {/* Authorized Signatures */}
               <div className="text-right">
-                <div className="font-serif italic text-[9px] text-amber-200 tracking-wide border-b border-emerald-300/40 pb-0.5 px-2">
+                <div className="font-serif italic text-[9px] text-amber-200 tracking-wide border-b border-sky-300/40 pb-0.5 px-2">
                   Dr. M. Advisor & GS
                 </div>
-                <div className="text-[7.5px] uppercase text-emerald-300 font-bold tracking-wider pt-0.5">
+                <div className="text-[7.5px] uppercase text-sky-300 font-bold tracking-wider pt-0.5">
                   Authorized Signatures
                 </div>
               </div>

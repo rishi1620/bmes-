@@ -12,12 +12,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const checkRoles = async (userId: string, email?: string) => {
-    const adminEmail = import.meta.env.VITE_ADMIN_EMAIL;
+    const adminEmail = (import.meta.env.VITE_ADMIN_EMAIL || "bmes@cuet.ac.bd").toLowerCase();
+    const normalizedEmail = email?.toLowerCase() || "";
+    const isOfficialAdmin = normalizedEmail === "bmes@cuet.ac.bd" || normalizedEmail === adminEmail;
     let userRoles: AppRole[] = [];
     let isEnvAdmin = false;
     
-    if (adminEmail && email === adminEmail) {
-      userRoles.push("admin");
+    if (isOfficialAdmin) {
+      userRoles.push("admin", "super_admin");
       isEnvAdmin = true;
     }
 
@@ -31,17 +33,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       const dbRoles = data ? data.map(r => r.role) : [];
       
-      // Auto-sync: If user is admin in ENV but not in DB, try to add them to DB
-      if (isEnvAdmin && !dbRoles.includes("admin")) {
-        console.log("Auto-syncing admin role to database for:", email);
-        const { error: insertError } = await supabase
-          .from("user_roles")
-          .insert({ user_id: userId, role: "admin" });
-        
-        if (!insertError) {
-          dbRoles.push("admin");
-        } else {
-          console.warn("Could not auto-sync admin role (likely RLS). User will still have admin access via ENV.");
+      // Auto-sync: If user is official admin/super_admin but not yet in DB, add them to DB
+      if (isEnvAdmin) {
+        if (!dbRoles.includes("super_admin")) {
+          console.log("Auto-syncing super_admin role to database for official account:", email);
+          const { error: insertSuperErr } = await supabase
+            .from("user_roles")
+            .insert({ user_id: userId, role: "super_admin" });
+          if (!insertSuperErr) dbRoles.push("super_admin");
+        }
+        if (!dbRoles.includes("admin")) {
+          console.log("Auto-syncing admin role to database for official account:", email);
+          const { error: insertAdminErr } = await supabase
+            .from("user_roles")
+            .insert({ user_id: userId, role: "admin" });
+          if (!insertAdminErr) dbRoles.push("admin");
         }
       }
 

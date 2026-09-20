@@ -17,10 +17,11 @@ import {
   Image as ImageIcon,
   Search,
   Film,
-  MessageSquare
+  MessageSquare,
+  ShieldCheck
 } from "lucide-react";
-import EmbeddedGoogleForm from "@/components/shared/EmbeddedGoogleForm";
-import { useGoogleFormsConfig } from "@/hooks/useGoogleFormsConfig";
+import { Badge } from "@/components/ui/badge";
+import MemberFeedbackForm from "@/components/portal/MemberFeedbackForm";
 import {
   Accordion,
   AccordionContent,
@@ -41,7 +42,6 @@ interface SoftwareLink {
 }
 
 const Portal = () => {
-  const { config: formsConfig } = useGoogleFormsConfig();
   const [settings, setSettings] = useState<Record<string, string>>({});
   const location = useLocation();
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
@@ -271,7 +271,7 @@ const Portal = () => {
                           <AccordionItem 
                             key={semester.id} 
                             value={semester.id} 
-                            className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900/40 px-4 transition-all data-[state=open]:border-emerald-500/30 data-[state=open]:shadow-sm"
+                            className="border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden bg-white dark:bg-slate-900/40 px-4 transition-all data-[state=open]:border-primary/30 data-[state=open]:shadow-sm"
                           >
                             <AccordionTrigger className="hover:no-underline py-4 font-bold text-sm text-slate-800 dark:text-slate-100">
                               {semester.name}
@@ -284,7 +284,7 @@ const Portal = () => {
                                     variant={selectedCourseId === course.id ? "secondary" : "ghost"}
                                     className={`w-full justify-start text-left h-auto py-3 px-3 rounded-xl transition-all ${
                                       selectedCourseId === course.id 
-                                        ? 'bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 shadow-sm' 
+                                        ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm' 
                                         : 'hover:bg-slate-100 dark:hover:bg-slate-800'
                                     }`}
                                     onClick={() => {
@@ -316,8 +316,8 @@ const Portal = () => {
                   <div className="md:col-span-3" ref={contentRef}>
                     {!selectedCourse ? (
                       <div className="h-[400px] flex flex-col items-center justify-center text-center p-12 border-2 border-dashed rounded-3xl bg-slate-50 dark:bg-slate-900/20">
-                        <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mb-6">
-                          <BookOpen className="h-10 w-10 text-emerald-500" />
+                        <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6">
+                          <BookOpen className="h-10 w-10 text-primary" />
                         </div>
                         <h3 className="text-xl font-bold">Explore the Library</h3>
                         <p className="text-muted-foreground mt-2 max-w-sm mx-auto">
@@ -329,7 +329,7 @@ const Portal = () => {
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
                           <div>
                             <div className="flex items-center gap-2 mb-2">
-                              <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase tracking-wider">
+                              <span className="px-2 py-0.5 rounded bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">
                                 {selectedSemester?.name}
                               </span>
                               {selectedCourse.code && (
@@ -340,9 +340,9 @@ const Portal = () => {
                             </div>
                             <h2 className="text-3xl font-extrabold tracking-tight">{selectedCourse.name}</h2>
                           </div>
-                          <div className="bg-emerald-500/5 px-4 py-2 rounded-2xl border border-emerald-500/10">
-                            <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Resources Available</p>
-                            <p className="text-2xl font-black text-emerald-600">{filteredResources.length}</p>
+                          <div className="bg-primary/5 px-4 py-2 rounded-2xl border border-primary/10">
+                            <p className="text-[10px] font-bold text-primary uppercase tracking-widest mb-1">Resources Available</p>
+                            <p className="text-2xl font-black text-primary">{filteredResources.length}</p>
                           </div>
                         </div>
 
@@ -358,7 +358,7 @@ const Portal = () => {
                                 layout
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl hover:border-emerald-500/30 transition-all duration-300"
+                                className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden hover:shadow-xl hover:border-primary/30 transition-all duration-300"
                               >
                                 <div className="p-5 flex items-start gap-4">
                                   <div className={`p-4 rounded-2xl transition-colors ${
@@ -375,7 +375,7 @@ const Portal = () => {
                                      <ExternalLink className="h-6 w-6" />}
                                   </div>
                                   <div className="flex-1 min-w-0">
-                                    <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-emerald-500 transition-colors">
+                                    <h4 className="font-bold text-slate-900 dark:text-white truncate group-hover:text-primary transition-colors">
                                       {res.name}
                                     </h4>
                                     <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 font-medium">
@@ -396,7 +396,7 @@ const Portal = () => {
                                     href={res.url} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="text-xs font-bold text-emerald-500 flex items-center gap-1.5 hover:text-emerald-600 transition-colors"
+                                    className="text-xs font-bold text-primary flex items-center gap-1.5 hover:text-primary/80 transition-colors"
                                   >
                                     <Download className="h-3.5 w-3.5" /> Download
                                   </a>
@@ -421,7 +421,7 @@ const Portal = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                           {item.title}
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:scale-110 transition-transform">
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:scale-110 transition-transform">
                             <ExternalLink className="h-5 w-5" />
                           </a>
                         </CardTitle>
@@ -441,7 +441,7 @@ const Portal = () => {
                       <CardHeader>
                         <CardTitle className="flex items-center justify-between">
                           {item.title}
-                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:scale-110 transition-transform">
+                          <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary hover:scale-110 transition-transform">
                             <ExternalLink className="h-5 w-5" />
                           </a>
                         </CardTitle>
@@ -459,7 +459,7 @@ const Portal = () => {
               <div className="mx-auto max-w-3xl">
                 <SectionHeading title="Join the Society" description="Become a part of the CUET Biomedical Engineering Society." />
                 <Card className="mt-10 overflow-hidden">
-                  <div className="h-2 bg-emerald-500" />
+                  <div className="h-2 bg-primary" />
                   <CardContent className="p-8 space-y-8">
                     <div className="prose dark:prose-invert max-w-none">
                       <Markdown>
@@ -474,16 +474,27 @@ const Portal = () => {
                     </div>
                     <div className="flex flex-col items-center gap-4 pt-6 border-t border-border">
                       <p className="text-sm text-muted-foreground font-medium">Ready to take the next step?</p>
-                      <Button size="lg" className="bg-emerald-500 hover:bg-emerald-600 text-white px-12" onClick={() => document.getElementById('registration-form')?.scrollIntoView({ behavior: 'smooth' })}>
+                      <Button size="lg" className="bg-primary hover:bg-primary/90 text-primary-foreground px-12" onClick={() => document.getElementById('registration-form')?.scrollIntoView({ behavior: 'smooth' })}>
                         Register Now
                       </Button>
                     </div>
                   </CardContent>
                 </Card>
                 
-                <Card id="registration-form" className="mt-10 border-emerald-500/20 shadow-lg">
-                  <CardHeader className="bg-emerald-500/5 border-b border-emerald-500/10">
-                    <CardTitle className="text-emerald-600">Membership Application</CardTitle>
+                <Card id="registration-form" className="mt-10 border-primary/20 shadow-lg">
+                  <CardHeader className="bg-primary/5 border-b border-primary/10">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <CardTitle className="text-primary text-xl">Membership Application</CardTitle>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Official enrollment into the CUET Biomedical Engineering Society
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="w-fit text-[11px] font-bold text-primary bg-primary/10 border-primary/25 gap-1.5 py-1 px-2.5">
+                        <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+                        Verified via bmes@cuet.ac.bd
+                      </Badge>
+                    </div>
                   </CardHeader>
                   <CardContent className="p-8">
                     <MembershipRegistrationForm />
@@ -495,27 +506,8 @@ const Portal = () => {
             </TabsContent>
 
             <TabsContent value="feedback" className="space-y-6">
-              <div className="max-w-4xl mx-auto space-y-6">
-                <div className="text-center space-y-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/10 text-purple-600 border border-purple-500/20">
-                    <MessageSquare className="h-3.5 w-3.5" />
-                    Member Voice & Feedback
-                  </span>
-                  <h2 className="text-2xl font-bold text-foreground">
-                    {formsConfig.memberFeedbackTitle || "Biomedical Engineering Society - Member Feedback"}
-                  </h2>
-                  <p className="text-sm text-muted-foreground max-w-xl mx-auto">
-                    Help us improve society workshops, symposiums, peer mentorship, and resource availability. Your responses are directly reviewed by the executive team.
-                  </p>
-                </div>
-
-                <EmbeddedGoogleForm
-                  formUrlOrId={formsConfig.memberFeedbackFormUrl}
-                  title={formsConfig.memberFeedbackTitle || "Member Feedback Form"}
-                  description="Complete the official feedback survey below. Responses can be anonymous or linked to your student ID."
-                  defaultHeight={680}
-                  className="border-purple-500/30 shadow-lg"
-                />
+              <div className="max-w-4xl mx-auto">
+                <MemberFeedbackForm />
               </div>
             </TabsContent>
           </div>

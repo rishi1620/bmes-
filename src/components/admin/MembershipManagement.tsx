@@ -123,7 +123,7 @@ export function MembershipManagement() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "approved":
-        return <Badge className="bg-emerald-500 hover:bg-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1" /> Approved</Badge>;
+        return <Badge className="bg-primary hover:bg-primary/90 text-primary-foreground"><CheckCircle2 className="h-3 w-3 mr-1" /> Approved</Badge>;
       case "rejected":
         return <Badge variant="destructive"><XCircle className="h-3 w-3 mr-1" /> Rejected</Badge>;
       default:
@@ -142,7 +142,7 @@ export function MembershipManagement() {
   if (loading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-500" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -168,9 +168,9 @@ export function MembershipManagement() {
           <div className="text-2xl font-bold text-amber-700 dark:text-amber-400">{stats.pending}</div>
           <div className="text-[10px] uppercase tracking-wider font-semibold text-amber-600 dark:text-amber-300">Pending</div>
         </div>
-        <div className="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800/40 rounded-lg p-3 text-center">
-          <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-400">{stats.approved}</div>
-          <div className="text-[10px] uppercase tracking-wider font-semibold text-emerald-600 dark:text-emerald-300">Approved</div>
+        <div className="bg-primary/5 border border-primary/20 rounded-lg p-3 text-center">
+          <div className="text-2xl font-bold text-primary">{stats.approved}</div>
+          <div className="text-[10px] uppercase tracking-wider font-semibold text-primary">Approved</div>
         </div>
         <div className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-lg p-3 text-center">
           <div className="text-2xl font-bold text-slate-800 dark:text-slate-100">{stats.total}</div>

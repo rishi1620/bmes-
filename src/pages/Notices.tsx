@@ -106,7 +106,7 @@ const Notices = () => {
                     <Dialog key={i}>
                       <DialogTrigger asChild>
                         <div className="group cursor-pointer border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                          <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
+                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors line-clamp-1">{notice.title}</h3>
                           <div className="flex items-center gap-2 mt-1 text-muted-foreground">
                             <Calendar className="h-3.5 w-3.5" />
                             <span className="text-sm">{notice.date}</span>
@@ -115,7 +115,7 @@ const Notices = () => {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-xl">
                         <DialogHeader>
-                          <DialogTitle className="text-2xl font-bold text-emerald-600">{notice.title}</DialogTitle>
+                          <DialogTitle className="text-2xl font-bold text-primary">{notice.title}</DialogTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                             <Calendar className="h-4 w-4" />
                             {notice.date}
@@ -137,7 +137,7 @@ const Notices = () => {
           <Card className="overflow-hidden border-border bg-card shadow-sm">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
               <div className="flex items-center gap-4">
-                <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 p-3 text-emerald-600 dark:text-emerald-400">
+                <div className="rounded-xl bg-primary/10 p-3 text-primary">
                   <Users className="h-6 w-6" />
                 </div>
                 <CardTitle className="text-2xl font-bold">{settings.portal_club_news_title || "Club News"}</CardTitle>
@@ -151,7 +151,7 @@ const Notices = () => {
                     <Dialog key={i}>
                       <DialogTrigger asChild>
                         <div className="group cursor-pointer border-b border-border/50 pb-4 last:border-0 last:pb-0">
-                          <h3 className="font-semibold text-lg group-hover:text-emerald-500 transition-colors line-clamp-1">{notice.title}</h3>
+                          <h3 className="font-semibold text-lg group-hover:text-primary transition-colors line-clamp-1">{notice.title}</h3>
                           <div className="flex items-center gap-2 mt-1 text-muted-foreground">
                             <Calendar className="h-3.5 w-3.5" />
                             <span className="text-sm">{notice.date}</span>
@@ -160,7 +160,7 @@ const Notices = () => {
                       </DialogTrigger>
                       <DialogContent className="sm:max-w-xl">
                         <DialogHeader>
-                          <DialogTitle className="text-2xl font-bold text-emerald-600">{notice.title}</DialogTitle>
+                          <DialogTitle className="text-2xl font-bold text-primary">{notice.title}</DialogTitle>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-2">
                             <Calendar className="h-4 w-4" />
                             {notice.date}

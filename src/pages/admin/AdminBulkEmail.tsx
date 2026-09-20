@@ -117,9 +117,9 @@ export default function AdminBulkEmail() {
   const [loadingRecipients, setLoadingRecipients] = useState(true);
   const [eventsList, setEventsList] = useState<EventItem[]>([]);
   
-  // Audience filtering: Checkboxes for target groups (Default: Society Members + Advisory Panel)
+  // Audience filtering: Checkboxes for target groups (Empty by default for strict safety - must explicitly select)
   const [selectedSources, setSelectedSources] = useState<Set<RecipientSource>>(
-    new Set(["member", "advisor"])
+    new Set()
   );
   const [selectedEventId, setSelectedEventId] = useState<string>("all");
   const [membershipStatusFilter, setMembershipStatusFilter] = useState<string>("all");
@@ -134,8 +134,8 @@ export default function AdminBulkEmail() {
   const [ctaText, setCtaText] = useState("Visit Student Portal");
   const [ctaUrl, setCtaUrl] = useState(`${window.location.origin}/portal`);
 
-  // Modals & States
-  const [testEmailAddress, setTestEmailAddress] = useState(user?.email || "");
+  // Modals & States (Test email starts empty to prevent any unintended dispatches)
+  const [testEmailAddress, setTestEmailAddress] = useState("");
   const [sendingTest, setSendingTest] = useState(false);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [previewModalOpen, setPreviewModalOpen] = useState(false);
@@ -276,13 +276,8 @@ export default function AdminBulkEmail() {
 
       setAllRecipients(combined);
 
-      // Default: select only Society Members and Advisory Panel initially
-      const initialSelected = new Set(
-        combined
-          .filter((r) => r.source === "member" || r.source === "advisor")
-          .map((r) => r.email)
-      );
-      setSelectedEmails(initialSelected);
+      // Strict safety: Start with zero recipients pre-selected so no emails are sent accidentally
+      setSelectedEmails(new Set());
     } catch (err) {
       console.error("Failed to load recipients:", err);
       toast.error("Failed to load recipient list.");
@@ -660,14 +655,14 @@ export default function AdminBulkEmail() {
               <Users className="h-8 w-8 text-primary/40" />
             </CardContent>
           </Card>
-          <Card className="bg-emerald-500/5 border-emerald-500/20">
+          <Card className="bg-primary/5 border-primary/20">
             <CardContent className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Selected for Sending</p>
-                <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">{activeRecipientsList.length}</p>
+                <p className="text-xs font-semibold text-primary uppercase tracking-wider">Selected for Sending</p>
+                <p className="text-2xl font-bold mt-1 text-primary">{activeRecipientsList.length}</p>
                 <p className="text-xs text-muted-foreground">Will receive this broadcast</p>
               </div>
-              <CheckCircle2 className="h-8 w-8 text-emerald-500/40" />
+              <CheckCircle2 className="h-8 w-8 text-primary/40" />
             </CardContent>
           </Card>
           <Card className="bg-slate-500/5 border-slate-500/20">
@@ -720,7 +715,7 @@ export default function AdminBulkEmail() {
                   </Label>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
-                      { id: "announcement", label: "Announcement", color: "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300" },
+                      { id: "announcement", label: "Announcement", color: "border-primary bg-primary/10 text-primary" },
                       { id: "reminder", label: "Reminder", color: "border-amber-500 bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" },
                       { id: "urgent", label: "Urgent Notice", color: "border-rose-500 bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300" },
                       { id: "general", label: "General Update", color: "border-blue-500 bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300" },
@@ -888,7 +883,7 @@ export default function AdminBulkEmail() {
                           <p className="text-xs text-muted-foreground line-clamp-1">{item.previewText}</p>
                         </div>
                         <div className="flex sm:flex-col items-center sm:items-end justify-between text-xs text-muted-foreground shrink-0">
-                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          <span className="font-semibold text-primary">
                             {item.recipientCount} sent
                           </span>
                           <span>{format(new Date(item.date), "MMM d, yyyy • h:mm a")}</span>
@@ -997,18 +992,18 @@ export default function AdminBulkEmail() {
                     {/* 1. Society Members */}
                     <label className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer transition-colors ${
                       selectedSources.has("member")
-                        ? "border-emerald-500/50 bg-emerald-500/10 font-medium"
+                        ? "border-primary/50 bg-primary/10 font-medium"
                         : "border-border bg-background hover:bg-muted/40"
                     }`}>
                       <Checkbox
                         checked={selectedSources.has("member")}
                         onCheckedChange={() => toggleSource("member")}
-                        className="mt-0.5 data-[state=checked]:bg-emerald-600 data-[state=checked]:border-emerald-600"
+                        className="mt-0.5 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <span className="font-semibold text-emerald-700 dark:text-emerald-400 truncate">Society Members</span>
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-emerald-500/30 text-emerald-600 shrink-0">
+                          <span className="font-semibold text-primary truncate">Society Members</span>
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 h-4 border-primary/30 text-primary shrink-0">
                             {allRecipients.filter(r => r.source === 'member').length}
                           </Badge>
                         </div>
@@ -1282,7 +1277,7 @@ export default function AdminBulkEmail() {
                                 variant="outline" 
                                 className={`text-[9px] px-1.5 py-0 uppercase font-semibold ${
                                   rec.source === "member" 
-                                    ? "border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-500/10" 
+                                    ? "border-primary/30 text-primary bg-primary/10" 
                                     : rec.source === "advisor"
                                     ? "border-amber-500/30 text-amber-600 dark:text-amber-400 bg-amber-500/10"
                                     : rec.source === "ec" 
@@ -1328,7 +1323,7 @@ export default function AdminBulkEmail() {
             <Card className="bg-muted/40 border-dashed">
               <CardContent className="p-4 space-y-2">
                 <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
-                  <ShieldCheckIcon className="h-4 w-4 text-emerald-500" />
+                  <ShieldCheckIcon className="h-4 w-4 text-primary" />
                   Responsible Delivery Guidelines
                 </div>
                 <ul className="text-xs text-muted-foreground space-y-1 list-disc pl-4 leading-relaxed">
@@ -1357,7 +1352,7 @@ export default function AdminBulkEmail() {
               </p>
               <div className="rounded-lg border p-3 bg-muted/30 text-xs space-y-1.5 font-mono">
                 <div><strong>Subject:</strong> {subject}</div>
-                <div><strong>Sender:</strong> CUET BMES Administration</div>
+                <div><strong>Sender:</strong> CUET BMES Administration &lt;bmes@cuet.ac.bd&gt;</div>
                 <div><strong>Total Batch:</strong> {activeRecipientsList.length} individual emails</div>
               </div>
               <p className="text-xs text-muted-foreground">
@@ -1424,7 +1419,7 @@ export default function AdminBulkEmail() {
                     ? "bg-rose-500"
                     : emailType === "general"
                     ? "bg-blue-500"
-                    : "bg-emerald-500"
+                    : "bg-[#00568a]"
                 }`}
               />
 
@@ -1442,7 +1437,7 @@ export default function AdminBulkEmail() {
                       ? "bg-rose-50 text-rose-800 border-rose-200"
                       : emailType === "general"
                       ? "bg-blue-50 text-blue-800 border-blue-200"
-                      : "bg-emerald-50 text-emerald-800 border-emerald-200"
+                      : "bg-sky-50 text-[#00568a] border-sky-200"
                   }`}
                 >
                   {emailType === "reminder"
@@ -1479,7 +1474,7 @@ export default function AdminBulkEmail() {
                           ? "bg-rose-500"
                           : emailType === "general"
                           ? "bg-blue-500"
-                          : "bg-emerald-500"
+                          : "bg-[#00568a]"
                       }`}
                     >
                       {ctaText} &rarr;
