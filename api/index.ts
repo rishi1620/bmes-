@@ -7,16 +7,23 @@ import crypto from "crypto";
 dotenv.config();
 
 const GMAIL_USER = (process.env.GMAIL_USER || "bmes@cuet.ac.bd").trim();
-const GMAIL_APP_PASSWORD = process.env.GMAIL_APP_PASSWORD?.trim();
+// Clean any spaces or hidden linebreaks from Google App Passwords (xxxx xxxx xxxx xxxx)
+const GMAIL_APP_PASSWORD = (process.env.GMAIL_APP_PASSWORD || "").replace(/\s+/g, "").trim();
 
 const transporter = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465,
   secure: true,
+  pool: true,
+  maxConnections: 5,
+  maxMessages: 100,
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
   auth: {
     user: GMAIL_USER,
     pass: GMAIL_APP_PASSWORD,
-  }
+  },
 });
 const FROM_EMAIL = GMAIL_USER;
 const OFFICIAL_REPLY_TO = "bmes@cuet.ac.bd";

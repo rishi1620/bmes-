@@ -153,8 +153,8 @@ export function MembershipRegistrationForm() {
   };
 
   // Verify OTP submitted by user
-  const handleVerifyOtp = async () => {
-    const cleanOtp = otp.trim();
+  const handleVerifyOtp = async (codeToVerify?: string) => {
+    const cleanOtp = (codeToVerify || otp).trim();
     if (!cleanOtp || cleanOtp.length !== 6) {
       toast.error("Please enter the complete 6-digit verification code.");
       return;
@@ -550,16 +550,33 @@ export function MembershipRegistrationForm() {
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Input
                     type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
                     maxLength={6}
                     autoFocus
                     placeholder="• • • • • •"
                     value={otp}
-                    onChange={e => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
+                    onChange={e => {
+                      const val = e.target.value.replace(/[^0-9]/g, '').slice(0, 6);
+                      setOtp(val);
+                      if (val.length === 6 && !verifyingOtp) {
+                        // Trigger immediate verification if 6 digits are typed or pasted
+                        handleVerifyOtp(val);
+                      }
+                    }}
+                    onPaste={e => {
+                      const pasted = e.clipboardData.getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+                      if (pasted.length === 6) {
+                        e.preventDefault();
+                        setOtp(pasted);
+                        handleVerifyOtp(pasted);
+                      }
+                    }}
                     className="font-mono text-center tracking-[0.4em] font-black text-base bg-background h-10 max-w-[200px]"
                   />
                   <Button
                     type="button"
-                    onClick={handleVerifyOtp}
+                    onClick={() => handleVerifyOtp()}
                     disabled={verifyingOtp || otp.length !== 6}
                     className="h-10 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5 px-5"
                   >
