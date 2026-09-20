@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { ThemeToggle, ThemeSegmentedSwitcher } from "@/components/shared/ThemeToggle";
+import { PWAInstallButton } from "@/components/shared/PWAInstallButton";
 import defaultLogo from "@/assets/logo.png";
 
 const Navbar = () => {
@@ -91,10 +92,12 @@ const Navbar = () => {
               Sign Out
             </Button>
           )}
+          <PWAInstallButton variant="compact" />
           <ThemeToggle />
         </nav>
 
         <div className="flex items-center gap-2 lg:hidden">
+          <PWAInstallButton variant="compact" />
           <ThemeToggle />
           <Button variant="ghost" size="icon" onClick={() => setMobileOpen(!mobileOpen)}>
             {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

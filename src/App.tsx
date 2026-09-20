@@ -52,6 +52,7 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import AdminBulkEmail from "./pages/admin/AdminBulkEmail";
 import AdminWorkspace from "./pages/admin/AdminWorkspace";
 import NotFound from "./pages/NotFound";
+import { OfflineIndicator } from "@/components/shared/OfflineIndicator";
 
 const queryClient = new QueryClient();
 
@@ -64,6 +65,7 @@ const App = () => (
             <div className="flex w-full max-w-screen-2xl flex-1 flex-col">
               <Toaster />
               <Sonner />
+              <OfflineIndicator />
               <BrowserRouter>
                 <ScrollToTop />
                 <Routes>
