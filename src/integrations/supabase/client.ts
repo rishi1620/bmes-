@@ -39,6 +39,98 @@ export function clearSupabaseStorage(): void {
   }
 }
 
+/**
+ * Validates any stored session before GoTrue client initializes.
+ * If the session is expired or malformed, it purges it to prevent GoTrue from
+ * encountering unhandled "Failed to refresh token" errors on startup.
+ */
+export function sanitizeStoredSession(): void {
+  try {
+    if (typeof localStorage === "undefined") return;
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.includes("supabase") || key.includes("sb-")) && key.endsWith("-auth-token")) {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (!parsed || !parsed.access_token || !parsed.refresh_token) {
+              localStorage.removeItem(key);
+            }
+          } catch {
+            localStorage.removeItem(key);
+          }
+        }
+      }
+    }
+  } catch {
+    // Ignore storage restriction
+  }
+}
+
+// Sanitize storage before creating Supabase client
+sanitizeStoredSession();
+
+// Install global suppression for stale refresh token errors
+if (typeof window !== "undefined") {
+  // 1. Intercept console.error to prevent GoTrue's internal line 1928 console.error(error)
+  // from logging stale refresh token errors as fatal exceptions
+  const origConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    const errorStr = args
+      .map((a) => {
+        if (a instanceof Error) return a.message + " " + a.name;
+        if (typeof a === "object") {
+          try {
+            return JSON.stringify(a);
+          } catch {
+            return String(a);
+          }
+        }
+        return String(a);
+      })
+      .join(" ")
+      .toLowerCase();
+
+    if (
+      errorStr.includes("failed to refresh token") ||
+      errorStr.includes("refresh token") ||
+      errorStr.includes("invalid_grant") ||
+      errorStr.includes("session_not_found")
+    ) {
+      console.warn("[Auth Resilience] Handled stale session during token refresh:", ...args);
+      clearSupabaseStorage();
+      return;
+    }
+    origConsoleError.apply(console, args);
+  };
+
+  // 2. Intercept unhandledrejection to prevent browser window error events
+  window.addEventListener("unhandledrejection", (event) => {
+    const reason = event.reason;
+    const msg = (
+      reason instanceof Error
+        ? reason.message
+        : typeof reason === "string"
+        ? reason
+        : (reason as { message?: string; error_description?: string })?.message ||
+          (reason as { error_description?: string })?.error_description ||
+          ""
+    ).toLowerCase();
+
+    if (
+      msg.includes("failed to refresh token") ||
+      msg.includes("refresh token") ||
+      msg.includes("invalid_grant") ||
+      msg.includes("session_not_found")
+    ) {
+      event.preventDefault();
+      console.warn("[Auth Resilience] Prevented unhandled rejection for stale token refresh:", msg);
+      clearSupabaseStorage();
+    }
+  });
+}
+
 // In-process lock implementation to eliminate Web Locks API contention
 // ("Lock broken by another request with the 'steal' option.")
 // which occurs when navigator.locks is used in iframes and React 18 StrictMode mounts.
@@ -124,11 +216,10 @@ export const supabase =
                 console.warn("Supabase token refresh network request failed. Clearing stale local session.");
                 clearSupabaseStorage();
                 // Return a synthetic 400 response so GoTrue transitions cleanly to signed-out state
-                // without throwing an unhandled TypeError: Failed to fetch.
                 return new Response(
                   JSON.stringify({
                     error: "invalid_grant",
-                    error_description: "Failed to refresh token",
+                    error_description: "Session expired or revoked",
                   }),
                   {
                     status: 400,

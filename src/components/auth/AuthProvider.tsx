@@ -84,10 +84,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     if (
       message.toLowerCase().includes("refresh token") || 
+      message.toLowerCase().includes("failed to refresh token") || 
       message.toLowerCase().includes("session_not_found") ||
       message.toLowerCase().includes("invalid_refresh_token") ||
       message.toLowerCase().includes("refresh token not found") ||
       message.toLowerCase().includes("invalid grant") ||
+      message.toLowerCase().includes("invalid_grant") ||
       message.toLowerCase().includes("session expired") ||
       message.toLowerCase().includes("failed to fetch")
     ) {
